@@ -1,0 +1,1281 @@
+<!DOCTYPE html>
+
+<script>
+    const SUPABASE_URL ="https://cxbtffhgjntpgcwoyjka.supabase.co";
+    const SUPABASE_ANON_KEY = "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImN4YnRmaGdqbnRwZ2N3b3lqa2JhIiwicm9sZSI6ImFub24iLCJpYXQiOjE3ODA3NDg4NTIsImV4cCI6MjA5NjMyNDg1Mn0.e488rS8JMCzoiPqhMbZBAON6eENXGIsvignV8cIUaE0";
+</script>
+
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>모비텍 경영 통합 시스템 v2</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+@import url('https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
+:root {
+  --navy:#1A1A2E; --navy2:#16213E; --green:#3B6D11; --greenMid:#639922; --greenLt:#97C459;
+  --greenBg:#EAF3DE; --blue:#185FA5; --blueBg:#E6F1FB; --purple:#534AB7; --purpleBg:#EEEDFE;
+  --amber:#854F0B; --amberBg:#FAEEDA; --coral:#993C1D; --coralBg:#FAECE7;
+  --teal:#0F6E56; --tealBg:#E1F5EE; --pink:#993556; --pinkBg:#FBEAF0;
+  --white:#fff; --bg:#F4F6F9; --text1:#1E293B; --text2:#475569; --text3:#94A3B8;
+  --border:#E2E8F0; --radius:10px; --shadow:0 2px 12px rgba(0,0,0,0.08);
+}
+*{margin:0;padding:0;box-sizing:border-box;}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text1);min-height:100vh;}
+
+/* 헤더 */
+.app-header{background:var(--navy);padding:0 24px;height:54px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;}
+.header-logo{display:flex;align-items:center;gap:10px;}
+.logo-mark{width:28px;height:28px;background:var(--greenLt);border-radius:7px;display:flex;align-items:center;justify-content:center;font-size:13px;font-weight:700;color:var(--navy);}
+.logo-text{font-size:15px;font-weight:600;color:#fff;}
+.logo-ver{font-size:10px;color:rgba(255,255,255,0.35);margin-left:4px;font-family:'JetBrains Mono',monospace;}
+.header-right{display:flex;align-items:center;gap:16px;}
+.save-status{font-size:11px;color:var(--greenLt);}
+.header-date{font-size:11px;color:rgba(255,255,255,0.35);font-family:'JetBrains Mono',monospace;}
+
+/* 메인 탭 */
+.main-tabs{background:var(--navy2);padding:0 24px;display:flex;gap:2px;border-bottom:1px solid rgba(255,255,255,0.06);overflow-x:auto;}
+.main-tab{padding:11px 18px;font-size:13px;font-weight:500;color:rgba(255,255,255,0.45);cursor:pointer;border-bottom:2px solid transparent;transition:all .2s;white-space:nowrap;}
+.main-tab:hover{color:rgba(255,255,255,0.75);}
+.main-tab.active{color:var(--greenLt);border-bottom-color:var(--greenLt);}
+
+/* 컨텐츠 */
+.content{padding:20px 24px;max-width:1280px;}
+.tab-panel{display:none;}
+.tab-panel.active{display:block;animation:fadeIn .2s ease;}
+@keyframes fadeIn{from{opacity:0;transform:translateY(5px)}to{opacity:1;transform:translateY(0)}}
+
+/* 서브탭 */
+.sub-tabs{display:flex;gap:6px;margin-bottom:18px;flex-wrap:wrap;}
+.sub-tab{padding:6px 14px;font-size:12px;font-weight:500;border-radius:20px;border:1px solid var(--border);background:var(--white);color:var(--text2);cursor:pointer;transition:all .2s;}
+.sub-tab:hover{border-color:var(--greenMid);color:var(--greenMid);}
+.sub-tab.active{background:var(--navy);border-color:var(--navy);color:#fff;}
+.sub-panel{display:none;}
+.sub-panel.active{display:block;animation:fadeIn .15s ease;}
+
+/* KPI */
+.kpi-grid{display:grid;grid-template-columns:repeat(5,1fr);gap:10px;margin-bottom:18px;}
+.kpi-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:14px 16px;box-shadow:var(--shadow);}
+.kpi-label{font-size:10px;color:var(--text3);margin-bottom:5px;}
+.kpi-value{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.2;}
+.kpi-sub{font-size:9px;color:var(--text3);margin-top:3px;}
+.kpi-delta{font-size:10px;font-weight:500;margin-top:4px;}
+.kpi-delta.up{color:var(--green);} .kpi-delta.down{color:var(--coral);}
+.kpi-green{color:var(--green);} .kpi-blue{color:var(--blue);} .kpi-coral{color:var(--coral);} .kpi-navy{color:var(--navy);} .kpi-amber{color:var(--amber);}
+
+/* 폼 카드 */
+.form-card{background:var(--white);border-radius:var(--radius);border:1px solid var(--border);box-shadow:var(--shadow);overflow:hidden;margin-bottom:16px;}
+.form-card-header{background:var(--navy);padding:12px 20px;display:flex;align-items:center;justify-content:space-between;}
+.fch-title{font-size:13px;font-weight:600;color:#fff;}
+.fch-badge{font-size:10px;background:rgba(151,196,89,0.2);color:var(--greenLt);padding:2px 9px;border-radius:8px;font-family:'JetBrains Mono',monospace;}
+.form-body{padding:18px 20px;}
+
+/* 그리드 */
+.form-grid{display:grid;gap:14px;}
+.g3{grid-template-columns:repeat(3,1fr);}
+.g4{grid-template-columns:repeat(4,1fr);}
+.g2{grid-template-columns:repeat(2,1fr);}
+.g1{grid-template-columns:1fr;}
+@media(max-width:768px){.g3,.g4,.g2{grid-template-columns:1fr;}}
+
+/* 필드 */
+.field{display:flex;flex-direction:column;gap:4px;}
+.field label{font-size:11px;font-weight:600;color:var(--text2);}
+.field label .req{color:#E24B4A;margin-left:2px;}
+.field input,.field select,.field textarea{height:36px;padding:0 10px;border:1px solid var(--border);border-radius:7px;font-size:12.5px;font-family:'Noto Sans KR',sans-serif;color:var(--text1);background:#FAFBFC;transition:all .15s;outline:none;}
+.field input:focus,.field select:focus{border-color:var(--greenMid);background:var(--white);box-shadow:0 0 0 3px rgba(99,153,34,0.1);}
+.field textarea{height:70px;padding:8px 10px;resize:vertical;}
+.field input[type=number]{font-family:'JetBrains Mono',monospace;}
+.amt-wrap{position:relative;}
+.amt-wrap input{padding-right:28px;}
+.amt-unit{position:absolute;right:8px;top:50%;transform:translateY(-50%);font-size:10px;color:var(--text3);pointer-events:none;}
+.amt-disp{font-size:10px;color:var(--greenMid);margin-top:2px;font-family:'JetBrains Mono',monospace;min-height:14px;}
+
+/* 코드 프리뷰 */
+.code-preview{background:var(--navy);border-radius:8px;padding:10px 14px;margin-bottom:14px;display:flex;align-items:center;gap:16px;flex-wrap:wrap;}
+.cp-label{font-size:9px;color:rgba(255,255,255,0.4);}
+.cp-code{font-size:15px;font-weight:600;color:var(--greenLt);font-family:'JetBrains Mono',monospace;}
+
+/* 버튼 */
+.btn-row{display:flex;align-items:center;justify-content:space-between;margin-top:18px;padding-top:16px;border-top:1px solid var(--border);}
+.btn{height:36px;padding:0 18px;border-radius:7px;font-size:12px;font-weight:500;font-family:'Noto Sans KR',sans-serif;cursor:pointer;border:none;transition:all .2s;display:flex;align-items:center;gap:5px;}
+.btn-primary{background:var(--navy);color:#fff;}
+.btn-primary:hover{background:#2a2a4e;transform:translateY(-1px);}
+.btn-success{background:var(--green);color:#fff;}
+.btn-success:hover{background:var(--greenMid);transform:translateY(-1px);}
+.btn-ghost{background:transparent;color:var(--text2);border:1px solid var(--border);}
+.btn-ghost:hover{background:var(--bg);}
+.keep-input{display:flex;align-items:center;gap:6px;font-size:11px;color:var(--text2);cursor:pointer;}
+.keep-input input{width:14px;height:14px;accent-color:var(--greenMid);}
+
+/* 테이블 */
+.data-section{margin-top:0;}
+.data-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:10px;}
+.data-title{font-size:12px;font-weight:600;color:var(--text1);}
+.data-count{font-size:10px;color:var(--text3);background:var(--bg);padding:2px 9px;border-radius:8px;}
+.dtw{overflow-x:auto;border-radius:var(--radius);border:1px solid var(--border);}
+.dt{width:100%;border-collapse:collapse;font-size:11.5px;}
+.dt th{background:var(--navy);color:rgba(255,255,255,0.7);padding:9px 12px;text-align:left;font-weight:500;font-size:10.5px;white-space:nowrap;}
+.dt td{padding:9px 12px;border-bottom:1px solid var(--border);color:var(--text1);white-space:nowrap;}
+.dt tr:last-child td{border-bottom:none;}
+.dt tr:hover td{background:#F8FAFF;}
+.mono{font-family:'JetBrains Mono',monospace;font-size:10.5px;}
+.ap{color:var(--green);font-weight:500;font-family:'JetBrains Mono',monospace;}
+.an{color:var(--coral);font-weight:500;font-family:'JetBrains Mono',monospace;}
+.ab{color:var(--blue);font-weight:600;font-family:'JetBrains Mono',monospace;}
+.empty td{text-align:center;padding:24px;color:var(--text3);font-size:12px;}
+
+/* 배지 */
+.sb{display:inline-block;font-size:9.5px;padding:2px 7px;border-radius:8px;font-weight:500;}
+.s-active{background:var(--greenBg);color:var(--green);}
+.s-pending{background:var(--amberBg);color:var(--amber);}
+.s-done{background:var(--blueBg);color:var(--blue);}
+.s-cancel{background:#F1EFE8;color:#5F5E5A;}
+.tb{display:inline-block;font-size:10px;font-weight:600;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+.t-SL{background:var(--greenBg);color:var(--green);}
+.t-MS{background:var(--tealBg);color:var(--teal);}
+.t-SI{background:var(--blueBg);color:var(--blue);}
+.t-SM{background:var(--amberBg);color:var(--amber);}
+.t-RD{background:var(--purpleBg);color:var(--purple);}
+.t-CS{background:var(--coralBg);color:var(--coral);}
+.t-CV{background:var(--pinkBg);color:var(--pink);}
+.rev-badge{display:inline-block;font-size:9.5px;font-weight:600;padding:2px 7px;border-radius:4px;font-family:'JetBrains Mono',monospace;}
+.r-SL{background:var(--greenBg);color:var(--green);}
+.r-MS{background:var(--tealBg);color:var(--teal);}
+.r-SI{background:var(--blueBg);color:var(--blue);}
+.r-SM{background:var(--amberBg);color:var(--amber);}
+.r-CV{background:var(--pinkBg);color:var(--pink);}
+
+/* 토스트 */
+.toast{position:fixed;bottom:24px;right:24px;background:var(--navy);color:#fff;padding:12px 18px;border-radius:10px;font-size:12px;display:flex;align-items:center;gap:10px;box-shadow:0 8px 30px rgba(0,0,0,0.2);transform:translateY(70px);opacity:0;transition:all .3s cubic-bezier(.34,1.56,.64,1);z-index:999;}
+.toast.show{transform:translateY(0);opacity:1;}
+.toast-icon{font-size:16px;flex-shrink:0;}
+.toast-title{font-weight:600;margin-bottom:1px;}
+.toast-sub{font-size:10px;color:rgba(255,255,255,0.55);}
+
+/* 배너 */
+.db-banner{background:linear-gradient(135deg,#0a1e18,#0e2820);border:1px solid rgba(29,158,117,0.3);border-radius:var(--radius);padding:12px 16px;margin-bottom:16px;display:flex;align-items:center;gap:12px;}
+.db-banner-text .title{font-size:12px;font-weight:600;color:#9FE1CB;margin-bottom:2px;}
+.db-banner-text .desc{font-size:10px;color:rgba(159,225,203,0.6);}
+.db-banner-btn{background:rgba(29,158,117,0.2);border:1px solid rgba(29,158,117,0.4);color:#9FE1CB;padding:6px 12px;border-radius:6px;font-size:11px;cursor:pointer;font-family:'Noto Sans KR',sans-serif;white-space:nowrap;}
+
+/* 차트 컨테이너 */
+.chart-grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:16px;}
+.chart-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:16px;box-shadow:var(--shadow);}
+.chart-card.full{grid-column:1/-1;}
+.chart-title{font-size:12px;font-weight:600;color:var(--text1);margin-bottom:14px;display:flex;align-items:center;justify-content:space-between;}
+.chart-title .badge{font-size:9.5px;background:var(--greenBg);color:var(--green);padding:2px 8px;border-radius:8px;}
+.chart-wrap{position:relative;height:220px;}
+.chart-wrap.tall{height:280px;}
+
+/* 포캐스팅 섹션 */
+.forecast-controls{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px;}
+.fc-card{background:var(--white);border:1px solid var(--border);border-radius:var(--radius);padding:12px 14px;}
+.fc-label{font-size:10px;color:var(--text3);margin-bottom:6px;}
+.fc-input{width:100%;height:34px;padding:0 10px;border:1px solid var(--border);border-radius:6px;font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;}
+.fc-input:focus{border-color:var(--greenMid);}
+
+/* 포캐스팅 시나리오 */
+.scenario-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px;}
+.scenario-card{border-radius:var(--radius);border:1px solid;padding:14px 16px;}
+.sc-base{background:#EAF3DE;border-color:#C0DD97;}
+.sc-opt{background:#E6F1FB;border-color:#B5D4F4;}
+.sc-pes{background:#FAEEDA;border-color:#FAC775;}
+.sc-label{font-size:9px;font-weight:600;letter-spacing:.06em;margin-bottom:6px;}
+.sc-base .sc-label{color:#3B6D11;} .sc-opt .sc-label{color:#0C447C;} .sc-pes .sc-label{color:#633806;}
+.sc-title{font-size:13px;font-weight:600;margin-bottom:8px;}
+.sc-base .sc-title{color:#27500A;} .sc-opt .sc-title{color:#0C447C;} .sc-pes .sc-title{color:#633806;}
+.sc-row{display:flex;justify-content:space-between;font-size:11px;margin-bottom:4px;}
+.sc-base .sc-row{color:#3B6D11;} .sc-opt .sc-row{color:#185FA5;} .sc-pes .sc-row{color:#854F0B;}
+.sc-val{font-weight:600;font-family:'JetBrains Mono',monospace;}
+
+/* 매출 유형별 진행바 */
+.rev-type-bars{display:flex;flex-direction:column;gap:10px;}
+.rtb-row{display:flex;align-items:center;gap:10px;}
+.rtb-label{font-size:11px;color:var(--text2);width:80px;flex-shrink:0;}
+.rtb-bar-bg{flex:1;height:8px;background:var(--bg);border-radius:4px;overflow:hidden;}
+.rtb-bar{height:100%;border-radius:4px;transition:width .6s ease;}
+.rtb-val{font-size:11px;font-weight:500;font-family:'JetBrains Mono',monospace;width:90px;text-align:right;flex-shrink:0;}
+
+/* 섹션 구분 */
+.section-divider{border:none;border-top:1px solid var(--border);margin:16px 0;}
+.section-label{font-size:10px;font-weight:600;color:var(--text3);letter-spacing:.08em;text-transform:uppercase;margin-bottom:10px;}
+
+/* 알림 뱃지 */
+.alert-box{border-radius:8px;padding:10px 14px;margin-bottom:12px;display:flex;align-items:flex-start;gap:10px;font-size:11px;}
+.alert-warn{background:var(--amberBg);border:1px solid var(--amberLt,#FAC775);}
+.alert-warn .alert-icon{color:var(--amber);font-size:14px;flex-shrink:0;}
+.alert-warn .alert-text{color:var(--amber);}
+.alert-info{background:var(--blueBg);border:1px solid #B5D4F4;}
+.alert-info .alert-icon{color:var(--blue);font-size:14px;}
+.alert-info .alert-text{color:var(--blue);}
+</style>
+</head>
+<body>
+
+<header class="app-header">
+  <div class="header-logo">
+    <div class="logo-mark">M</div>
+    <span class="logo-text">모비텍 경영 통합 시스템</span>
+    <span class="logo-ver">v2.0</span>
+  </div>
+  <div class="header-right">
+    <span class="save-status" id="saveStatus">● 준비</span>
+    <span class="header-date" id="hDate"></span>
+  </div>
+</header>
+
+<nav class="main-tabs">
+  <div class="main-tab active"   onclick="switchMain('dash')">📊 경영 대시보드</div>
+  <div class="main-tab"          onclick="switchMain('mgmt')">💰 중앙 경영관리</div>
+  <div class="main-tab"          onclick="switchMain('forecast')">🔮 사업 포캐스팅</div>
+  <div class="main-tab"          onclick="switchMain('hr')">👥 인사원가 관리</div>
+  <div class="main-tab"          onclick="switchMain('project')">🏢 프로젝트 템플릿</div>
+</nav>
+
+<div class="content">
+
+<!-- ══════════════════════════════════
+     탭 0: 경영 대시보드
+══════════════════════════════════ -->
+<div class="tab-panel active" id="panel-dash">
+  <div class="kpi-grid">
+    <div class="kpi-card"><div class="kpi-label">총 매출 (누적)</div><div class="kpi-value kpi-green" id="d-rev">0</div><div class="kpi-sub">원</div><div class="kpi-delta up" id="d-rev-d">-</div></div>
+    <div class="kpi-card"><div class="kpi-label">총 원가 (누적)</div><div class="kpi-value kpi-coral" id="d-cost">0</div><div class="kpi-sub">원</div></div>
+    <div class="kpi-card"><div class="kpi-label">영업이익</div><div class="kpi-value kpi-blue" id="d-profit">0</div><div class="kpi-sub">원 (자동계산)</div></div>
+    <div class="kpi-card"><div class="kpi-label">이익률</div><div class="kpi-value kpi-navy" id="d-margin">0%</div><div class="kpi-sub">매출 대비</div></div>
+    <div class="kpi-card"><div class="kpi-label">진행 프로젝트</div><div class="kpi-value kpi-amber" id="d-pjt">3</div><div class="kpi-sub">건</div></div>
+  </div>
+
+  <div class="chart-grid">
+    <div class="chart-card">
+      <div class="chart-title">월별 매출 추이 <span class="badge">최근 6개월</span></div>
+      <div class="chart-wrap"><canvas id="chartMonthly"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">매출 유형별 구성 <span class="badge">REV 분류</span></div>
+      <div class="chart-wrap"><canvas id="chartRevType"></canvas></div>
+    </div>
+    <div class="chart-card full">
+      <div class="chart-title">프로젝트별 손익 현황 <span class="badge">자동집계</span></div>
+      <div class="chart-wrap tall"><canvas id="chartProfitBar"></canvas></div>
+    </div>
+  </div>
+
+  <div class="form-card">
+    <div class="form-card-header"><span class="fch-title">프로젝트별 손익 상세</span><span class="fch-badge">실시간 자동계산</span></div>
+    <div class="form-body" style="padding:0">
+      <div class="dtw">
+        <table class="dt">
+          <thead><tr><th>사업코드</th><th>업체명</th><th>유형</th><th>매출(REV)</th><th>원가(COS)</th><th>판관비(ADM)</th><th>영업이익</th><th>이익률</th></tr></thead>
+          <tbody id="dash-profit-tbody"><tr class="empty"><td colspan="8">매출·비용 입력 후 자동 집계됩니다</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     탭 1: 중앙 경영관리
+══════════════════════════════════ -->
+<div class="tab-panel" id="panel-mgmt">
+  <div class="db-banner">
+    <div style="font-size:20px">🗄️</div>
+    <div class="db-banner-text"><div class="title">Supabase DB 연결 대기 중</div><div class="desc">현재 브라우저 로컬 모드 · Supabase 연결 후 팀 공유 가능</div></div>
+    <button class="db-banner-btn" onclick="showToast('Supabase 연결','클로드에게 연결 가이드를 요청하세요!','🗄️')">🔗 DB 연결</button>
+  </div>
+
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="switchSub('mgmt','rev')">💚 매출 수익</div>
+    <div class="sub-tab" onclick="switchSub('mgmt','cost')">🔴 운영 비용</div>
+    <div class="sub-tab" onclick="switchSub('mgmt','pipeline')">📡 영업 파이프라인</div>
+  </div>
+
+  <!-- 매출 수익 (확장) -->
+  <div class="sub-panel active" id="mgmt-rev">
+    <div class="alert-box alert-info">
+      <span class="alert-icon">ℹ️</span>
+      <div class="alert-text">v2 업데이트: <strong>REV-SM (유지보수 매출)</strong>, <strong>REV-CV (서비스 매출)</strong> 유형이 추가되었습니다. SM은 월정액·반복 수입, CV는 구독·서비스형 수입을 관리합니다.</div>
+    </div>
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">매출 수익 입력</span><span class="fch-badge">REV · 5종 매출 유형</span></div>
+      <div class="form-body">
+        <div class="code-preview">
+          <div><div class="cp-label">사업코드</div><div class="cp-code" id="revCode">--</div></div>
+          <div><div class="cp-label">매출 유형</div><div class="cp-code" id="revType" style="color:#FAC775">--</div></div>
+          <div><div class="cp-label">입력 금액</div><div class="cp-code" id="revAmt" style="color:#9FE1CB">0원</div></div>
+          <div><div class="cp-label">반복 여부</div><div class="cp-code" id="revRecur" style="color:#CECBF6">-</div></div>
+        </div>
+        <div class="form-grid g4">
+          <div class="field"><label>프로젝트코드 <span class="req">*</span></label><input id="rv-code" placeholder="예: 24-SL-GG-01" oninput="updateRevPrev()"></div>
+          <div class="field"><label>업체명 <span class="req">*</span></label><input id="rv-company" placeholder="예: 하나은행"></div>
+          <div class="field"><label>매출 유형 <span class="req">*</span></label>
+            <select id="rv-type" onchange="updateRevPrev()">
+              <option value="">선택하세요</option>
+              <option value="REV-SL">REV-SL · 솔루션 라이선스 (일회성)</option>
+              <option value="REV-SI">REV-SI · 구축 매출 (단계별)</option>
+              <option value="REV-SM">REV-SM · 유지보수 매출 (정기반복)</option>
+              <option value="REV-SM-M">REV-SM · 월정액 유지보수 (월단위)</option>
+              <option value="REV-CV">REV-CV · 서비스 매출 (구독/서비스형)</option>
+              <option value="REV-CV-M">REV-CV · 월정액 서비스 (월단위)</option>
+            </select>
+          </div>
+          <div class="field"><label>청구 주기</label>
+            <select id="rv-cycle">
+              <option value="일회성">일회성</option>
+              <option value="월정액">월정액</option>
+              <option value="분기">분기</option>
+              <option value="반기">반기</option>
+              <option value="연간">연간</option>
+            </select>
+          </div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>수주액 <span class="req">*</span></label>
+            <div class="amt-wrap"><input type="number" id="rv-amount" placeholder="0" oninput="updateRevPrev();fmtAmt('rv-amount','rv-amt-d')"><span class="amt-unit">원</span></div>
+            <div class="amt-disp" id="rv-amt-d"></div>
+          </div>
+          <div class="field"><label>부가세</label>
+            <div class="amt-wrap"><input type="number" id="rv-vat" placeholder="0" oninput="calcRevTotal()"><span class="amt-unit">원</span></div>
+          </div>
+          <div class="field"><label>합계금액 (자동)</label>
+            <div class="amt-wrap"><input type="number" id="rv-total" readonly style="background:#f0f4f0;color:var(--green)"><span class="amt-unit">원</span></div>
+          </div>
+          <div class="field"><label>미수금</label>
+            <div class="amt-wrap"><input type="number" id="rv-unpaid" placeholder="0"><span class="amt-unit">원</span></div>
+          </div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>세금계산서 발행일</label><input type="date" id="rv-taxdate"></div>
+          <div class="field"><label>입금예정일</label><input type="date" id="rv-duedate"></div>
+          <div class="field"><label>실제입금일</label><input type="date" id="rv-paiddate"></div>
+          <div class="field"><label>담당PM</label><input id="rv-pm" placeholder="홍길동"></div>
+        </div>
+        <!-- SM/CV 전용 반복 설정 -->
+        <div id="rv-recur-section" style="display:none;margin-top:12px">
+          <div class="section-label">📅 반복 매출 설정 (SM/CV 전용)</div>
+          <div class="form-grid g4">
+            <div class="field"><label>계약 시작월</label><input type="month" id="rv-start-month"></div>
+            <div class="field"><label>계약 종료월</label><input type="month" id="rv-end-month"></div>
+            <div class="field"><label>월 단가</label>
+              <div class="amt-wrap"><input type="number" id="rv-monthly" placeholder="0" oninput="calcTotalMonths()"><span class="amt-unit">원/월</span></div>
+            </div>
+            <div class="field"><label>총 계약금액 (자동)</label>
+              <div class="amt-wrap"><input type="number" id="rv-contract-total" readonly style="background:#f0f4f0;color:var(--teal)"><span class="amt-unit">원</span></div>
+            </div>
+          </div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" id="rv-keep" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost" onclick="clearRev()">초기화</button>
+            <button class="btn btn-success" onclick="saveRev()">💾 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <!-- 매출 유형별 현황 -->
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">매출 유형별 현황</span><span class="fch-badge">자동집계</span></div>
+      <div class="form-body">
+        <div class="rev-type-bars" id="rev-type-bars">
+          <div class="rtb-row"><span class="rtb-label">REV-SL 솔루션</span><div class="rtb-bar-bg"><div class="rtb-bar" id="bar-SL" style="width:0%;background:var(--green)"></div></div><span class="rtb-val ap" id="val-SL">0원</span></div>
+          <div class="rtb-row"><span class="rtb-label">REV-SI 구축</span><div class="rtb-bar-bg"><div class="rtb-bar" id="bar-SI" style="width:0%;background:var(--blue)"></div></div><span class="rtb-val" style="color:var(--blue);font-family:'JetBrains Mono',monospace" id="val-SI">0원</span></div>
+          <div class="rtb-row"><span class="rtb-label">REV-SM 유지보수</span><div class="rtb-bar-bg"><div class="rtb-bar" id="bar-SM" style="width:0%;background:var(--teal)"></div></div><span class="rtb-val" style="color:var(--teal);font-family:'JetBrains Mono',monospace" id="val-SM">0원</span></div>
+          <div class="rtb-row"><span class="rtb-label">REV-CV 서비스</span><div class="rtb-bar-bg"><div class="rtb-bar" id="bar-CV" style="width:0%;background:var(--pink)"></div></div><span class="rtb-val" style="color:var(--pink);font-family:'JetBrains Mono',monospace" id="val-CV">0원</span></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">매출 수익 내역</div><div class="data-count" id="rev-cnt">0건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>사업코드</th><th>업체명</th><th>유형</th><th>청구주기</th><th>수주액</th><th>부가세</th><th>합계</th><th>세금계산서일</th><th>PM</th><th>미수금</th><th>입력시간</th></tr></thead>
+        <tbody id="rev-tbody"><tr class="empty"><td colspan="11">입력된 매출 데이터가 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- 운영 비용 -->
+  <div class="sub-panel" id="mgmt-cost">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">운영 비용 입력</span><span class="fch-badge">COS / ADM</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>프로젝트코드</label><input id="ct-code" placeholder="예: 24-SL-GG-01"></div>
+          <div class="field"><label>비용 유형 <span class="req">*</span></label>
+            <select id="ct-type">
+              <option value="">선택</option>
+              <optgroup label="── 원가 (COS) ──">
+                <option value="COS-LAB">COS-LAB · 직접 인건비</option>
+                <option value="COS-OUT">COS-OUT · 외주비/용역비</option>
+                <option value="COS-EXP">COS-EXP · 직접 경비</option>
+              </optgroup>
+              <optgroup label="── 판관비 (ADM) ──">
+                <option value="ADM-REN">ADM-REN · 임대료/관리비</option>
+                <option value="ADM-SAL">ADM-SAL · 관리직 인건비</option>
+                <option value="ADM-GEN">ADM-GEN · 일반 관리비</option>
+              </optgroup>
+            </select>
+          </div>
+          <div class="field"><label>거래처/내용 <span class="req">*</span></label><input id="ct-desc" placeholder="예: 홍길동 인건비"></div>
+          <div class="field"><label>처리 상태</label>
+            <select id="ct-status"><option>처리완료</option><option>처리중</option><option>예정</option></select>
+          </div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>금액 <span class="req">*</span></label>
+            <div class="amt-wrap"><input type="number" id="ct-amount" placeholder="0" oninput="fmtAmt('ct-amount','ct-amt-d')"><span class="amt-unit">원</span></div>
+            <div class="amt-disp" id="ct-amt-d"></div>
+          </div>
+          <div class="field"><label>지출일자</label><input type="date" id="ct-date"></div>
+          <div class="field"><label>담당자</label><input id="ct-person" placeholder="홍길동"></div>
+          <div class="field"><label>비고</label><input id="ct-note" placeholder="메모"></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost">초기화</button>
+            <button class="btn btn-success" onclick="saveCost()">💾 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">운영 비용 내역</div><div class="data-count" id="cost-cnt">0건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>프로젝트코드</th><th>유형</th><th>내용</th><th>금액</th><th>지출일</th><th>담당자</th><th>상태</th><th>입력시간</th></tr></thead>
+        <tbody id="cost-tbody"><tr class="empty"><td colspan="8">입력된 비용 데이터가 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- 영업 파이프라인 -->
+  <div class="sub-panel" id="mgmt-pipeline">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">영업 파이프라인 등록</span><span class="fch-badge">PIPELINE</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>고객사 <span class="req">*</span></label><input id="pl-company" placeholder="예: 하나은행"></div>
+          <div class="field"><label>사업 유형</label>
+            <select id="pl-type">
+              <option value="SL">SL · 솔루션</option><option value="SI">SI · 구축</option>
+              <option value="MS">MS · 유지보수</option><option value="SM">SM · 운영</option>
+              <option value="CV">CV · 서비스</option><option value="RD">RD · 자체개발</option>
+            </select>
+          </div>
+          <div class="field"><label>예상 수주액</label>
+            <div class="amt-wrap"><input type="number" id="pl-amount" placeholder="0" oninput="fmtAmt('pl-amount','pl-amt-d')"><span class="amt-unit">원</span></div>
+            <div class="amt-disp" id="pl-amt-d"></div>
+          </div>
+          <div class="field"><label>수주 확률</label>
+            <select id="pl-prob"><option>10%</option><option>30%</option><option>50%</option><option>70%</option><option>90%</option><option>100%</option></select>
+          </div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>진행 단계</label>
+            <select id="pl-stage"><option>발굴</option><option>제안</option><option>협상</option><option>계약</option><option>완료</option></select>
+          </div>
+          <div class="field"><label>예상 수주일</label><input type="date" id="pl-date"></div>
+          <div class="field"><label>담당PM</label><input id="pl-pm" placeholder="홍길동"></div>
+          <div class="field"><label>비고</label><input id="pl-note" placeholder="메모"></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px">
+            <button class="btn btn-ghost">초기화</button>
+            <button class="btn btn-success" onclick="savePipeline()">💾 저장</button>
+          </div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">파이프라인 현황</div><div class="data-count" id="pl-cnt">0건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>고객사</th><th>유형</th><th>예상금액</th><th>가중금액</th><th>단계</th><th>확률</th><th>PM</th><th>예상일</th></tr></thead>
+        <tbody id="pl-tbody"><tr class="empty"><td colspan="8">등록된 파이프라인이 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     탭 2: 사업 포캐스팅
+══════════════════════════════════ -->
+<div class="tab-panel" id="panel-forecast">
+  <div class="alert-box alert-info">
+    <span class="alert-icon">🔮</span>
+    <div class="alert-text"><strong>사업 포캐스팅:</strong> 과거 실적 + 파이프라인 데이터를 기반으로 향후 6개월 매출·이익을 예측합니다. 시나리오별(낙관/기본/비관) 경영 예측을 제공합니다.</div>
+  </div>
+
+  <!-- 포캐스팅 입력 파라미터 -->
+  <div class="form-card">
+    <div class="form-card-header"><span class="fch-title">포캐스팅 파라미터 설정</span><span class="fch-badge">예측 조건 입력</span></div>
+    <div class="form-body">
+      <div class="form-grid g4">
+        <div class="field"><label>예측 기준 연도</label>
+          <select id="fc-year"><option>2025</option><option selected>2026</option><option>2027</option></select>
+        </div>
+        <div class="field"><label>기존 SM 월정액 합계</label>
+          <div class="amt-wrap"><input type="number" id="fc-sm-monthly" placeholder="0" value="45000000"><span class="amt-unit">원/월</span></div>
+        </div>
+        <div class="field"><label>기존 CV 서비스 월정액</label>
+          <div class="amt-wrap"><input type="number" id="fc-cv-monthly" placeholder="0" value="0"><span class="amt-unit">원/월</span></div>
+        </div>
+        <div class="field"><label>월 고정 판관비</label>
+          <div class="amt-wrap"><input type="number" id="fc-adm-monthly" placeholder="0" value="15000000"><span class="amt-unit">원/월</span></div>
+        </div>
+      </div>
+      <div class="form-grid g4" style="margin-top:12px">
+        <div class="field"><label>SI 수주 예상 (낙관)</label>
+          <div class="amt-wrap"><input type="number" id="fc-si-opt" placeholder="0" value="300000000"><span class="amt-unit">원</span></div>
+        </div>
+        <div class="field"><label>SI 수주 예상 (기본)</label>
+          <div class="amt-wrap"><input type="number" id="fc-si-base" placeholder="0" value="200000000"><span class="amt-unit">원</span></div>
+        </div>
+        <div class="field"><label>SI 수주 예상 (비관)</label>
+          <div class="amt-wrap"><input type="number" id="fc-si-pes" placeholder="0" value="100000000"><span class="amt-unit">원</span></div>
+        </div>
+        <div class="field"><label>원가율 예상 (%)</label>
+          <input type="number" id="fc-cost-rate" placeholder="65" value="65" min="0" max="100">
+        </div>
+      </div>
+      <div class="btn-row">
+        <div></div>
+        <button class="btn btn-success" onclick="runForecast()">🔮 포캐스팅 실행</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- 시나리오 요약 -->
+  <div class="scenario-grid" id="scenario-grid">
+    <div class="scenario-card sc-opt">
+      <div class="sc-label">📈 낙관 시나리오</div>
+      <div class="sc-title">Optimistic</div>
+      <div class="sc-row"><span>연간 매출</span><span class="sc-val" id="sc-opt-rev">-</span></div>
+      <div class="sc-row"><span>연간 이익</span><span class="sc-val" id="sc-opt-profit">-</span></div>
+      <div class="sc-row"><span>이익률</span><span class="sc-val" id="sc-opt-margin">-</span></div>
+    </div>
+    <div class="scenario-card sc-base">
+      <div class="sc-label">📊 기본 시나리오</div>
+      <div class="sc-title">Base Case</div>
+      <div class="sc-row"><span>연간 매출</span><span class="sc-val" id="sc-base-rev">-</span></div>
+      <div class="sc-row"><span>연간 이익</span><span class="sc-val" id="sc-base-profit">-</span></div>
+      <div class="sc-row"><span>이익률</span><span class="sc-val" id="sc-base-margin">-</span></div>
+    </div>
+    <div class="scenario-card sc-pes">
+      <div class="sc-label">📉 비관 시나리오</div>
+      <div class="sc-title">Conservative</div>
+      <div class="sc-row"><span>연간 매출</span><span class="sc-val" id="sc-pes-rev">-</span></div>
+      <div class="sc-row"><span>연간 이익</span><span class="sc-val" id="sc-pes-profit">-</span></div>
+      <div class="sc-row"><span>이익률</span><span class="sc-val" id="sc-pes-margin">-</span></div>
+    </div>
+  </div>
+
+  <!-- 포캐스팅 차트 -->
+  <div class="chart-grid">
+    <div class="chart-card full">
+      <div class="chart-title">월별 매출 예측 (시나리오별) <span class="badge">향후 12개월</span></div>
+      <div class="chart-wrap tall"><canvas id="chartForecast"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">매출 구성 예측 <span class="badge">유형별</span></div>
+      <div class="chart-wrap"><canvas id="chartFcType"></canvas></div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-title">분기별 이익률 예측 <span class="badge">기본 시나리오</span></div>
+      <div class="chart-wrap"><canvas id="chartFcMargin"></canvas></div>
+    </div>
+  </div>
+
+  <!-- 포캐스팅 상세 테이블 -->
+  <div class="form-card">
+    <div class="form-card-header"><span class="fch-title">월별 포캐스팅 상세 (기본 시나리오)</span><span class="fch-badge">자동계산</span></div>
+    <div class="form-body" style="padding:0">
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>월</th><th>SM 반복매출</th><th>CV 서비스매출</th><th>SI/SL 신규</th><th>총 매출</th><th>원가</th><th>판관비</th><th>영업이익</th><th>이익률</th></tr></thead>
+        <tbody id="fc-detail-tbody"><tr class="empty"><td colspan="9">포캐스팅 실행 버튼을 눌러주세요</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     탭 3: 인사원가 관리
+══════════════════════════════════ -->
+<div class="tab-panel" id="panel-hr">
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="switchSub('hr','member')">직원 마스터</div>
+    <div class="sub-tab" onclick="switchSub('hr','salary')">급여 원가</div>
+    <div class="sub-tab" onclick="switchSub('hr','timesheet')">타임시트</div>
+  </div>
+  <div class="sub-panel active" id="hr-member">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">직원 마스터 등록</span><span class="fch-badge">DB_Member_Master</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>사번 <span class="req">*</span></label><input id="mm-id" placeholder="MB001"></div>
+          <div class="field"><label>성명 <span class="req">*</span></label><input id="mm-name" placeholder="홍길동"></div>
+          <div class="field"><label>부서 <span class="req">*</span></label>
+            <select id="mm-dept"><option value="">선택</option><option>영업·사업관리팀</option><option>기술·개발팀</option><option>경영지원팀</option><option>대표이사</option></select>
+          </div>
+          <div class="field"><label>직급</label>
+            <select id="mm-rank"><option>대표</option><option>이사</option><option>부장</option><option>차장</option><option>과장</option><option>대리</option><option>사원</option></select>
+          </div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>입사일</label><input type="date" id="mm-join"></div>
+          <div class="field"><label>연락처</label><input type="tel" id="mm-phone" placeholder="010-0000-0000"></div>
+          <div class="field"><label>이메일</label><input type="email" id="mm-email"></div>
+          <div class="field"><label>상태</label><select id="mm-status"><option>재직</option><option>휴직</option><option>퇴직</option></select></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveMember()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">직원 목록</div><div class="data-count" id="mm-cnt">0명</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>사번</th><th>성명</th><th>부서</th><th>직급</th><th>입사일</th><th>연락처</th><th>상태</th></tr></thead>
+        <tbody id="mm-tbody"><tr class="empty"><td colspan="7">등록된 직원이 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="sub-panel" id="hr-salary">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">급여 원가 입력</span><span class="fch-badge">DB_Salary_Cost</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>성명 <span class="req">*</span></label><input id="sl-name" placeholder="홍길동"></div>
+          <div class="field"><label>귀속연월 <span class="req">*</span></label><input type="month" id="sl-month"></div>
+          <div class="field"><label>프로젝트 배분 코드</label><input id="sl-code" placeholder="24-SL-GG-01"></div>
+          <div class="field"><label>투입률 (%)</label><input type="number" id="sl-ratio" placeholder="100" value="100" oninput="calcSal()"></div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>기본급</label><div class="amt-wrap"><input type="number" id="sl-base" placeholder="0" oninput="calcSal()"><span class="amt-unit">원</span></div></div>
+          <div class="field"><label>4대보험(회사)</label><div class="amt-wrap"><input type="number" id="sl-ins" placeholder="0" oninput="calcSal()"><span class="amt-unit">원</span></div></div>
+          <div class="field"><label>총 인건비(자동)</label><div class="amt-wrap"><input type="number" id="sl-total" readonly style="background:#f0f4f0;color:var(--blue)"><span class="amt-unit">원</span></div></div>
+          <div class="field"><label>COS-LAB 배분(자동)</label><div class="amt-wrap"><input type="number" id="sl-coslab" readonly style="background:#fff8e0;color:var(--amber)"><span class="amt-unit">원</span></div></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveSalary()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">급여 원가 내역</div><div class="data-count" id="sl-cnt">0건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>성명</th><th>귀속월</th><th>프로젝트</th><th>기본급</th><th>4대보험</th><th>투입률</th><th>COS-LAB</th></tr></thead>
+        <tbody id="sl-tbody"><tr class="empty"><td colspan="7">입력된 급여 데이터가 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="sub-panel" id="hr-timesheet">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">타임시트 입력</span><span class="fch-badge">DB_Timesheet</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>성명 <span class="req">*</span></label><input id="ts-name" placeholder="홍길동"></div>
+          <div class="field"><label>프로젝트코드 <span class="req">*</span></label><input id="ts-code" placeholder="24-SL-GG-01"></div>
+          <div class="field"><label>작업일자 <span class="req">*</span></label><input type="date" id="ts-date"></div>
+          <div class="field"><label>작업 유형</label><select id="ts-type"><option>개발</option><option>분석</option><option>설계</option><option>테스트</option><option>PM</option><option>지원</option></select></div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>투입시간(H)</label><input type="number" id="ts-hours" placeholder="8" min="0" max="24"></div>
+          <div class="field" style="grid-column:span 3"><label>작업 내용</label><input id="ts-work" placeholder="작업 내용 요약"></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveTS()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">타임시트 내역</div><div class="data-count" id="ts-cnt">0건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>성명</th><th>프로젝트</th><th>작업일</th><th>시간</th><th>유형</th><th>내용</th></tr></thead>
+        <tbody id="ts-tbody"><tr class="empty"><td colspan="6">입력된 타임시트가 없습니다</td></tr></tbody>
+      </table></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════
+     탭 4: 프로젝트 템플릿
+══════════════════════════════════ -->
+<div class="tab-panel" id="panel-project">
+  <div class="sub-tabs">
+    <div class="sub-tab active" onclick="switchSub('project','client')">업체 마스터</div>
+    <div class="sub-tab" onclick="switchSub('project','pjt')">프로젝트 마스터</div>
+    <div class="sub-tab" onclick="switchSub('project','budget')">예산 계획</div>
+  </div>
+  <div class="sub-panel active" id="project-client">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">업체 마스터 등록</span><span class="fch-badge">DB_Client_Master</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>사업자번호 <span class="req">*</span></label><input id="cl-bizno" placeholder="000-00-00000"></div>
+          <div class="field"><label>업체명 <span class="req">*</span></label><input id="cl-name" placeholder="주식회사 ○○○"></div>
+          <div class="field"><label>대표자명</label><input id="cl-ceo" placeholder="홍길동"></div>
+          <div class="field"><label>최초등록일</label><input type="date" id="cl-regdate"></div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>업태</label><input id="cl-ind" placeholder="정보통신업"></div>
+          <div class="field"><label>종목</label><input id="cl-sec" placeholder="소프트웨어 개발"></div>
+          <div class="field"><label>담당자</label><input id="cl-contact" placeholder="김담당"></div>
+          <div class="field"><label>담당자 이메일</label><input type="email" id="cl-email"></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveClient()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">업체 목록</div><div class="data-count" id="cl-cnt">3건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>사업자번호</th><th>업체명</th><th>대표자</th><th>업태/종목</th><th>담당자</th><th>이메일</th><th>등록일</th></tr></thead>
+        <tbody id="cl-tbody">
+          <tr><td class="mono">202-81-14695</td><td>주식회사 하나은행</td><td>-</td><td>금융업</td><td>-</td><td>-</td><td>2024-01-01</td></tr>
+          <tr><td class="mono">229-81-12824</td><td>(주)아이티센씨티에스</td><td>-</td><td>IT서비스</td><td>-</td><td>-</td><td>2023-07-01</td></tr>
+          <tr><td class="mono">107-88-02966</td><td>주식회사 우리투자증권</td><td>-</td><td>금융업</td><td>-</td><td>-</td><td>2023-07-01</td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="sub-panel" id="project-pjt">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">프로젝트 마스터 등록</span><span class="fch-badge">DB_Project_Master</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>사업자번호 <span class="req">*</span></label><input id="pj-bizno" placeholder="000-00-00000"></div>
+          <div class="field"><label>업체명 <span class="req">*</span></label><input id="pj-client" placeholder="주식회사 ○○○"></div>
+          <div class="field"><label>사업 종류 <span class="req">*</span></label>
+            <select id="pj-type" onchange="updatePjtCode()">
+              <option value="">선택</option><option value="SL">SL · 솔루션</option><option value="MS">MS · 유지보수</option>
+              <option value="SI">SI · 구축</option><option value="SM">SM · 운영</option>
+              <option value="CV">CV · 서비스</option><option value="RD">RD · 자체개발</option>
+            </select>
+          </div>
+          <div class="field"><label>진행상태</label><select id="pj-status"><option>진행중</option><option>완료</option><option>대기</option><option>취소</option></select></div>
+        </div>
+        <div class="form-grid g1" style="margin-top:12px">
+          <div class="field"><label>프로젝트명 <span class="req">*</span></label><input id="pj-name" placeholder="예: 2026년 하나은행 AML 구축"></div>
+        </div>
+        <div class="form-grid g4" style="margin-top:12px">
+          <div class="field"><label>시작일</label><input type="date" id="pj-start"></div>
+          <div class="field"><label>종료일</label><input type="date" id="pj-end"></div>
+          <div class="field"><label>계약금액</label><div class="amt-wrap"><input type="number" id="pj-amount" placeholder="0"><span class="amt-unit">원</span></div></div>
+          <div class="field"><label>입력일자</label><input type="date" id="pj-regdate"></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveProject()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+    <div class="data-section">
+      <div class="data-header"><div class="data-title">프로젝트 목록</div><div class="data-count" id="pj-cnt">3건</div></div>
+      <div class="dtw"><table class="dt">
+        <thead><tr><th>사업자번호</th><th>업체명</th><th>유형</th><th>코드</th><th>프로젝트명</th><th>시작일</th><th>종료일</th><th>계약금액</th><th>상태</th></tr></thead>
+        <tbody id="pj-tbody">
+          <tr><td class="mono">202-81-14695</td><td>주식회사 하나은행</td><td><span class="tb t-SI">SI</span></td><td class="mono">P24-001</td><td>하나은행 AML3차 구축</td><td>2024-12-05</td><td>2025-04-25</td><td class="ap">-</td><td><span class="sb s-done">완료</span></td></tr>
+          <tr><td class="mono">229-81-12824</td><td>(주)아이티센씨티에스</td><td><span class="tb t-MS">MS</span></td><td class="mono">P23-003</td><td>아이티센 유지보수</td><td>2023-01-01</td><td>2026-12-31</td><td class="ap">-</td><td><span class="sb s-active">진행중</span></td></tr>
+          <tr><td class="mono">107-88-02966</td><td>주식회사 우리투자증권</td><td><span class="tb t-SM">SM</span></td><td class="mono">P26-002</td><td>우리투자증권 운영</td><td>2026-01-01</td><td>2026-12-31</td><td class="ap">-</td><td><span class="sb s-active">진행중</span></td></tr>
+        </tbody>
+      </table></div>
+    </div>
+  </div>
+  <div class="sub-panel" id="project-budget">
+    <div class="form-card">
+      <div class="form-card-header"><span class="fch-title">예산 계획 입력</span><span class="fch-badge">DB_Budget_Plan</span></div>
+      <div class="form-body">
+        <div class="form-grid g4">
+          <div class="field"><label>프로젝트코드 <span class="req">*</span></label><input id="bd-code" placeholder="P24-001"></div>
+          <div class="field"><label>예산 항목</label><select id="bd-item"><option>인건비</option><option>외주비</option><option>경비</option><option>장비</option><option>라이선스</option><option>기타</option></select></div>
+          <div class="field"><label>계획 금액</label><div class="amt-wrap"><input type="number" id="bd-plan" placeholder="0" oninput="fmtAmt('bd-plan','bd-plan-d')"><span class="amt-unit">원</span></div><div class="amt-disp" id="bd-plan-d"></div></div>
+          <div class="field"><label>실제 금액</label><div class="amt-wrap"><input type="number" id="bd-actual" placeholder="0"><span class="amt-unit">원</span></div></div>
+        </div>
+        <div class="btn-row">
+          <label class="keep-input"><input type="checkbox" checked>입력값 유지</label>
+          <div style="display:flex;gap:8px"><button class="btn btn-ghost">초기화</button><button class="btn btn-success" onclick="saveBudget()">💾 저장</button></div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+</div><!-- /content -->
+
+<!-- 토스트 -->
+<div class="toast" id="toast">
+  <div class="toast-icon" id="t-icon">✅</div>
+  <div><div class="toast-title" id="t-title">저장 완료</div><div class="toast-sub" id="t-sub"></div></div>
+</div>
+
+<script>
+// ── 초기화 ──────────────────────────────
+const today = new Date().toISOString().split('T')[0];
+const ym = today.slice(0,7);
+document.getElementById('hDate').textContent = today.replace(/-/g,'.');
+['ts-date','cl-regdate','pj-regdate'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=today;});
+['sl-month'].forEach(id=>{const e=document.getElementById(id);if(e)e.value=ym;});
+
+// 데이터 저장소
+let revData=[], costData=[], pipeData=[], memberData=[], salaryData=[], tsData=[];
+
+// ── 탭 전환 ──────────────────────────────
+function switchMain(tab) {
+  document.querySelectorAll('.main-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['dash','mgmt','forecast','hr','project'][i]===tab);
+  });
+  document.querySelectorAll('.tab-panel').forEach(p=>p.classList.remove('active'));
+  document.getElementById('panel-'+tab).classList.add('active');
+  if(tab==='dash') refreshDashCharts();
+}
+function switchSub(main,sub) {
+  const panel=document.getElementById('panel-'+main);
+  const subMap={mgmt:['rev','cost','pipeline'],hr:['member','salary','timesheet'],project:['client','pjt','budget']};
+  panel.querySelectorAll('.sub-tab').forEach(t=>t.classList.remove('active'));
+  panel.querySelectorAll('.sub-panel').forEach(p=>p.classList.remove('active'));
+  const idx=subMap[main].indexOf(sub);
+  const tabs=panel.querySelectorAll('.sub-tab');
+  if(tabs[idx])tabs[idx].classList.add('active');
+  const el=document.getElementById(main+'-'+sub);
+  if(el)el.classList.add('active');
+}
+
+// ── 유틸 ────────────────────────────────
+function fmtAmt(inId,dispId){
+  const v=parseFloat(document.getElementById(inId).value)||0;
+  const d=document.getElementById(dispId);
+  if(d)d.textContent=v>0?'= '+v.toLocaleString('ko-KR')+' 원':'';
+}
+function getTS(){
+  const d=new Date();
+  return (d.getMonth()+1).toString().padStart(2,'0')+'/'+d.getDate().toString().padStart(2,'0')+' '+
+         d.getHours().toString().padStart(2,'0')+':'+d.getMinutes().toString().padStart(2,'0');
+}
+function addRow(tbodyId, cells){
+  const tb=document.getElementById(tbodyId);
+  tb.querySelectorAll('.empty').forEach(r=>r.remove());
+  const tr=document.createElement('tr');
+  tr.innerHTML=cells.map(c=>`<td>${c}</td>`).join('');
+  tb.appendChild(tr);
+}
+function cntRows(tbodyId){
+  return document.getElementById(tbodyId).querySelectorAll('tr:not(.empty)').length;
+}
+function showToast(title,sub='',icon='✅'){
+  document.getElementById('t-icon').textContent=icon;
+  document.getElementById('t-title').textContent=title;
+  document.getElementById('t-sub').textContent=sub;
+  const t=document.getElementById('toast');
+  t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),3000);
+  document.getElementById('saveStatus').textContent='● 저장됨';
+}
+function fmt(n){return Math.round(n).toLocaleString('ko-KR');}
+
+// ── 매출 프리뷰 ──────────────────────────
+function updateRevPrev(){
+  const code=document.getElementById('rv-code').value||'--';
+  const type=document.getElementById('rv-type').value||'--';
+  const amt=parseFloat(document.getElementById('rv-amount').value)||0;
+  document.getElementById('revCode').textContent=code;
+  document.getElementById('revType').textContent=type;
+  document.getElementById('revAmt').textContent=amt>0?fmt(amt)+'원':'0원';
+  const isRecur=type.includes('SM')||type.includes('CV');
+  document.getElementById('revRecur').textContent=isRecur?'반복매출':'일회성';
+  document.getElementById('rv-recur-section').style.display=isRecur?'block':'none';
+}
+function calcRevTotal(){
+  const a=parseFloat(document.getElementById('rv-amount').value)||0;
+  const b=parseFloat(document.getElementById('rv-vat').value)||0;
+  document.getElementById('rv-total').value=a+b||'';
+}
+function calcTotalMonths(){
+  const start=document.getElementById('rv-start-month').value;
+  const end=document.getElementById('rv-end-month').value;
+  const monthly=parseFloat(document.getElementById('rv-monthly').value)||0;
+  if(start&&end&&monthly){
+    const s=new Date(start+'-01'), e=new Date(end+'-01');
+    const months=(e.getFullYear()-s.getFullYear())*12+(e.getMonth()-s.getMonth())+1;
+    document.getElementById('rv-contract-total').value=months*monthly;
+  }
+}
+function calcSal(){
+  const base=parseFloat(document.getElementById('sl-base').value)||0;
+  const ins=parseFloat(document.getElementById('sl-ins').value)||0;
+  const ratio=parseFloat(document.getElementById('sl-ratio').value)||100;
+  const total=base+ins;
+  document.getElementById('sl-total').value=total||'';
+  document.getElementById('sl-coslab').value=Math.round(total*ratio/100)||'';
+}
+function updatePjtCode(){
+  const t=document.getElementById('pj-type').value;
+  if(t)showToast('코드 형식',`P${new Date().getFullYear().toString().slice(-2)}-XXX · 유형: ${t}`,'📋');
+}
+
+// ── KPI 갱신 ────────────────────────────
+function updateKPI(){
+  const totalRev=revData.reduce((s,r)=>s+r.amount,0);
+  const totalCost=costData.reduce((s,c)=>s+c.amount,0);
+  const profit=totalRev-totalCost;
+  const margin=totalRev>0?(profit/totalRev*100).toFixed(1):0;
+  ['rev','cost','profit'].forEach(k=>{
+    const el=document.getElementById('d-'+k);
+    if(el)el.textContent=fmt(k==='cost'?totalCost:k==='rev'?totalRev:profit);
+  });
+  const pm=document.getElementById('d-margin');
+  if(pm){pm.textContent=margin+'%';pm.style.color=profit>=0?'var(--navy)':'var(--coral)';}
+  const pp=document.getElementById('d-profit');
+  if(pp)pp.style.color=profit>=0?'var(--blue)':'var(--coral)';
+  // 유형별 바
+  const byType={SL:0,SI:0,SM:0,CV:0};
+  revData.forEach(r=>{
+    if(r.type.includes('SL'))byType.SL+=r.amount;
+    else if(r.type.includes('SI'))byType.SI+=r.amount;
+    else if(r.type.includes('SM'))byType.SM+=r.amount;
+    else if(r.type.includes('CV'))byType.CV+=r.amount;
+  });
+  const maxV=Math.max(...Object.values(byType),1);
+  Object.entries(byType).forEach(([k,v])=>{
+    const bar=document.getElementById('bar-'+k);
+    const val=document.getElementById('val-'+k);
+    if(bar)bar.style.width=(v/maxV*100)+'%';
+    if(val)val.textContent=fmt(v)+'원';
+  });
+  updateProfitTable();
+}
+function updateProfitTable(){
+  const byCode={};
+  revData.forEach(r=>{
+    if(!byCode[r.code])byCode[r.code]={company:r.company,rev:0,cos:0,adm:0};
+    byCode[r.code].rev+=r.amount;
+  });
+  costData.forEach(c=>{
+    if(!byCode[c.code])byCode[c.code]={company:'-',rev:0,cos:0,adm:0};
+    if(c.type&&c.type.startsWith('ADM'))byCode[c.code].adm+=c.amount;
+    else byCode[c.code].cos+=c.amount;
+  });
+  const keys=Object.keys(byCode);
+  const tbodies=['dash-profit-tbody'];
+  tbodies.forEach(id=>{
+    const tb=document.getElementById(id);
+    if(!tb)return;
+    if(!keys.length){tb.innerHTML='<tr class="empty"><td colspan="8">매출·비용 데이터 입력 후 자동 집계됩니다</td></tr>';return;}
+    tb.innerHTML=keys.map(code=>{
+      const d=byCode[code],p=d.rev-d.cos-d.adm;
+      const r=d.rev>0?(p/d.rev*100).toFixed(1)+'%':'-';
+      const cls=p>=0?'ap':'an';
+      return `<tr><td class="mono">${code}</td><td>${d.company}</td><td>-</td>
+        <td class="ap">${fmt(d.rev)}</td><td class="an">${fmt(d.cos)}</td><td class="an">${fmt(d.adm)}</td>
+        <td class="${cls}">${fmt(p)}</td><td>${r}</td></tr>`;
+    }).join('');
+  });
+  refreshDashCharts();
+}
+
+// ── 저장 함수 ────────────────────────────
+function saveRev(){
+  const code=document.getElementById('rv-code').value.trim();
+  const company=document.getElementById('rv-company').value.trim();
+  const type=document.getElementById('rv-type').value;
+  const amount=parseFloat(document.getElementById('rv-amount').value)||0;
+  if(!code||!company||!type||!amount){showToast('입력 오류','필수 항목을 입력해주세요','⚠️');return;}
+  const vat=parseFloat(document.getElementById('rv-vat').value)||0;
+  const total=amount+vat;
+  const cycle=document.getElementById('rv-cycle').value;
+  const taxdate=document.getElementById('rv-taxdate').value;
+  const pm=document.getElementById('rv-pm').value;
+  const unpaid=parseFloat(document.getElementById('rv-unpaid').value)||0;
+  const shortType=type.replace('REV-','').replace('-M','');
+  revData.push({code,company,type,amount,vat,total,cycle,taxdate,pm,unpaid});
+  addRow('rev-tbody',[
+    `<span class="mono">${code}</span>`,company,
+    `<span class="rev-badge r-${shortType}">${type}</span>`,
+    cycle,`<span class="ap">${fmt(amount)}</span>`,fmt(vat),
+    `<span class="ap">${fmt(total)}</span>`,taxdate||'-',pm||'-',
+    unpaid>0?`<span class="an">${fmt(unpaid)}</span>`:'0',getTS()
+  ]);
+  document.getElementById('rev-cnt').textContent=cntRows('rev-tbody')+'건';
+  updateKPI();
+  showToast('매출 수익 저장',`${code} · ${fmt(amount)}원`);
+  if(!document.getElementById('rv-keep').checked)clearRev();
+}
+function saveCost(){
+  const code=document.getElementById('ct-code').value.trim()||'공통';
+  const type=document.getElementById('ct-type').value;
+  const desc=document.getElementById('ct-desc').value.trim();
+  const amount=parseFloat(document.getElementById('ct-amount').value)||0;
+  if(!type||!desc||!amount){showToast('입력 오류','필수 항목을 입력해주세요','⚠️');return;}
+  const date=document.getElementById('ct-date').value;
+  const person=document.getElementById('ct-person').value;
+  const status=document.getElementById('ct-status').value;
+  costData.push({code,type,desc,amount,date,person,status});
+  const sc=status==='처리완료'?'s-done':status==='처리중'?'s-active':'s-pending';
+  addRow('cost-tbody',[
+    `<span class="mono">${code}</span>`,
+    `<span class="rev-badge" style="background:var(--coralBg);color:var(--coral)">${type}</span>`,
+    desc,`<span class="an">${fmt(amount)}</span>`,date||'-',person||'-',
+    `<span class="sb ${sc}">${status}</span>`,getTS()
+  ]);
+  document.getElementById('cost-cnt').textContent=cntRows('cost-tbody')+'건';
+  updateKPI();
+  showToast('운영 비용 저장',`${type} · ${fmt(amount)}원`);
+}
+function savePipeline(){
+  const company=document.getElementById('pl-company').value.trim();
+  const type=document.getElementById('pl-type').value;
+  const amount=parseFloat(document.getElementById('pl-amount').value)||0;
+  const prob=document.getElementById('pl-prob').value;
+  const stage=document.getElementById('pl-stage').value;
+  const pm=document.getElementById('pl-pm').value;
+  const date=document.getElementById('pl-date').value;
+  if(!company){showToast('입력 오류','고객사를 입력해주세요','⚠️');return;}
+  const probN=parseInt(prob)/100;
+  const weighted=Math.round(amount*probN);
+  pipeData.push({company,type,amount,prob,stage,pm,date,weighted});
+  addRow('pl-tbody',[
+    company,`<span class="tb t-${type}">${type}</span>`,
+    `<span class="ap">${fmt(amount)}</span>`,
+    `<span class="ab">${fmt(weighted)}</span>`,
+    stage,prob,pm||'-',date||'-'
+  ]);
+  document.getElementById('pl-cnt').textContent=cntRows('pl-tbody')+'건';
+  showToast('파이프라인 등록',`${company} · ${stage} · ${prob}`);
+}
+function saveMember(){
+  const id=document.getElementById('mm-id').value.trim();
+  const name=document.getElementById('mm-name').value.trim();
+  const dept=document.getElementById('mm-dept').value;
+  if(!id||!name||!dept){showToast('입력 오류','필수 항목을 입력해주세요','⚠️');return;}
+  const rank=document.getElementById('mm-rank').value;
+  const join=document.getElementById('mm-join').value;
+  const phone=document.getElementById('mm-phone').value;
+  const status=document.getElementById('mm-status').value;
+  const sc=status==='재직'?'s-active':status==='휴직'?'s-pending':'s-cancel';
+  memberData.push({id,name,dept,rank,join,phone,status});
+  addRow('mm-tbody',[`<span class="mono">${id}</span>`,name,dept,rank,join||'-',phone||'-',`<span class="sb ${sc}">${status}</span>`]);
+  document.getElementById('mm-cnt').textContent=cntRows('mm-tbody')+'명';
+  showToast('직원 등록',`${name} (${dept}·${rank})`);
+}
+function saveSalary(){
+  const name=document.getElementById('sl-name').value.trim();
+  const month=document.getElementById('sl-month').value;
+  const code=document.getElementById('sl-code').value.trim()||'-';
+  const base=parseFloat(document.getElementById('sl-base').value)||0;
+  const ins=parseFloat(document.getElementById('sl-ins').value)||0;
+  const ratio=parseFloat(document.getElementById('sl-ratio').value)||100;
+  const coslab=parseFloat(document.getElementById('sl-coslab').value)||0;
+  if(!name||!base){showToast('입력 오류','성명과 기본급을 입력해주세요','⚠️');return;}
+  salaryData.push({name,month,code,base,ins,ratio,coslab});
+  addRow('sl-tbody',[name,month,`<span class="mono">${code}</span>`,
+    `<span class="ap">${fmt(base)}</span>`,fmt(ins),ratio+'%',`<span class="an">${fmt(coslab)}</span>`]);
+  document.getElementById('sl-cnt').textContent=cntRows('sl-tbody')+'건';
+  showToast('급여 원가 저장',`${name} · COS-LAB ${fmt(coslab)}원`);
+}
+function saveTS(){
+  const name=document.getElementById('ts-name').value.trim();
+  const code=document.getElementById('ts-code').value.trim();
+  const date=document.getElementById('ts-date').value;
+  const hours=document.getElementById('ts-hours').value||0;
+  const type=document.getElementById('ts-type').value;
+  const work=document.getElementById('ts-work').value;
+  if(!name||!code){showToast('입력 오류','성명과 프로젝트코드를 입력해주세요','⚠️');return;}
+  addRow('ts-tbody',[name,`<span class="mono">${code}</span>`,date||'-',`${hours}H`,type,work||'-']);
+  document.getElementById('ts-cnt').textContent=cntRows('ts-tbody')+'건';
+  showToast('타임시트 저장',`${name}·${code}·${hours}H`);
+}
+function saveClient(){
+  const bizno=document.getElementById('cl-bizno').value.trim();
+  const name=document.getElementById('cl-name').value.trim();
+  if(!bizno||!name){showToast('입력 오류','사업자번호와 업체명을 입력해주세요','⚠️');return;}
+  const ceo=document.getElementById('cl-ceo').value;
+  const ind=document.getElementById('cl-ind').value;
+  const sec=document.getElementById('cl-sec').value;
+  const contact=document.getElementById('cl-contact').value;
+  const email=document.getElementById('cl-email').value;
+  const regdate=document.getElementById('cl-regdate').value;
+  addRow('cl-tbody',[`<span class="mono">${bizno}</span>`,name,ceo||'-',`${ind||'-'}/${sec||'-'}`,contact||'-',email||'-',regdate||'-']);
+  document.getElementById('cl-cnt').textContent=cntRows('cl-tbody')+'건';
+  showToast('업체 등록',name);
+}
+function saveProject(){
+  const bizno=document.getElementById('pj-bizno').value.trim();
+  const client=document.getElementById('pj-client').value.trim();
+  const type=document.getElementById('pj-type').value;
+  const name=document.getElementById('pj-name').value.trim();
+  if(!bizno||!client||!type||!name){showToast('입력 오류','필수 항목을 입력해주세요','⚠️');return;}
+  const yr=new Date().getFullYear().toString().slice(-2);
+  const cnt=cntRows('pj-tbody')+1;
+  const code=`P${yr}-${String(cnt).padStart(3,'0')}`;
+  const start=document.getElementById('pj-start').value;
+  const end=document.getElementById('pj-end').value;
+  const amt=parseFloat(document.getElementById('pj-amount').value)||0;
+  const status=document.getElementById('pj-status').value;
+  const sc=status==='진행중'?'s-active':status==='완료'?'s-done':'s-pending';
+  addRow('pj-tbody',[`<span class="mono">${bizno}</span>`,client,`<span class="tb t-${type}">${type}</span>`,
+    `<span class="mono">${code}</span>`,name,start||'-',end||'-',
+    amt>0?`<span class="ap">${fmt(amt)}</span>`:'-',`<span class="sb ${sc}">${status}</span>`]);
+  document.getElementById('pj-cnt').textContent=cntRows('pj-tbody')+'건';
+  document.getElementById('d-pjt').textContent=cntRows('pj-tbody');
+  showToast('프로젝트 등록',`${code}·${name}`);
+}
+function saveBudget(){
+  const code=document.getElementById('bd-code').value.trim();
+  const plan=parseFloat(document.getElementById('bd-plan').value)||0;
+  if(!code||!plan){showToast('입력 오류','필수 항목을 입력해주세요','⚠️');return;}
+  showToast('예산 계획 저장',`${code}·${fmt(plan)}원`);
+}
+function clearRev(){
+  ['rv-code','rv-company','rv-amount','rv-vat','rv-total','rv-unpaid','rv-pm'].forEach(id=>{const e=document.getElementById(id);if(e)e.value='';});
+  document.getElementById('rv-type').value='';
+  document.getElementById('rv-cycle').value='일회성';
+  document.getElementById('rv-recur-section').style.display='none';
+  document.getElementById('revCode').textContent='--';
+  document.getElementById('revType').textContent='--';
+  document.getElementById('revAmt').textContent='0원';
+}
+
+// ── 포캐스팅 ─────────────────────────────
+let fcChart=null, fcTypeChart=null, fcMarginChart=null;
+function runForecast(){
+  const smMonthly=parseFloat(document.getElementById('fc-sm-monthly').value)||0;
+  const cvMonthly=parseFloat(document.getElementById('fc-cv-monthly').value)||0;
+  const admMonthly=parseFloat(document.getElementById('fc-adm-monthly').value)||0;
+  const siOpt=parseFloat(document.getElementById('fc-si-opt').value)||0;
+  const siBase=parseFloat(document.getElementById('fc-si-base').value)||0;
+  const siPes=parseFloat(document.getElementById('fc-si-pes').value)||0;
+  const costRate=(parseFloat(document.getElementById('fc-cost-rate').value)||65)/100;
+  const year=parseInt(document.getElementById('fc-year').value)||2026;
+  const months=['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+  const recurring=smMonthly+cvMonthly;
+  // SI 분배 (계절성 반영)
+  const siWeights=[0.06,0.06,0.08,0.08,0.08,0.10,0.09,0.08,0.10,0.10,0.09,0.08];
+  const calcScenario=(si)=>{
+    let rows=[];
+    let totalRev=0,totalCost=0,totalAdm=0;
+    for(let i=0;i<12;i++){
+      const siMonth=Math.round(si*siWeights[i]);
+      const rev=recurring+siMonth;
+      const cos=Math.round(rev*costRate);
+      const adm=admMonthly;
+      const profit=rev-cos-adm;
+      totalRev+=rev; totalCost+=cos; totalAdm+=adm;
+      rows.push({month:months[i],sm:smMonthly,cv:cvMonthly,si:siMonth,rev,cos,adm,profit});
+    }
+    return {rows,totalRev,totalProfit:totalRev-totalCost-totalAdm,totalCost};
+  };
+  const opt=calcScenario(siOpt);
+  const base=calcScenario(siBase);
+  const pes=calcScenario(siPes);
+  // 시나리오 카드
+  [['opt',opt],['base',base],['pes',pes]].forEach(([k,d])=>{
+    document.getElementById(`sc-${k}-rev`).textContent=fmt(d.totalRev)+'원';
+    document.getElementById(`sc-${k}-profit`).textContent=fmt(d.totalProfit)+'원';
+    const m=d.totalRev>0?(d.totalProfit/d.totalRev*100).toFixed(1)+'%':'-';
+    document.getElementById(`sc-${k}-margin`).textContent=m;
+  });
+  // 상세 테이블
+  const tb=document.getElementById('fc-detail-tbody');
+  tb.innerHTML=base.rows.map(r=>{
+    const pc=r.rev>0?(r.profit/r.rev*100).toFixed(1)+'%':'-';
+    const cls=r.profit>=0?'ap':'an';
+    return `<tr><td>${r.month}</td><td class="ap">${fmt(r.sm)}</td><td class="ap">${fmt(r.cv)}</td>
+      <td class="ap">${fmt(r.si)}</td><td class="ap">${fmt(r.rev)}</td>
+      <td class="an">${fmt(r.cos)}</td><td class="an">${fmt(r.adm)}</td>
+      <td class="${cls}">${fmt(r.profit)}</td><td>${pc}</td></tr>`;
+  }).join('');
+  // 차트
+  if(fcChart)fcChart.destroy();
+  const ctx=document.getElementById('chartForecast').getContext('2d');
+  fcChart=new Chart(ctx,{type:'line',data:{labels:months,datasets:[
+    {label:'낙관 시나리오',data:opt.rows.map(r=>r.rev),borderColor:'#185FA5',backgroundColor:'rgba(24,95,165,0.08)',fill:true,tension:.3,pointRadius:3},
+    {label:'기본 시나리오',data:base.rows.map(r=>r.rev),borderColor:'#639922',backgroundColor:'rgba(99,153,34,0.1)',fill:true,tension:.3,pointRadius:3,borderWidth:2.5},
+    {label:'비관 시나리오',data:pes.rows.map(r=>r.rev),borderColor:'#854F0B',backgroundColor:'rgba(133,79,11,0.06)',fill:true,tension:.3,pointRadius:3,borderDash:[4,4]},
+    {label:'영업이익(기본)',data:base.rows.map(r=>r.profit),borderColor:'#993C1D',backgroundColor:'rgba(153,60,29,0.05)',fill:false,tension:.3,pointRadius:3,borderDash:[6,3]},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:14}}},
+    scales:{y:{ticks:{callback:v=>fmt(v)+'원',font:{size:10}},grid:{color:'rgba(0,0,0,0.05)'}},x:{ticks:{font:{size:11}}}}}});
+  if(fcTypeChart)fcTypeChart.destroy();
+  const ctx2=document.getElementById('chartFcType').getContext('2d');
+  fcTypeChart=new Chart(ctx2,{type:'doughnut',data:{
+    labels:['SM 유지보수','CV 서비스','SI/SL 신규'],
+    datasets:[{data:[smMonthly*12,cvMonthly*12,siBase],backgroundColor:['#0F6E56','#993556','#185FA5'],borderWidth:0}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:11},boxWidth:12}}}}});
+  if(fcMarginChart)fcMarginChart.destroy();
+  const ctx3=document.getElementById('chartFcMargin').getContext('2d');
+  const qLabels=['1분기','2분기','3분기','4분기'];
+  const qMargins=[[0,1,2],[3,4,5],[6,7,8],[9,10,11]].map(idxs=>{
+    const qRev=idxs.reduce((s,i)=>s+base.rows[i].rev,0);
+    const qP=idxs.reduce((s,i)=>s+base.rows[i].profit,0);
+    return qRev>0?parseFloat((qP/qRev*100).toFixed(1)):0;
+  });
+  fcMarginChart=new Chart(ctx3,{type:'bar',data:{labels:qLabels,datasets:[
+    {label:'이익률(%)',data:qMargins,backgroundColor:qMargins.map(v=>v>=0?'rgba(99,153,34,0.7)':'rgba(153,60,29,0.7)'),borderRadius:6}
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{ticks:{callback:v=>v+'%',font:{size:11}},min:Math.min(...qMargins)-5,max:Math.max(...qMargins)+10},x:{ticks:{font:{size:12}}}}}});
+  showToast('포캐스팅 완료',`기본 시나리오 연간 매출 ${fmt(base.totalRev)}원`,'🔮');
+}
+
+// ── 대시보드 차트 ────────────────────────
+let monthlyChart=null, revTypeChart=null, profitBarChart=null;
+function refreshDashCharts(){
+  // 월별 매출 (더미+실제)
+  const months=['1월','2월','3월','4월','5월','6월'];
+  const monthlyData=[45000000,52000000,48000000,61000000,55000000,
+    revData.reduce((s,r)=>s+r.amount,0)||58000000];
+  if(monthlyChart)monthlyChart.destroy();
+  const c1=document.getElementById('chartMonthly');
+  if(!c1)return;
+  monthlyChart=new Chart(c1.getContext('2d'),{type:'line',data:{labels:months,datasets:[
+    {label:'매출',data:monthlyData,borderColor:'#639922',backgroundColor:'rgba(99,153,34,0.1)',fill:true,tension:.4,pointRadius:4,pointBackgroundColor:'#639922'},
+  ]},options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
+    scales:{y:{ticks:{callback:v=>fmt(v)+'원',font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}}}}}});
+  // 매출 유형별 파이
+  const byType={SL:0,SI:0,SM:0,CV:0};
+  revData.forEach(r=>{
+    if(r.type.includes('SL'))byType.SL+=r.amount;
+    else if(r.type.includes('SI'))byType.SI+=r.amount;
+    else if(r.type.includes('SM'))byType.SM+=r.amount;
+    else if(r.type.includes('CV'))byType.CV+=r.amount;
+  });
+  const hasRev=Object.values(byType).some(v=>v>0);
+  const pieData=hasRev?Object.values(byType):[30,40,20,10];
+  if(revTypeChart)revTypeChart.destroy();
+  const c2=document.getElementById('chartRevType');
+  if(!c2)return;
+  revTypeChart=new Chart(c2.getContext('2d'),{type:'doughnut',data:{
+    labels:['REV-SL 솔루션','REV-SI 구축','REV-SM 유지보수','REV-CV 서비스'],
+    datasets:[{data:pieData,backgroundColor:['#3B6D11','#185FA5','#0F6E56','#993556'],borderWidth:0,hoverOffset:4}]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'bottom',labels:{font:{size:10.5},boxWidth:12,padding:8}}}}});
+  // 손익 바
+  const byCode={};
+  revData.forEach(r=>{if(!byCode[r.code])byCode[r.code]={rev:0,cost:0};byCode[r.code].rev+=r.amount;});
+  costData.forEach(c=>{if(!byCode[c.code])byCode[c.code]={rev:0,cost:0};byCode[c.code].cost+=c.amount;});
+  const codes=Object.keys(byCode);
+  if(profitBarChart)profitBarChart.destroy();
+  const c3=document.getElementById('chartProfitBar');
+  if(!c3)return;
+  profitBarChart=new Chart(c3.getContext('2d'),{type:'bar',data:{
+    labels:codes.length?codes:['24-SL-GG-01','24-SI-HN-01','25-SM-WT-01'],
+    datasets:[
+      {label:'매출',data:codes.length?codes.map(c=>byCode[c].rev):[58000000,120000000,45000000],backgroundColor:'rgba(99,153,34,0.7)',borderRadius:4},
+      {label:'원가',data:codes.length?codes.map(c=>byCode[c].cost):[35000000,85000000,32000000],backgroundColor:'rgba(153,60,29,0.65)',borderRadius:4},
+      {label:'이익',data:codes.length?codes.map(c=>byCode[c].rev-byCode[c].cost):[23000000,35000000,13000000],backgroundColor:'rgba(24,95,165,0.7)',borderRadius:4},
+    ]
+  },options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{position:'top',labels:{font:{size:11},boxWidth:14}}},
+    scales:{y:{ticks:{callback:v=>fmt(v)+'원',font:{size:9}},grid:{color:'rgba(0,0,0,0.04)'}},x:{ticks:{font:{size:11}}}}}});
+}
+
+// 초기 차트 로드
+setTimeout(refreshDashCharts, 300);
+// 초기 포캐스팅 실행
+setTimeout(runForecast, 500);
+</script>
+</body>
+</html>

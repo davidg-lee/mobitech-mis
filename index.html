@@ -3,93 +3,124 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>(주)모비텍 중앙 경영관리 시스템 v4</title>
+<title>(주)모비텍 중앙 경영관리 시스템 Final</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <style>
 :root{
   --bg:#0B1628;--bg2:#112040;--bg3:#1a2d52;--bg4:#0d1e38;
-  --acc:#00D4FF;--blue:#3B82F6;--green:#10B981;--red:#EF4444;--amber:#F59E0B;--purple:#8B5CF6;--teal:#14B8A6;
-  --text:#E2E8F0;--muted:#94A3B8;--hint:#475569;
-  --bdr:rgba(255,255,255,0.08);--card:rgba(17,32,64,0.9);
+  --acc:#00D4FF;--blue:#3B82F6;--green:#10B981;--red:#EF4444;
+  --amber:#F59E0B;--purple:#8B5CF6;--teal:#14B8A6;--pink:#EC4899;
+  --tx:#E2E8F0;--mu:#94A3B8;--hint:#475569;
+  --br:rgba(255,255,255,0.08);--br2:rgba(255,255,255,0.14);
+  --card:rgba(17,32,64,0.92);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;
-  background-image:radial-gradient(ellipse at 5% 10%,rgba(0,212,255,0.04) 0%,transparent 50%),
-  radial-gradient(ellipse at 95% 90%,rgba(59,130,246,0.04) 0%,transparent 50%)}
-/* HEADER */
-header{background:rgba(11,22,40,0.98);border-bottom:1px solid rgba(0,212,255,0.15);
-  padding:0 18px;display:flex;align-items:center;height:50px;position:sticky;top:0;z-index:300}
-.logo{width:30px;height:30px;border-radius:7px;background:linear-gradient(135deg,#00D4FF,#3B82F6);
-  display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:14px;margin-right:10px;flex-shrink:0}
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;
+  background-image:radial-gradient(ellipse at 8% 12%,rgba(0,212,255,0.05) 0%,transparent 45%),
+  radial-gradient(ellipse at 92% 88%,rgba(59,130,246,0.05) 0%,transparent 45%),
+  repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,.008) 60px,rgba(255,255,255,.008) 61px),
+  repeating-linear-gradient(90deg,transparent,transparent 60px,rgba(255,255,255,.008) 60px,rgba(255,255,255,.008) 61px)}
+
+/* ── HEADER ── */
+header{background:rgba(11,22,40,0.98);border-bottom:1px solid rgba(0,212,255,0.18);
+  padding:0 18px;display:flex;align-items:center;height:50px;position:sticky;top:0;z-index:200;gap:0}
+.logo{width:32px;height:32px;border-radius:8px;background:linear-gradient(135deg,#00D4FF,#3B82F6);
+  display:flex;align-items:center;justify-content:center;font-weight:900;color:#fff;font-size:15px;margin-right:11px;flex-shrink:0;box-shadow:0 0 14px rgba(0,212,255,0.3)}
 .brand{font-size:13px;font-weight:900;letter-spacing:-0.02em;white-space:nowrap}
 .brand span{color:var(--acc)}
-.brand-sub{font-size:9px;color:var(--muted);margin-top:1px;white-space:nowrap}
-nav{display:flex;align-items:center;margin-left:16px;height:100%;flex-wrap:nowrap;overflow-x:auto}
-.nb{height:100%;padding:0 11px;font-size:11px;font-weight:700;background:transparent;
-  border:none;border-bottom:2px solid transparent;color:var(--muted);cursor:pointer;
-  transition:all 0.18s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
-.nb:hover{color:var(--text)}
+.brand-sub{font-size:9px;color:var(--mu);margin-top:1px;letter-spacing:0.05em}
+nav{display:flex;align-items:stretch;margin-left:16px;height:100%;overflow-x:auto}
+.nb{height:100%;padding:0 13px;font-size:11px;font-weight:700;background:transparent;
+  border:none;border-bottom:2px solid transparent;color:var(--mu);cursor:pointer;white-space:nowrap;
+  font-family:'Noto Sans KR',sans-serif;transition:color .15s,border-color .15s}
+.nb:hover{color:var(--tx)}
 .nb.on{color:var(--acc);border-bottom-color:var(--acc)}
-.hr{margin-left:auto;display:flex;align-items:center;gap:12px;flex-shrink:0}
-.hs-l{font-size:9px;color:var(--muted);letter-spacing:0.06em;text-transform:uppercase}
+.hdr-right{margin-left:auto;display:flex;align-items:center;gap:14px;flex-shrink:0}
+.hs{text-align:right}
+.hs-l{font-size:9px;color:var(--mu);letter-spacing:0.07em;text-transform:uppercase}
 .hs-v{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
-/* PAGES */
-.pg{display:none;padding:14px 18px 80px}
+.hdr-divider{width:1px;height:26px;background:var(--br)}
+
+/* ── PAGES ── */
+.pg{display:none;padding:14px 18px 70px}
 .pg.on{display:block}
-/* CARDS */
-.glass{background:var(--card);border:1px solid var(--bdr);border-radius:10px}
-.sh{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;
-  border-bottom:1px solid var(--bdr);flex-wrap:wrap;gap:7px}
-.sh h2{font-size:12px;font-weight:700;color:var(--text)}
-.sh-sub{font-size:9px;color:var(--muted)}
-/* KPI */
-.kgrid{display:grid;grid-template-columns:repeat(5,1fr);gap:8px;margin-bottom:12px}
-.kc{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--bdr);
+
+/* ── GLASS CARD ── */
+.gc{background:var(--card);border:1px solid var(--br);border-radius:10px;overflow:hidden;margin-bottom:11px}
+.gc-hd{display:flex;align-items:center;justify-content:space-between;padding:9px 13px;border-bottom:1px solid var(--br);flex-wrap:wrap;gap:6px}
+.gc-hd h3{font-size:12px;font-weight:700;color:var(--tx);display:flex;align-items:center;gap:5px}
+.gc-sub{font-size:9px;color:var(--mu);font-weight:400}
+
+/* ── KPI GRID ── */
+.kg5{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:8px;margin-bottom:11px}
+.kc{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--br);
   border-radius:10px;padding:11px 13px;position:relative;overflow:hidden}
-.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--blue))}
-.kl{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--muted);text-transform:uppercase;margin-bottom:4px}
-.kv{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.ks{font-size:9px;color:var(--muted);margin-top:2px}
-/* RISK */
+.kc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.kc-a::before{background:linear-gradient(90deg,var(--acc),var(--blue))}
+.kc-g::before{background:linear-gradient(90deg,var(--green),var(--teal))}
+.kc-r::before{background:var(--red)}
+.kc-o::before{background:linear-gradient(90deg,var(--amber),var(--pink))}
+.kc-p::before{background:var(--purple)}
+.kl{font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--mu);text-transform:uppercase;margin-bottom:4px}
+.kv{font-size:18px;font-weight:700;font-family:'JetBrains Mono',monospace;line-height:1.1}
+.ks{font-size:9px;color:var(--mu);margin-top:2px}
+
+/* ── RISK BANNER ── */
 .risk-item{display:flex;align-items:center;gap:8px;background:rgba(239,68,68,0.09);
   border:1px solid rgba(239,68,68,0.3);border-left:3px solid var(--red);
   border-radius:7px;padding:6px 11px;margin-bottom:5px;font-size:11px}
 .rtag{background:var(--red);color:#fff;padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700;flex-shrink:0}
-/* CHARTS */
-.crow{display:grid;grid-template-columns:2fr 1fr 1fr;gap:9px;margin-bottom:12px}
-.cc{background:var(--card);border:1px solid var(--bdr);border-radius:10px;padding:10px 11px}
-.ct{font-size:10px;color:var(--muted);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:6px}
-.lr{display:flex;flex-wrap:wrap;gap:7px;margin-bottom:5px;font-size:10px;color:var(--muted)}
+
+/* ── CHARTS ── */
+.c3{display:grid;grid-template-columns:2fr 1.1fr 1fr;gap:9px;margin-bottom:11px}
+.cc{background:var(--card);border:1px solid var(--br);border-radius:10px;padding:11px 12px}
+.ct{font-size:10px;color:var(--mu);font-weight:700;letter-spacing:0.06em;text-transform:uppercase;margin-bottom:5px}
+.leg{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:5px;font-size:10px;color:var(--mu)}
 .li{display:flex;align-items:center;gap:3px}
-.ls{width:7px;height:7px;border-radius:1px}
-/* TABLES */
-.tw{overflow-x:auto;-webkit-overflow-scrolling:touch}
+.ls{width:7px;height:7px;border-radius:1px;flex-shrink:0}
+
+/* ── PREDICT ── */
+.pg3{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin-bottom:10px}
+.pi{background:linear-gradient(135deg,var(--bg2),var(--bg3));border:1px solid var(--br);border-radius:9px;padding:10px 12px}
+.pi-l{font-size:9px;color:var(--mu);letter-spacing:0.08em;text-transform:uppercase;margin-bottom:3px}
+.pi-v{font-size:16px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.pi-s{font-size:9px;color:var(--mu);margin-top:2px}
+.fbar{height:6px;border-radius:3px;overflow:hidden;display:flex;margin-top:4px}
+.fbar-r{background:var(--acc)}
+.fbar-p{background:var(--amber);opacity:.7}
+
+/* ── TABLES ── */
+.tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:11px}
-thead th{background:var(--bg3);color:var(--muted);font-weight:700;font-size:9px;padding:6px 6px;
-  text-align:right;border-bottom:1px solid var(--bdr);white-space:nowrap;letter-spacing:0.04em;text-transform:uppercase}
+thead th{background:var(--bg3);color:var(--mu);font-weight:700;font-size:9px;padding:6px 7px;
+  text-align:right;border-bottom:1px solid var(--br);white-space:nowrap;letter-spacing:0.05em;text-transform:uppercase}
 thead th.L{text-align:left}
-thead th.NTS{color:#67E8F9;background:rgba(0,212,255,0.07)}
-thead th.TYPE{background:rgba(139,92,246,0.1);color:#C4B5FD}
-tbody tr{border-bottom:1px solid var(--bdr);transition:background 0.1s}
-tbody tr:hover{background:rgba(255,255,255,0.02)}
-td{padding:5px 6px;text-align:right;color:var(--text);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap}
-td.L{text-align:left;font-family:'Noto Sans KR',sans-serif;font-size:11px}
-td.M{color:var(--muted)}
-tfoot td{padding:5px 6px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
+thead th.HL{color:#67E8F9;background:rgba(0,212,255,0.08)}
+thead th.HLb{color:#60A5FA;background:rgba(59,130,246,0.08)}
+thead th.HLg{color:#34D399;background:rgba(16,185,129,0.08)}
+thead th.HLr{color:#FCA5A5;background:rgba(239,68,68,0.08)}
+tbody tr{border-bottom:1px solid var(--br);transition:background .1s}
+tbody tr:hover{background:rgba(255,255,255,0.025)}
+td{padding:5px 7px;text-align:right;color:var(--tx);font-family:'JetBrains Mono',monospace;font-size:11px;white-space:nowrap}
+td.L{text-align:left;font-family:'Noto Sans KR',sans-serif}
+td.M{color:var(--mu)}
+tfoot td{padding:5px 7px;text-align:right;font-family:'JetBrains Mono',monospace;font-size:11px;font-weight:700;
   background:rgba(0,212,255,0.06);border-top:1px solid rgba(0,212,255,0.2)}
 tfoot td.L{text-align:left;font-family:'Noto Sans KR',sans-serif;color:var(--acc)}
-/* EDITABLE */
-input.ec{width:100%;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.16);border-radius:4px;
+
+/* ── EDITABLE ── */
+input.ec{width:100%;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:4px;
   padding:2px 4px;font-family:'JetBrains Mono',monospace;font-size:11px;color:var(--acc);text-align:right;outline:none}
-input.ec:focus{border-color:var(--acc);background:rgba(0,212,255,0.09);box-shadow:0 0 0 2px rgba(0,212,255,0.12)}
+input.ec:focus{border-color:var(--acc);background:rgba(0,212,255,0.1);box-shadow:0 0 0 2px rgba(0,212,255,0.13)}
 input.ec:disabled{color:var(--hint);background:transparent;border-color:rgba(255,255,255,0.03);cursor:default}
-input.ecL{text-align:left;color:var(--text)}
-select.ec{width:100%;background:rgba(0,212,255,0.04);border:1px solid rgba(0,212,255,0.16);border-radius:4px;
+input.ecL{text-align:left;color:var(--tx)}
+select.ec{width:100%;background:rgba(0,212,255,0.05);border:1px solid rgba(0,212,255,0.2);border-radius:4px;
   padding:2px 3px;font-family:'Noto Sans KR',sans-serif;font-size:10px;color:var(--acc);outline:none;cursor:pointer}
-select.ec option{background:var(--bg2);color:var(--text)}
-/* BADGES */
-.badge{display:inline-block;padding:1px 6px;border-radius:99px;font-size:9px;font-weight:700;white-space:nowrap}
+select.ec option{background:var(--bg2);color:var(--tx)}
+
+/* ── BADGES ── */
+.badge{display:inline-block;padding:1px 7px;border-radius:99px;font-size:9px;font-weight:700;white-space:nowrap}
 .bSI{background:rgba(59,130,246,0.2);color:#60A5FA;border:1px solid rgba(59,130,246,0.3)}
 .bSM{background:rgba(16,185,129,0.2);color:#34D399;border:1px solid rgba(16,185,129,0.3)}
 .bSV{background:rgba(245,158,11,0.2);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)}
@@ -97,714 +128,648 @@ select.ec option{background:var(--bg2);color:var(--text)}
 .bCT{background:rgba(139,92,246,0.2);color:#C4B5FD;border:1px solid rgba(139,92,246,0.3)}
 .bMT{background:rgba(20,184,166,0.2);color:#5EEAD4;border:1px solid rgba(20,184,166,0.3)}
 .bok{background:rgba(16,185,129,0.15);color:#34D399;border:1px solid rgba(16,185,129,0.3)}
-.bwarn{background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)}
-.berr{background:rgba(239,68,68,0.15);color:#FCA5A5;border:1px solid rgba(239,68,68,0.3)}
+.bwn{background:rgba(245,158,11,0.15);color:#FCD34D;border:1px solid rgba(245,158,11,0.3)}
+.ber{background:rgba(239,68,68,0.15);color:#FCA5A5;border:1px solid rgba(239,68,68,0.3)}
 .bnts{background:rgba(0,212,255,0.12);color:#67E8F9;border:1px solid rgba(0,212,255,0.25);font-size:9px;padding:1px 6px;border-radius:4px}
-/* BUTTONS */
+
+/* ── BUTTONS ── */
 .btn{padding:4px 10px;border-radius:6px;font-size:10px;font-weight:700;cursor:pointer;
-  border:none;transition:all 0.18s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
-.bp{background:rgba(0,212,255,0.13);color:var(--acc);border:1px solid rgba(0,212,255,0.3)}
-.bp:hover{background:rgba(0,212,255,0.22)}
-.bg{background:rgba(16,185,129,0.13);color:#34D399;border:1px solid rgba(16,185,129,0.3)}
-.bg:hover{background:rgba(16,185,129,0.22)}
-.bd{background:rgba(239,68,68,0.1);color:#FCA5A5;border:1px solid rgba(239,68,68,0.25)}
-.bd:hover{background:rgba(239,68,68,0.2)}
-.bexcel{background:rgba(16,185,129,0.12);color:#34D399;border:1px solid rgba(16,185,129,0.3);display:inline-flex;align-items:center;gap:4px}
-/* TAB BAR */
-.tbar{display:flex;gap:3px;padding:8px 11px;border-bottom:1px solid var(--bdr);flex-wrap:wrap}
-.tbtn{padding:4px 11px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;
-  border:1px solid var(--bdr);background:transparent;color:var(--muted);
-  font-family:'Noto Sans KR',sans-serif;transition:all 0.18s;white-space:nowrap}
-.tbtn.on{background:rgba(0,212,255,0.11);color:var(--acc);border-color:rgba(0,212,255,0.32)}
-.tpane{display:none;padding:10px 12px}
+  border:1px solid var(--br);background:transparent;color:var(--mu);
+  font-family:'Noto Sans KR',sans-serif;transition:all .18s;white-space:nowrap}
+.btn:hover{background:rgba(255,255,255,0.05);color:var(--tx)}
+.btn-p{background:rgba(0,212,255,0.12);color:var(--acc);border-color:rgba(0,212,255,0.28)}
+.btn-p:hover{background:rgba(0,212,255,0.2)}
+.btn-g{background:rgba(16,185,129,0.12);color:#34D399;border-color:rgba(16,185,129,0.28)}
+.btn-g:hover{background:rgba(16,185,129,0.2)}
+.btn-d{background:rgba(239,68,68,0.1);color:#FCA5A5;border-color:rgba(239,68,68,0.25)}
+.btn-d:hover{background:rgba(239,68,68,0.18)}
+.btn-excel{background:rgba(16,185,129,0.12);color:#34D399;border-color:rgba(16,185,129,0.28);display:inline-flex;align-items:center;gap:4px}
+
+/* ── TAB BARS ── */
+.tbar{display:flex;gap:3px;padding:8px 12px;border-bottom:1px solid var(--br);flex-wrap:wrap}
+.tbtn{padding:4px 12px;border-radius:5px;font-size:11px;font-weight:700;cursor:pointer;
+  border:1px solid var(--br);background:transparent;color:var(--mu);
+  font-family:'Noto Sans KR',sans-serif;transition:all .18s;white-space:nowrap}
+.tbtn.on{background:rgba(0,212,255,0.11);color:var(--acc);border-color:rgba(0,212,255,0.3)}
+.tpane{display:none;padding:11px}
 .tpane.on{display:block}
-/* STICKY BAR */
+.ftab{padding:3px 9px;border-radius:5px;font-size:9px;font-weight:700;cursor:pointer;
+  border:1px solid var(--br);background:transparent;color:var(--mu);
+  font-family:'Noto Sans KR',sans-serif;transition:all .18s}
+.ftab.on{background:rgba(0,212,255,0.11);color:var(--acc);border-color:rgba(0,212,255,0.28)}
+
+/* ── STAGE PILLS ── */
+.spill{padding:3px 10px;border-radius:99px;font-size:10px;font-weight:700;cursor:pointer;
+  border:1px solid;transition:all .18s;font-family:'Noto Sans KR',sans-serif;white-space:nowrap}
+
+/* ── STICKY BAR ── */
 .sbar{position:sticky;bottom:0;background:rgba(11,22,40,0.97);border-top:1px solid rgba(0,212,255,0.2);
-  padding:6px 18px;display:flex;align-items:center;gap:14px;backdrop-filter:blur(12px);z-index:200;flex-wrap:wrap}
-.si{text-align:center}
-.sl{font-size:9px;color:var(--muted);letter-spacing:0.05em;text-transform:uppercase}
-.sv{font-size:14px;font-weight:700;font-family:'JetBrains Mono',monospace}
-.sdv{width:1px;height:26px;background:var(--bdr)}
-/* MODAL */
-.mbg{position:fixed;inset:0;background:rgba(0,0,0,0.75);z-index:500;display:flex;align-items:center;justify-content:center}
-.modal{background:var(--bg2);border:1px solid var(--bdr);border-radius:12px;padding:18px;width:580px;max-width:94vw}
-.modal h3{font-size:13px;font-weight:700;margin-bottom:10px;color:var(--acc)}
-.dz{border:2px dashed rgba(0,212,255,0.3);border-radius:8px;padding:24px;text-align:center;
-  cursor:pointer;transition:all 0.2s;color:var(--muted);font-size:12px}
-.dz:hover,.dz.drag{border-color:var(--acc);background:rgba(0,212,255,0.04);color:var(--text)}
-.dz input{display:none}
-.pbox{background:rgba(0,0,0,0.3);border-radius:5px;padding:9px;font-family:'JetBrains Mono',monospace;
-  font-size:10px;color:var(--muted);max-height:140px;overflow-y:auto;margin:8px 0;white-space:pre-wrap;word-break:break-all}
-/* MISC */
-.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--amber)}
-.mb10{margin-bottom:10px}.mb12{margin-bottom:12px}
-.notice{background:rgba(0,212,255,0.06);border-left:3px solid var(--acc);padding:6px 11px;
-  font-size:11px;color:var(--muted);border-radius:0 5px 5px 0;margin-bottom:10px}
-.notice strong{color:var(--acc)}
+  padding:7px 18px;display:flex;align-items:center;gap:12px;backdrop-filter:blur(12px);z-index:100;flex-wrap:wrap}
+.si-l{font-size:9px;color:var(--mu);letter-spacing:0.06em;text-transform:uppercase}
+.si-v{font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace}
+.sdv{width:1px;height:24px;background:var(--br)}
+
+/* ── MISC ── */
+.pos{color:var(--green)}.neg{color:var(--red)}.warn{color:var(--amber)}.acc{color:var(--acc)}
 .g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-.arow{display:flex;align-items:center;gap:5px;flex-wrap:wrap}
-/* 유형별 원가 구분 컬러 */
-.col-인건비{color:#60A5FA}
-.col-외주비{color:#34D399}
-.col-인프라비{color:#FCD34D}
-.col-상품매입{color:#FCA5A5}
-.col-장비원가{color:#5EEAD4}
-.col-물류비{color:#C4B5FD}
-.col-직접경비{color:#FB923C}
-.col-매출총이익{color:var(--green);font-weight:700}
-/* 손익계산서 */
-.irow{display:flex;justify-content:space-between;align-items:center;padding:4px 0;border-bottom:1px solid var(--bdr);font-size:12px}
-.irow.bold{font-weight:700;border-top:2px solid var(--bdr);border-bottom:none;padding-top:6px}
-.irow.indent{padding-left:18px;color:var(--muted)}
+.arow{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.notice{background:rgba(0,212,255,0.06);border-left:3px solid var(--acc);padding:6px 12px;
+  font-size:11px;color:var(--mu);border-radius:0 6px 6px 0;margin-bottom:10px}
+.notice b{color:var(--acc)}
+.mb10{margin-bottom:10px}
+.irow{display:flex;justify-content:space-between;align-items:center;padding:5px 0;border-bottom:1px solid var(--br);font-size:12px}
+.irow.bold{font-weight:700;border-top:2px solid rgba(0,212,255,0.3);border-bottom:none;padding-top:7px;margin-top:3px}
+.irow.indent{padding-left:18px;color:var(--mu);font-size:11px}
+.type-guide{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;padding:10px 12px;border-top:1px solid var(--br)}
+.tg-box{border:1px solid var(--br);border-radius:8px;padding:8px 10px}
+.tg-title{font-size:11px;font-weight:700;margin-bottom:4px;color:var(--tx)}
+.tg-desc{font-size:9px;color:var(--mu);line-height:1.6}
 </style>
 </head>
 <body>
 
-<!-- MODAL -->
-<div id="modal" class="mbg" style="display:none">
-  <div class="modal">
-    <h3 id="mTitle">📥 CSV 불러오기</h3>
-    <div style="font-size:10px;color:var(--muted);margin-bottom:8px" id="mDesc"></div>
-    <div class="dz" id="dz" onclick="document.getElementById('fi').click()"
-      ondragover="event.preventDefault();this.classList.add('drag')"
-      ondragleave="this.classList.remove('drag')"
-      ondrop="onDrop(event)">
-      <input type="file" id="fi" accept=".csv" onchange="onFile(this.files[0])"/>
-      <div style="font-size:22px;margin-bottom:6px">📂</div>
-      <div>CSV 파일을 드래그하거나 클릭하여 선택</div>
-      <div style="font-size:10px;margin-top:3px;color:var(--hint)">UTF-8 / EUC-KR 자동 감지 · 국세청/카드사/은행 표준 서식</div>
-    </div>
-    <div id="mprev" class="pbox" style="display:none"></div>
-    <div style="display:flex;gap:7px;justify-content:flex-end;margin-top:10px">
-      <button class="btn bd" onclick="closeModal()">취소</button>
-      <button class="btn bg" id="mImport" onclick="doImport()" disabled style="opacity:.5">▶ 가져오기</button>
-    </div>
-  </div>
-</div>
-
-<!-- HEADER -->
+<!-- ══ HEADER ══ -->
 <header>
   <div class="logo">⬡</div>
   <div>
-    <div class="brand"><span>(주)모비텍</span> 중앙 경영관리 시스템 <span style="font-size:10px;color:var(--muted);font-weight:400">v4.0</span></div>
+    <div class="brand"><span>(주)모비텍</span> 중앙 경영관리 시스템 <span style="font-size:10px;color:var(--mu);font-weight:400">Final</span></div>
     <div class="brand-sub">국세청 증빙기준 · 6대 사업유형별 원가 자동계산 · 2024 회계연도</div>
   </div>
   <nav>
-    <button class="nb on"  onclick="gp('dash',this)">📊 경영대시보드</button>
-    <button class="nb"     onclick="gp('sales',this)">📄 매출세금계산서</button>
-    <button class="nb"     onclick="gp('pur',this)">📥 매입세금계산서</button>
-    <button class="nb"     onclick="gp('card',this)">💳 법인카드청구</button>
-    <button class="nb"     onclick="gp('bank',this)">🏦 은행거래내역</button>
-    <button class="nb"     onclick="gp('cost',this)">⚙️ 유형별원가입력</button>
-    <button class="nb"     onclick="gp('ts',this)">⏱ M/M투입</button>
-    <button class="nb"     onclick="gp('master',this)">🗂 마스터</button>
-    <button class="nb"     onclick="gp('pnl',this)">💹 손익계산서</button>
+    <button class="nb on" onclick="gp('dash',this)">📊 경영 대시보드</button>
+    <button class="nb"    onclick="gp('master',this)">🗂 마스터 변동 관리</button>
+    <button class="nb"    onclick="gp('pnl',this)">💹 손익 / 포캐스팅</button>
+    <button class="nb"    onclick="gp('tax',this)">📄 매출·매입 세금계산서</button>
+    <button class="nb"    onclick="gp('bank',this)">🏦 은행 거래 내역</button>
+    <button class="nb"    onclick="gp('card',this)">💳 법인카드 청구</button>
   </nav>
-  <div class="hr">
-    <div class="si"><div class="hs-l">영업이익</div><div class="hs-v pos" id="hP">-</div></div>
-    <div style="width:1px;height:24px;background:var(--bdr)"></div>
-    <div class="si"><div class="hs-l">이익률</div><div class="hs-v" id="hR">-</div></div>
+  <div class="hdr-right">
+    <div class="hs"><div class="hs-l">영업이익</div><div class="hs-v pos" id="hP">-</div></div>
+    <div class="hdr-divider"></div>
+    <div class="hs"><div class="hs-l">이익률</div><div class="hs-v" id="hR">-</div></div>
+    <div class="hdr-divider"></div>
+    <div class="hs"><div class="hs-l">기준일</div><div class="hs-v" style="color:var(--acc);font-size:11px">2024-12-31</div></div>
   </div>
 </header>
 
-<!-- ═══ PAGE: 경영 대시보드 ═══ -->
+<!-- ══════════════════════════════════════════
+     PAGE 1: 경영 대시보드
+══════════════════════════════════════════ -->
 <div id="pg-dash" class="pg on">
   <div id="riskZone" class="mb10"></div>
-  <div class="kgrid" id="kGrid"></div>
-  <div class="crow mb12">
-    <div class="cc"><div class="ct">📈 월별 매출/원가/영업이익</div>
-      <div class="lr" id="ll"></div>
+  <div class="kg5" id="kGrid"></div>
+
+  <!-- 당해연도 예측표 -->
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>📡 2024년 사업규모 예측 <span class="gc-sub">— 확정실적 + 파이프라인 가중합계 자동연동</span></h3>
+      <span style="font-size:10px;color:var(--mu)">■ 실적 &nbsp; <span style="color:var(--amber)">■</span> 파이프라인</span>
+    </div>
+    <div style="padding:12px 13px">
+      <div class="pg3" id="predictGrid"></div>
+      <div id="typeBarArea"></div>
+    </div>
+  </div>
+
+  <!-- 차트 3종 -->
+  <div class="c3">
+    <div class="cc"><div class="ct">📈 월별 매출 / 원가 / 영업이익</div>
+      <div class="leg" id="ll"></div>
       <div style="position:relative;width:100%;height:175px"><canvas id="lc" role="img" aria-label="월별 손익 추이"></canvas></div></div>
     <div class="cc"><div class="ct">🥧 사업유형별 매출</div>
-      <div class="lr" id="dl"></div>
-      <div style="position:relative;width:100%;height:175px"><canvas id="dc" role="img" aria-label="사업유형 도넛"></canvas></div></div>
+      <div class="leg" id="dl"></div>
+      <div style="position:relative;width:100%;height:175px"><canvas id="dc" role="img" aria-label="유형별 도넛"></canvas></div></div>
     <div class="cc"><div class="ct">📊 프로젝트별 영업이익</div>
-      <div class="lr" id="bl"></div>
+      <div class="leg" id="bl"></div>
       <div style="position:relative;width:100%;height:175px"><canvas id="bc" role="img" aria-label="프로젝트 바차트"></canvas></div></div>
   </div>
-  <div class="glass">
-    <div class="sh"><h2>DB_Project_Profit_Loss — 손익 집계 (실시간 편집)</h2>
-      <div id="pfTabs" style="display:flex;gap:4px"></div></div>
-    <div class="tw">
-      <table>
-        <thead><tr>
-          <th class="L" style="width:55px">유형</th>
-          <th class="L" style="width:90px">코드</th>
-          <th class="L" style="width:140px">프로젝트명</th>
-          <th class="NTS">총매출액</th>
-          <th class="NTS TYPE">인건비</th>
-          <th class="NTS TYPE">외주비</th>
-          <th class="NTS TYPE">인프라비<br><span style="font-size:8px;color:var(--amber)">(SV)</span></th>
-          <th class="NTS TYPE">상품매입가<br><span style="font-size:8px;color:var(--red)">(SOL)</span></th>
-          <th class="NTS TYPE">장비원가<br><span style="font-size:8px;color:var(--teal)">(MT)</span></th>
-          <th class="NTS TYPE">물류비<br><span style="font-size:8px;color:var(--purple)">(MT)</span></th>
-          <th class="NTS TYPE">직접경비</th>
-          <th>직접원가계</th>
-          <th>배부판관비</th>
-          <th>매출총이익</th>
-          <th>영업이익</th>
-          <th>이익률</th>
-          <th style="text-align:center;width:60px">마감</th>
-        </tr></thead>
-        <tbody id="pBody"></tbody>
-        <tfoot id="pFoot"></tfoot>
-      </table>
-    </div>
-  </div>
-</div>
 
-<!-- ═══ PAGE: 매출 세금계산서 ═══ -->
-<div id="pg-sales" class="pg">
-  <div class="notice mb10"><strong>🏛 국세청 전자세금계산서(매출)</strong> — 공급자=모비텍, 공급받는자=고객사. 승인번호 24자리 기준.</div>
-  <div class="glass">
-    <div class="sh"><h2>📄 DB_Sales_Revenue <span class="bnts">국세청 전자세금계산서</span></h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('sales')">📥 홈택스 CSV</button>
-        <button class="btn bp" onclick="addSales()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('sRows','rSales')">− 삭제</button>
-        <button class="btn bg" onclick="expCSV('sRows','매출세금계산서')">⬇ 내보내기</button>
-      </div></div>
+  <!-- 손익 집계 -->
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>📋 DB_Project_Profit_Loss — 프로젝트별 손익</h3>
+      <div id="pfT1" style="display:flex;gap:4px"></div>
+    </div>
     <div class="tw"><table>
       <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('sBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L NTS">승인번호(24자리)</th><th class="L NTS">작성일자</th>
-        <th class="L NTS">공급받는자 사업자번호</th><th class="L NTS">공급받는자 상호</th>
-        <th class="NTS">공급가액</th><th class="NTS">세액</th><th>합계</th>
-        <th class="L">품목</th><th class="L">프로젝트코드</th><th class="L">수금상태</th><th class="L">비고</th>
+        <th class="L" style="width:52px">유형</th><th class="L" style="width:88px">코드</th>
+        <th class="L" style="width:128px">프로젝트명</th>
+        <th class="HL">총매출액</th><th class="HLb">직접인건비</th><th class="HLg">외주비</th>
+        <th class="HL">직접경비</th><th class="HLr">상품원가</th>
+        <th>매출원가계</th><th>매출총이익</th><th class="HL">공통제경비</th>
+        <th>영업이익</th><th>이익률</th><th style="text-align:center;width:55px">마감</th>
       </tr></thead>
-      <tbody id="sBody"></tbody>
-      <tfoot><tr><td class="L" colspan="5">합계 (<span id="sCnt">0</span>건)</td>
-        <td id="sSup">0</td><td id="sVat">0</td><td id="sTot">0</td><td colspan="4"></td></tr></tfoot>
+      <tbody id="pB1"></tbody>
+      <tfoot id="pF1"></tfoot>
     </table></div>
   </div>
 </div>
 
-<!-- ═══ PAGE: 매입 세금계산서 ═══ -->
-<div id="pg-pur" class="pg">
-  <div class="notice mb10"><strong>🏛 국세청 전자세금계산서(매입)</strong> — 공급자=외주사/공급업체, 공급받는자=모비텍. 불공제세액 별도 구분.</div>
-  <div class="glass">
-    <div class="sh"><h2>📥 DB_Purchase_Invoice <span class="bnts">국세청 전자세금계산서</span></h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('pur')">📥 홈택스 CSV</button>
-        <button class="btn bp" onclick="addPur()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('pRows','rPur')">− 삭제</button>
-        <button class="btn bg" onclick="expCSV('pRows','매입세금계산서')">⬇ 내보내기</button>
-      </div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('pBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L NTS">승인번호(24자리)</th><th class="L NTS">작성일자</th>
-        <th class="L NTS">공급자 사업자번호</th><th class="L NTS">공급자 상호</th>
-        <th class="NTS">공급가액</th><th class="NTS">세액</th><th class="NTS">불공제세액</th><th>합계</th>
-        <th class="L">계정과목</th><th class="L">프로젝트코드</th><th class="L">배부기준</th><th class="L">비고</th>
-      </tr></thead>
-      <tbody id="pBody2"></tbody>
-      <tfoot><tr><td class="L" colspan="5">합계 (<span id="pCnt">0</span>건)</td>
-        <td id="pSup">0</td><td id="pVat">0</td><td id="pNd">0</td><td id="pTot">0</td><td colspan="4"></td></tr></tfoot>
-    </table></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: 법인카드 ═══ -->
-<div id="pg-card" class="pg">
-  <div class="notice mb10"><strong>💳 여신금융협회 표준</strong> — KB국민·신한·우리·하나카드 청구내역. 가맹점번호·업종코드 포함.</div>
-  <div class="glass">
-    <div class="sh"><h2>💳 DB_CorporateCard <span class="bnts">여신금융협회 표준</span></h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('card')">📥 카드사 CSV</button>
-        <button class="btn bp" onclick="addCard()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('cRows','rCard')">− 삭제</button>
-        <button class="btn bg" onclick="expCSV('cRows','법인카드')">⬇ 내보내기</button>
-      </div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('cBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L NTS">이용일자</th><th class="L NTS">카드번호(뒤4)</th>
-        <th class="L NTS">승인번호</th><th class="L NTS">가맹점명</th><th class="L NTS">업종코드</th>
-        <th class="NTS">이용금액</th><th class="NTS">부가세</th>
-        <th class="L">카드구분</th><th class="L">계정과목</th>
-        <th class="L">사번</th><th class="L">프로젝트배부</th><th class="L">비고</th>
-      </tr></thead>
-      <tbody id="cBody"></tbody>
-      <tfoot><tr><td class="L" colspan="6">합계 (<span id="cCnt">0</span>건)</td>
-        <td id="cAmt">0</td><td id="cVat">0</td><td colspan="5"></td></tr></tfoot>
-    </table></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: 은행거래 ═══ -->
-<div id="pg-bank" class="pg">
-  <div class="notice mb10"><strong>🏦 금융결제원(KFTC) 표준</strong> — 체크카드·계좌이체·자금차입 포함. 임직원 체크카드 사번 연결.</div>
-  <div class="glass">
-    <div class="sh"><h2>🏦 DB_BankTransaction <span class="bnts">금융결제원(KFTC)</span></h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('bank')">📥 은행 CSV</button>
-        <button class="btn bp" onclick="addBank()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('bkRows','rBank')">− 삭제</button>
-        <button class="btn bg" onclick="expCSV('bkRows','은행거래내역')">⬇ 내보내기</button>
-      </div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('bkBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L NTS">거래일자</th><th class="L NTS">거래시각</th>
-        <th class="L NTS">계좌번호</th><th class="L NTS">거래구분</th>
-        <th class="NTS">입금액</th><th class="NTS">출금액</th><th class="NTS">잔액</th>
-        <th class="L NTS">거래처(적요)</th>
-        <th class="L">구분</th><th class="L">계정과목</th><th class="L">사번(체크카드)</th>
-        <th class="L">프로젝트배부</th><th class="L">비고</th>
-      </tr></thead>
-      <tbody id="bkBody"></tbody>
-      <tfoot><tr><td class="L" colspan="5">합계 (<span id="bkCnt">0</span>건)</td>
-        <td id="bkIn">0</td><td id="bkOut">0</td><td colspan="7"></td></tr></tfoot>
-    </table></div>
-  </div>
-  <div class="sbar">
-    <div class="si"><div class="sl">총 입금</div><div class="sv pos" id="sbIn">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl">총 출금</div><div class="sv neg" id="sbOut">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl">차입금</div><div class="sv warn" id="sbLoan">0</div></div>
-    <div class="si"><div class="sl">차입상환</div><div class="sv" id="sbRepay">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl">순 현금흐름</div><div class="sv" id="sbNet">0</div></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: 유형별 원가 입력 ★핵심★ ═══ -->
-<div id="pg-cost" class="pg">
-  <div class="notice mb10">
-    <strong>⚙️ 6대 사업유형별 원가 항목 직접 입력</strong> —
-    유형에 따라 원가 구성이 다릅니다. 각 탭에서 해당 유형 전용 항목을 입력하면
-    하단 스티키 바에서 매출원가계·매출총이익이 실시간 계산됩니다.
-  </div>
-  <div class="glass">
-    <div class="tbar">
-      <button class="tbtn on" onclick="showTab('tSI',this)">⚙️ SI — 시스템구축</button>
-      <button class="tbtn" onclick="showTab('tSM',this)">🔧 SM — 유지보수</button>
-      <button class="tbtn" onclick="showTab('tSV',this)">☁️ SV — 서비스/컨설팅</button>
-      <button class="tbtn" onclick="showTab('tSOL',this)">📦 SOL — 솔루션판매</button>
-      <button class="tbtn" onclick="showTab('tCT',this)">📋 CT — 기술지원</button>
-      <button class="tbtn" onclick="showTab('tMT',this)">🏗️ MT — 자재/장비</button>
-    </div>
-
-    <!-- SI 탭 -->
-    <div id="tSI" class="tpane on">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(59,130,246,0.07);border-radius:6px;border-left:3px solid #3B82F6">
-        <strong style="color:#60A5FA">SI 원가구조:</strong> ①직접인건비(등급별단가×M/M) + ②외주비(협력업체) + ③직접경비(여비/소모품/접대/인센티브) = 매출원가계
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="SI-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('SI')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('SI')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="SI-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역</th><th class="L">등급</th>
-          <th>공수(M/M)</th><th>단가</th><th>금액</th><th class="L">증빙</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="SI-body"></tbody>
-        <tfoot><tr>
-          <td class="L" colspan="5">SI 매출원가계</td>
-          <td id="SI-tot" style="color:var(--red);font-weight:700">0</td>
-          <td colspan="3"></td>
-        </tr></tfoot>
-      </table></div>
-    </div>
-
-    <!-- SM 탭 -->
-    <div id="tSM" class="tpane">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(16,185,129,0.07);border-radius:6px;border-left:3px solid #10B981">
-        <strong style="color:#34D399">SM 원가구조:</strong> ①직접인건비(상주/비상주) + ②외주비(3rd Party 기술지원료) + ③직접경비(현장운영비/접대/인센티브) = 매출원가계
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="SM-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('SM')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('SM')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="SM-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역</th><th class="L">투입형태</th>
-          <th>수량/월수</th><th>단가</th><th>금액</th><th class="L">증빙</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="SM-body"></tbody>
-        <tfoot><tr><td class="L" colspan="5">SM 매출원가계</td>
-          <td id="SM-tot" style="color:var(--red);font-weight:700">0</td><td colspan="3"></td></tr></tfoot>
-      </table></div>
-    </div>
-
-    <!-- SV 탭 -->
-    <div id="tSV" class="tpane">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(245,158,11,0.07);border-radius:6px;border-left:3px solid #F59E0B">
-        <strong style="color:#FCD34D">SV 원가구조:</strong> ①직접인건비(컨설턴트) + ②인프라비(클라우드/AWS/서버임차료) ← SV 특화 + ③직접경비(자문료/리포트/접대/인센티브) = 매출원가계
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="SV-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('SV')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('SV')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="SV-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역</th><th class="L">구분</th>
-          <th>수량</th><th>단가</th><th>금액</th><th class="L">증빙유형</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="SV-body"></tbody>
-        <tfoot><tr><td class="L" colspan="5">SV 매출원가계</td>
-          <td id="SV-tot" style="color:var(--red);font-weight:700">0</td><td colspan="3"></td></tr></tfoot>
-      </table></div>
-    </div>
-
-    <!-- SOL 탭 -->
-    <div id="tSOL" class="tpane">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(239,68,68,0.07);border-radius:6px;border-left:3px solid #EF4444">
-        <strong style="color:#FCA5A5">SOL 원가구조:</strong> ①상품매입가(타사솔루션 구매원가) ← SOL 특화 + ②직접인건비(커스터마이징/설치) + ③직접경비(패키징/인증비/접대/인센티브) = 매출원가계
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="SOL-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('SOL')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('SOL')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="SOL-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역(제품명)</th><th class="L">구분</th>
-          <th>수량</th><th>단가</th><th>금액</th><th class="L">증빙(세금계산서)</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="SOL-body"></tbody>
-        <tfoot><tr><td class="L" colspan="5">SOL 매출원가계</td>
-          <td id="SOL-tot" style="color:var(--red);font-weight:700">0</td><td colspan="3"></td></tr></tfoot>
-      </table></div>
-    </div>
-
-    <!-- CT 탭 -->
-    <div id="tCT" class="tpane">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(139,92,246,0.07);border-radius:6px;border-left:3px solid #8B5CF6">
-        <strong style="color:#C4B5FD">CT 원가구조:</strong> ①직접인건비(시간당단가 적용) + ②직접경비(출장비/교육훈련비/접대/인센티브) = 매출원가계 ※ 외주비 거의 없음
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="CT-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('CT')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('CT')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="CT-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역</th><th class="L">구분</th>
-          <th>시간/수량</th><th>단가</th><th>금액</th><th class="L">증빙(카드/영수증)</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="CT-body"></tbody>
-        <tfoot><tr><td class="L" colspan="5">CT 매출원가계</td>
-          <td id="CT-tot" style="color:var(--red);font-weight:700">0</td><td colspan="3"></td></tr></tfoot>
-      </table></div>
-    </div>
-
-    <!-- MT 탭 -->
-    <div id="tMT" class="tpane">
-      <div style="font-size:10px;color:var(--muted);margin-bottom:8px;padding:6px 8px;background:rgba(20,184,166,0.07);border-radius:6px;border-left:3px solid #14B8A6">
-        <strong style="color:#5EEAD4">MT 원가구조:</strong> ①장비매입원가(제조사/총판 매입가) ← 가장 큰 비중 + ②물류비(운반비/통관비/창고료) ← MT 특화 + ③직접경비(설치인건비/접대/인센티브) = 매출원가계
-      </div>
-      <div class="arow" style="margin-bottom:8px">
-        <select id="MT-proj" style="background:var(--bg3);border:1px solid var(--bdr);color:var(--text);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif"></select>
-        <button class="btn bp" onclick="addCostRow('MT')">+ 항목 추가</button>
-        <button class="btn bg" onclick="applyCost('MT')">▶ 손익에 반영</button>
-      </div>
-      <div class="tw"><table id="MT-tbl">
-        <thead><tr>
-          <th class="L">원가항목</th><th class="L">상세내역(품명/모델)</th><th class="L">구분</th>
-          <th>수량</th><th>단가</th><th>금액</th><th class="L">증빙(세금계산서)</th><th class="L">비고</th>
-          <th style="text-align:center;width:40px">삭제</th>
-        </tr></thead>
-        <tbody id="MT-body"></tbody>
-        <tfoot><tr><td class="L" colspan="5">MT 매출원가계</td>
-          <td id="MT-tot" style="color:var(--red);font-weight:700">0</td><td colspan="3"></td></tr></tfoot>
-      </table></div>
-    </div>
-  </div>
-
-  <!-- 원가 입력 스티키 바 -->
-  <div class="sbar">
-    <div class="si"><div class="sl">매출(선택프로젝트)</div><div class="sv pos" id="cRev">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl col-인건비">인건비</div><div class="sv col-인건비" id="cLab">0</div></div>
-    <div class="si"><div class="sl col-외주비">외주비</div><div class="sv col-외주비" id="cOut">0</div></div>
-    <div class="si"><div class="sl col-인프라비">인프라비</div><div class="sv col-인프라비" id="cInf">0</div></div>
-    <div class="si"><div class="sl col-상품매입">상품매입</div><div class="sv col-상품매입" id="cGds">0</div></div>
-    <div class="si"><div class="sl col-장비원가">장비원가</div><div class="sv col-장비원가" id="cEqp">0</div></div>
-    <div class="si"><div class="sl col-물류비">물류비</div><div class="sv col-물류비" id="cLog">0</div></div>
-    <div class="si"><div class="sl col-직접경비">직접경비</div><div class="sv col-직접경비" id="cExp">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl">매출원가계</div><div class="sv neg" id="cCost">0</div></div>
-    <div class="sdv"></div>
-    <div class="si"><div class="sl">매출총이익</div><div class="sv" id="cGross">0</div></div>
-    <div class="si"><div class="sl">이익률</div><div class="sv" id="cRate">0%</div></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: M/M 투입 ═══ -->
-<div id="pg-ts" class="pg">
-  <div class="notice mb10"><strong>⏱ DB_Timesheet + DB_Salary_Cost 연동</strong> — 계산원가 = 투입공수(M/M) × 월간총원가</div>
-  <div class="glass mb10">
-    <div class="sh"><h2>👥 DB_Salary_Cost — 인력 원가 마스터</h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('salary')">📥 급여대장 CSV</button>
-        <button class="btn bp" onclick="addSal()">+ 직접입력</button>
-      </div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L">기준년월</th><th class="L">사번</th><th class="L">성명</th><th class="L">부서</th><th class="L">직급</th>
-        <th class="NTS">월급여액</th><th class="NTS">시간당원가</th><th class="NTS">4대보험(사)</th>
-        <th class="NTS">퇴직충당금</th><th class="NTS">월간총원가</th><th class="L">비고</th>
-      </tr></thead>
-      <tbody id="salBody"></tbody>
-      <tfoot><tr><td class="L" colspan="5">합계</td>
-        <td id="salBase">0</td><td></td><td id="salIns">0</td><td id="salRet">0</td><td id="salTot">0</td><td></td></tr></tfoot>
-    </table></div>
-  </div>
-  <div class="glass">
-    <div class="sh"><h2>⏱ DB_Timesheet — M/M 투입 관리</h2>
-      <div class="arow">
-        <button class="btn bexcel" onclick="openM('ts')">📥 투입공수 CSV</button>
-        <button class="btn bp" onclick="addTs()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('tsRows','rTs')">− 삭제</button>
-      </div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('tsBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L">기준년월</th><th class="L">프로젝트코드</th><th class="L">사번</th><th class="L">성명</th>
-        <th class="NTS">투입공수(M/M)</th><th class="L">투입시작일</th><th class="L">투입종료일</th>
-        <th>시간당원가</th><th>계산원가 (M/M×원가)</th><th style="text-align:center">원가반영</th>
-      </tr></thead>
-      <tbody id="tsBody"></tbody>
-      <tfoot><tr><td class="L" colspan="5">합계</td>
-        <td id="tsMM">0.00</td><td colspan="3"></td><td id="tsCost">0</td><td></td></tr></tfoot>
-    </table></div>
-  </div>
-</div>
-
-<!-- ═══ PAGE: 마스터 ═══ -->
+<!-- ══════════════════════════════════════════
+     PAGE 2: 마스터 변동 관리
+══════════════════════════════════════════ -->
 <div id="pg-master" class="pg">
-  <div class="g2 mb10">
-    <div class="glass">
-      <div class="sh"><h2>🏢 DB_Company_Master <span class="bnts">사업자번호 기준</span></h2>
-        <div class="arow"><button class="btn bexcel" onclick="openM('co')">📥 CSV</button>
-          <button class="btn bp" onclick="addCo()">+ 직접입력</button></div></div>
+  <div class="gc">
+    <div class="tbar">
+      <button class="tbtn on" onclick="showTab('mCo',this)">① DB_Company_Master</button>
+      <button class="tbtn"    onclick="showTab('mPrj',this)">② DB_Project_Master</button>
+      <button class="tbtn"    onclick="showTab('mBgt',this)">③ DB_Budget_Plan</button>
+      <button class="tbtn"    onclick="showTab('mMem',this)">④ DB_Member_Master</button>
+    </div>
+
+    <!-- ① 업체 마스터 -->
+    <div id="mCo" class="tpane on">
+      <div class="notice">
+        <b>DB_Company_Master</b> — 사업자번호(PK) 기준. 하향/우향 셀 추가 지원. 중복 사업자번호 등록 불가.
+      </div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addCo()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 엑셀 불러오기</button>
+        <button class="btn btn-g">📋 폼 다운로드</button>
+        <button class="btn btn-d" onclick="delChk('coBody','cos','rMaster')">− 선택삭제</button>
+      </div>
       <div class="tw"><table>
         <thead><tr>
-          <th class="L NTS">사업자번호(PK)</th><th class="L NTS">업체명(상호)</th>
-          <th class="L NTS">대표자명</th><th class="L">업태</th><th class="L">종목</th>
-          <th class="L">담당자</th><th class="L">등록일</th>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('coBody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L HL">사업자번호(PK)</th><th class="L HL">업체명(상호)</th>
+          <th class="L HL">대표자명</th><th class="L">업태</th><th class="L">종목</th>
+          <th class="L">본점소재지</th><th class="L">담당자명</th><th class="L">담당자이메일</th>
+          <th class="L">최초등록일</th><th style="text-align:center">완료</th>
         </tr></thead>
         <tbody id="coBody"></tbody>
       </table></div>
     </div>
-    <div class="glass">
-      <div class="sh"><h2>👤 DB_Member_Master</h2>
-        <button class="btn bp" onclick="addMem()">+ 직접입력</button></div>
+
+    <!-- ② 프로젝트 마스터 -->
+    <div id="mPrj" class="tpane">
+      <div class="notice">
+        <b>DB_Project_Master</b> — DB_Company_Master 기반. 프로젝트코드 자동생성: P연도-001-업체명-유형. 사업자번호 선택 시 업체명 자동연동.
+      </div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addPrj()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 엑셀 불러오기</button>
+        <button class="btn btn-d" onclick="delChk('prjBody','prjs','rMaster')">− 선택삭제</button>
+      </div>
       <div class="tw"><table>
         <thead><tr>
-          <th class="L NTS">사번</th><th class="L NTS">성명</th>
-          <th class="L">부서</th><th class="L">직급</th><th class="L">입사일</th><th style="text-align:center">상태</th>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('prjBody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L HL" style="width:130px">프로젝트코드(자동생성)</th>
+          <th class="L HL">프로젝트명</th>
+          <th class="L HL">사업자번호</th><th class="L">업체명(자동)</th>
+          <th class="L">사업유형(6종)</th>
+          <th class="L">시작일</th><th class="L">종료일</th>
+          <th style="text-align:center">진행상태</th>
+          <th class="L">등록일시</th><th style="text-align:center">완료</th>
+        </tr></thead>
+        <tbody id="prjBody"></tbody>
+      </table></div>
+    </div>
+
+    <!-- ③ 예산 계획 -->
+    <div id="mBgt" class="tpane">
+      <div class="notice">
+        <b>DB_Budget_Plan</b> — DB_Project_Master 기반. ①매출액 → ⑥매출원가계 자동계산 → ⑦매출총이익 → ⑨영업이익 산출. 인력 항목 입력 시 DB_Member_Master 연동.
+      </div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addBgt()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 엑셀 불러오기</button>
+        <button class="btn btn-d" onclick="delChk('bgtBody','bgtRows','rMaster')">− 선택삭제</button>
+        <select id="bgtPrjSel" onchange="rBgtTable()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 프로젝트</option>
+        </select>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('bgtBody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L">프로젝트코드</th><th class="L">유형</th><th class="L">항목명(품명)</th>
+          <th class="L">소속구분</th><th class="L">성명(업체명)</th><th class="L">직급/등급</th>
+          <th class="HL">공수(M/M)</th><th>수량</th>
+          <th class="HL">실행단가</th><th>마진율%</th><th>계약단가</th><th>총계약금액</th>
+          <th style="text-align:center">상태</th>
+        </tr></thead>
+        <tbody id="bgtBody"></tbody>
+        <tfoot><tr><td class="L" colspan="12">총계약금액 합계</td><td id="bgtTot">0</td></tr></tfoot>
+      </table></div>
+      <div style="margin-top:8px;padding:8px 12px;background:rgba(255,255,255,0.03);border-radius:6px;font-size:10px;color:var(--mu)">
+        <b style="color:var(--tx)">유형별 매출원가계 산식</b><br>
+        SI/SM/SV: ②인건비+③외주비+④직접경비+⑥영업활동비+⑦인센티브 &nbsp;|&nbsp;
+        SOL/MT: +④상품매입가 &nbsp;|&nbsp; CT: 외주비 없음 (②+④+⑥+⑦)
+      </div>
+    </div>
+
+    <!-- ④ 임직원 마스터 -->
+    <div id="mMem" class="tpane">
+      <div class="notice">
+        <b>DB_Member_Master</b> — 사번 자동생성: 년도-월-001. 임직원→DB_Salary_Cost 연결. 협력사·프리랜서→DB_Timesheet 연결.
+      </div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addMem()">+ 직접입력</button>
+        <button class="btn btn-d" onclick="delChk('memBody','mems','rMaster')">− 선택삭제</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('memBody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L HL">사번(자동생성)</th><th class="L HL">성명</th>
+          <th class="L HL">구분</th><th class="L">직급</th>
+          <th class="L">입사일</th><th class="L">퇴사일</th>
+          <th class="L">연락처</th><th class="L">개인이메일</th>
+          <th style="text-align:center">상태</th><th style="text-align:center">완료</th>
         </tr></thead>
         <tbody id="memBody"></tbody>
       </table></div>
+
+      <!-- DB_Salary_Cost -->
+      <div style="margin-top:12px;border-top:1px solid var(--br);padding-top:10px">
+        <div class="arow" style="margin-bottom:7px">
+          <span style="font-size:11px;font-weight:700">DB_Salary_Cost <span class="gc-sub">— 임직원 월간 원가 (연봉/12 + 4대보험17% + 공통경비50%)</span></span>
+          <button class="btn btn-p" onclick="addSal()">+ 추가</button>
+        </div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th class="L HL">기준년월</th><th class="L HL">사번</th><th class="L HL">성명</th>
+            <th class="HL">연봉</th><th class="HL">4대보험(17%)</th><th class="HL">월간총원가</th>
+            <th class="HL">퇴직충당금</th><th style="text-align:center">완료</th>
+          </tr></thead>
+          <tbody id="salBody"></tbody>
+          <tfoot><tr><td class="L" colspan="3">합계</td>
+            <td id="salAnn">0</td><td id="salIns">0</td><td id="salTot">0</td><td id="salRet">0</td><td></td></tr></tfoot>
+        </table></div>
+      </div>
+
+      <!-- DB_Timesheet -->
+      <div style="margin-top:12px;border-top:1px solid var(--br);padding-top:10px">
+        <div class="arow" style="margin-bottom:7px">
+          <span style="font-size:11px;font-weight:700">DB_Timesheet <span class="gc-sub">— 투입공수(M/M) 관리 | 계산원가 = M/M × 월간총원가</span></span>
+          <button class="btn btn-p" onclick="addTs()">+ 추가</button>
+        </div>
+        <div class="tw"><table>
+          <thead><tr>
+            <th class="L">기준년월</th><th class="L">프로젝트코드</th>
+            <th class="L HL">사번</th><th class="L HL">성명</th>
+            <th class="HL">투입공수(M/M)</th><th class="L">투입시작일</th><th class="L">투입종료일</th>
+            <th>시간당원가</th><th>계산원가</th><th style="text-align:center">원가반영</th>
+          </tr></thead>
+          <tbody id="tsBody"></tbody>
+          <tfoot><tr><td class="L" colspan="4">합계</td>
+            <td id="tsMM">0.00</td><td colspan="3"></td><td id="tsCost">0</td><td></td></tr></tfoot>
+        </table></div>
+      </div>
     </div>
-  </div>
-  <div class="glass mb10">
-    <div class="sh"><h2>📁 DB_Project_Master</h2>
-      <div class="arow"><button class="btn bexcel" onclick="openM('prj')">📥 CSV</button>
-        <button class="btn bp" onclick="addPrj()">+ 직접입력</button></div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L NTS">프로젝트코드(PK)</th><th class="L NTS">사업자번호(FK)</th>
-        <th class="L NTS">프로젝트명</th><th class="L">유형</th>
-        <th class="L">시작일</th><th class="L">종료일</th><th style="text-align:center">상태</th><th class="L">비고</th>
-      </tr></thead>
-      <tbody id="prjBody"></tbody>
-    </table></div>
-  </div>
-  <div class="glass">
-    <div class="sh"><h2>📊 DB_Budget_Plan — 공수 기반 예산 (마진율→계약단가 자동계산)</h2>
-      <div class="arow"><button class="btn bexcel" onclick="openM('bgt')">📥 CSV</button>
-        <button class="btn bp" onclick="addBgt()">+ 직접입력</button>
-        <button class="btn bd" onclick="delChk('bgtRows','rMaster')">− 삭제</button></div></div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('bgtBody',this.checked)" style="accent-color:var(--acc)"></th>
-        <th class="L">프로젝트코드</th><th class="L">유형</th><th class="L">항목명(품명)</th>
-        <th class="L">소속</th><th class="L">성명(업체명)</th><th class="L">직급/등급</th>
-        <th class="NTS">공수(M/M)</th><th>수량</th>
-        <th class="NTS">실행단가</th><th>마진율%</th><th>계약단가</th><th>총계약금액</th><th style="text-align:center">상태</th>
-      </tr></thead>
-      <tbody id="bgtBody"></tbody>
-      <tfoot><tr><td class="L" colspan="12">총계약금액 합계</td><td id="bgtTot">0</td><td></td></tr></tfoot>
-    </table></div>
   </div>
 </div>
 
-<!-- ═══ PAGE: 손익계산서 ═══ -->
+<!-- ══════════════════════════════════════════
+     PAGE 3: 손익 / 포캐스팅
+══════════════════════════════════════════ -->
 <div id="pg-pnl" class="pg">
+  <div class="notice mb10">
+    <b>실시간 연동:</b> 파이프라인 수주액·진행단계 수정 → 대시보드 KPI 자동 반영 &nbsp;|&nbsp;
+    ★ 칼럼 편집 → 영업이익·이익률 즉시 재계산 &nbsp;|&nbsp; 🔒 마감완료 시 입력 잠금
+  </div>
+
+  <!-- 영업 파이프라인 -->
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>🎯 DB_Sales_Pipeline — 영업 파이프라인 (포캐스팅) <span class="gc-sub">— 진행단계별 수주확률 자동적용</span></h3>
+      <div class="arow">
+        <button class="btn btn-p" onclick="addPipe()">+ 추가</button>
+        <button class="btn btn-d" onclick="delChkPipe()">− 선택삭제</button>
+        <button class="btn btn-excel">📥 불러오기</button>
+      </div>
+    </div>
+    <!-- 진행단계 필터 -->
+    <div style="display:flex;gap:5px;flex-wrap:wrap;padding:8px 12px;border-bottom:1px solid var(--br);align-items:center">
+      <span style="font-size:10px;color:var(--mu)">단계 필터:</span>
+      <button class="spill on" id="sp-ALL" onclick="setSF('ALL',this)"
+        style="background:rgba(0,212,255,0.12);color:var(--acc);border-color:rgba(0,212,255,0.3)">전체</button>
+      <button class="spill" id="sp-첩보" onclick="setSF('첩보',this)"
+        style="background:transparent;color:var(--mu);border-color:var(--br)">첩보 10%</button>
+      <button class="spill" id="sp-정보" onclick="setSF('정보',this)"
+        style="background:transparent;color:#FCD34D;border-color:rgba(245,158,11,0.25)">정보 30%</button>
+      <button class="spill" id="sp-입찰참여" onclick="setSF('입찰참여',this)"
+        style="background:transparent;color:#60A5FA;border-color:rgba(59,130,246,0.25)">입찰참여 30%</button>
+      <button class="spill" id="sp-기존고객입찰" onclick="setSF('기존고객입찰',this)"
+        style="background:transparent;color:#C4B5FD;border-color:rgba(139,92,246,0.25)">기존고객 70%</button>
+      <button class="spill" id="sp-계약협의" onclick="setSF('계약협의',this)"
+        style="background:transparent;color:#5EEAD4;border-color:rgba(20,184,166,0.25)">계약협의 80%</button>
+      <button class="spill" id="sp-사업연장" onclick="setSF('사업연장',this)"
+        style="background:transparent;color:#34D399;border-color:rgba(16,185,129,0.25)">사업연장 90%</button>
+    </div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th class="L" style="width:28px"><input type="checkbox" id="chkAP" onchange="chkAll('pipeBody',this.checked)" style="accent-color:var(--acc)"></th>
+        <th class="L">가망사업명</th><th class="L">고객사</th><th class="L">유형</th>
+        <th class="HL">예상수주액 ★</th><th class="HL">진행단계 ★</th>
+        <th class="HL">수주확률%</th><th class="HL">가중수주액</th>
+        <th class="L">예상착수일</th><th class="L">영업담당자</th>
+        <th class="HL">예상마진율% ★</th><th>예상수익</th><th style="text-align:center">완료</th>
+      </tr></thead>
+      <tbody id="pipeBody"></tbody>
+      <tfoot><tr>
+        <td class="L" colspan="4">합계 (<span id="pipeCnt">0</span>건)</td>
+        <td id="pipeExp" class="acc">0</td><td colspan="2"></td>
+        <td id="pipeWt" style="color:var(--amber);font-weight:700">0</td>
+        <td colspan="3"></td><td id="pipeInc" class="pos">0</td><td></td>
+      </tr></tfoot>
+    </table></div>
+  </div>
+
+  <!-- 손익계산서 + 기여도 -->
   <div class="g2">
-    <div class="glass">
-      <div class="sh"><h2>💹 손익계산서 (법정서식) — 2024년 누계</h2></div>
+    <div class="gc">
+      <div class="gc-hd"><h3>💹 손익계산서 (법정서식) — 2024년 누계</h3></div>
       <div style="padding:10px 14px" id="isArea"></div>
     </div>
-    <div class="glass">
-      <div class="sh"><h2>📊 사업부문별 기여도 (영업이익 + 이익률)</h2></div>
-      <div class="lr" style="padding:8px 11px 0" id="contribLeg"></div>
-      <div style="position:relative;width:100%;height:280px;padding:8px 11px">
+    <div class="gc">
+      <div class="gc-hd"><h3>📊 사업부문별 기여도 분석</h3></div>
+      <div class="leg" style="padding:8px 12px 0" id="contribLeg"></div>
+      <div style="position:relative;width:100%;height:270px;padding:8px 12px">
         <canvas id="contribC" role="img" aria-label="사업부문별 기여도"></canvas>
       </div>
     </div>
   </div>
-  <div class="glass" style="margin-top:10px">
-    <div class="sh"><h2>🎯 DB_Sales_Pipeline — 영업 파이프라인</h2>
-      <button class="btn bp" onclick="addPipe()">+ 직접입력</button></div>
+
+  <!-- 실적 원장 -->
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>📋 프로젝트별 실적 원장 <span class="gc-sub">— ★ 칼럼 직접 수정 → 손익계산서·대시보드 자동 반영</span></h3>
+      <div id="pfT2" style="display:flex;gap:4px"></div>
+    </div>
     <div class="tw"><table>
       <thead><tr>
-        <th class="L">가망사업명</th><th class="L">고객사</th><th class="L">유형</th>
-        <th>예상수주액</th><th>수주확률%</th><th>가중수주액</th>
-        <th class="L">착수예정</th><th class="L">영업담당</th><th class="L">진행단계</th><th>예상마진율%</th>
+        <th class="L" style="width:52px">유형</th><th class="L" style="width:88px">코드</th>
+        <th class="L" style="width:128px">프로젝트명</th>
+        <th class="HL">총매출액 ★</th><th class="HLb">직접인건비 ★</th><th class="HLg">외주비 ★</th>
+        <th class="HL">직접경비 ★</th><th class="HLr">상품원가 ★</th>
+        <th>매출원가계</th><th>매출총이익</th><th class="HL">공통제경비 ★</th>
+        <th>영업이익</th><th>이익률</th><th style="text-align:center;width:55px">마감</th>
       </tr></thead>
-      <tbody id="pipeBody"></tbody>
-      <tfoot><tr><td class="L" colspan="3">합계</td>
-        <td id="pipeExp">0</td><td></td><td id="pipeWt">0</td><td colspan="4"></td></tr></tfoot>
+      <tbody id="pB2"></tbody>
+      <tfoot id="pF2"></tfoot>
+    </table></div>
+  </div>
+
+  <div class="sbar">
+    <div class="si-l">확정매출</div><div class="si-v acc" id="sbRev">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">매출원가</div><div class="si-v neg" id="sbCost">0</div>
+    <div class="si-l">매출총이익</div><div class="si-v" id="sbGross">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">파이프라인 가중합계</div><div class="si-v warn" id="sbPipe">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">영업이익</div><div class="si-v" id="sbOp">0</div>
+    <div class="si-l">이익률</div><div class="si-v" id="sbRate">0%</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 4: 매출·매입 세금계산서
+══════════════════════════════════════════ -->
+<div id="pg-tax" class="pg">
+  <div class="gc">
+    <div class="tbar">
+      <button class="tbtn on" onclick="showTab('txS',this)">📄 매출 세금계산서 (발급)</button>
+      <button class="tbtn"   onclick="showTab('txP',this)">📥 매입 세금계산서 (수취)</button>
+    </div>
+
+    <!-- 매출 -->
+    <div id="txS" class="tpane on">
+      <div class="notice"><b>국세청 전자세금계산서(매출)</b> — 공급자=모비텍, 공급받는자=고객사. 승인번호 24자리 기준.</div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addSalesRow()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 홈택스 CSV</button>
+        <button class="btn btn-g" onclick="expCSV('sRows','매출세금계산서')">⬇ 내보내기</button>
+        <button class="btn btn-d" onclick="delChk('sTbody','sRows','rTax')">− 삭제</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('sTbody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L HL">승인번호(24자리)</th><th class="L HL">작성일자</th>
+          <th class="L HL">공급받는자 사업자번호</th><th class="L HL">공급받는자 상호</th>
+          <th class="HL">공급가액</th><th class="HL">세액</th><th>합계금액</th>
+          <th class="L">품목</th><th class="L">프로젝트코드</th>
+          <th class="L">수금상태</th><th class="L">입금예정일</th>
+        </tr></thead>
+        <tbody id="sTbody"></tbody>
+        <tfoot><tr><td class="L" colspan="5">합계 (<span id="sCnt">0</span>건)</td>
+          <td id="sSup" class="pos">0</td><td id="sVat">0</td><td id="sTot" class="pos">0</td>
+          <td colspan="4"></td></tr></tfoot>
+      </table></div>
+    </div>
+
+    <!-- 매입 -->
+    <div id="txP" class="tpane">
+      <div class="notice"><b>국세청 전자세금계산서(매입)</b> — 공급자=외주사/공급업체, 공급받는자=모비텍. 불공제세액 별도 구분.</div>
+      <div class="arow" style="margin-bottom:8px">
+        <button class="btn btn-p" onclick="addPurRow()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 홈택스 CSV</button>
+        <button class="btn btn-g" onclick="expCSV('pRows','매입세금계산서')">⬇ 내보내기</button>
+        <button class="btn btn-d" onclick="delChk('pTbody','pRows','rTax')">− 삭제</button>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('pTbody',this.checked)" style="accent-color:var(--acc)"></th>
+          <th class="L HL">승인번호(24자리)</th><th class="L HL">작성일자</th>
+          <th class="L HL">공급자 사업자번호</th><th class="L HL">공급자 상호</th>
+          <th class="HL">공급가액</th><th class="HL">세액</th><th class="HLr">불공제세액</th><th>합계</th>
+          <th class="L">계정과목</th><th class="L">프로젝트코드</th><th class="L">배부기준</th>
+        </tr></thead>
+        <tbody id="pTbody"></tbody>
+        <tfoot><tr><td class="L" colspan="5">합계 (<span id="pCnt">0</span>건)</td>
+          <td id="pSup" class="neg">0</td><td id="pVat">0</td><td id="pNd">0</td><td id="pTot" class="neg">0</td>
+          <td colspan="3"></td></tr></tfoot>
+      </table></div>
+    </div>
+  </div>
+
+  <!-- 6대 유형 가이드 -->
+  <div class="gc">
+    <div class="gc-hd"><h3>⚙️ 6대 사업유형별 원가 항목 가이드</h3></div>
+    <div class="type-guide">
+      <div class="tg-box"><div class="tg-title"><span class="badge bSI">SI</span> 시스템구축</div>
+        <div class="tg-desc">· 등급별 인력 M/M 관리<br>· 협력업체 외주 세금계산서<br>· 여비·소모품·접대비</div></div>
+      <div class="tg-box"><div class="tg-title"><span class="badge bSM">SM</span> 유지보수</div>
+        <div class="tg-desc">· 상주/비상주 인력비<br>· 3rd Party 기술지원료<br>· 현장운영비·접대비</div></div>
+      <div class="tg-box"><div class="tg-title"><span class="badge bSV">SV</span> 컨설팅/서비스</div>
+        <div class="tg-desc">· 컨설턴트 인건비<br>· 클라우드·서버임차료<br>· 자문료·리포트·접대</div></div>
+      <div class="tg-box"><div class="tg-title"><span class="badge bSOL">SOL</span> 솔루션판매</div>
+        <div class="tg-desc">· 상품매입가(리셀링)<br>· 커스터마이징 인건비<br>· 패키징·인증비·접대</div></div>
+      <div class="tg-box"><div class="tg-title"><span class="badge bCT">CT</span> 기술지원계약</div>
+        <div class="tg-desc">· 시간당 단가 인건비<br>· 출장비·교육훈련비<br>· ※ 외주비 거의 없음</div></div>
+      <div class="tg-box"><div class="tg-title"><span class="badge bMT">MT</span> 장비/자재공급</div>
+        <div class="tg-desc">· 장비매입원가(최대비중)<br>· 운반비·통관비·창고료<br>· 설치외주·접대비</div></div>
+    </div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 5: 은행 거래 내역
+══════════════════════════════════════════ -->
+<div id="pg-bank" class="pg">
+  <div class="notice mb10">
+    <b>금융결제원(KFTC) 표준</b> — 체크카드·계좌이체·자금차입 포함. 임직원 체크카드 사번 연결. 차입금/상환 자동 분류.
+  </div>
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>🏦 DB_BankTransaction <span class="bnts">금융결제원(KFTC)</span></h3>
+      <div class="arow">
+        <button class="btn btn-p" onclick="addBankRow()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 은행 CSV 불러오기</button>
+        <button class="btn btn-g" onclick="expCSV('bkRows','은행거래내역')">⬇ 내보내기</button>
+        <button class="btn btn-d" onclick="delChk('bkTbody','bkRows','rBank')">− 삭제</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('bkTbody',this.checked)" style="accent-color:var(--acc)"></th>
+        <th class="L HL">거래일자</th><th class="L HL">거래시각</th>
+        <th class="L HL">계좌번호</th><th class="L HL">거래구분</th>
+        <th class="HL">입금액</th><th class="HLr">출금액</th><th>잔액</th>
+        <th class="L HL">거래처(적요)</th>
+        <th class="L">구분</th><th class="L">계정과목</th>
+        <th class="L">사번(체크카드)</th><th class="L">프로젝트배부</th><th class="L">비고</th>
+      </tr></thead>
+      <tbody id="bkTbody"></tbody>
+      <tfoot><tr><td class="L" colspan="5">합계 (<span id="bkCnt">0</span>건)</td>
+        <td id="bkIn" class="pos">0</td><td id="bkOut" class="neg">0</td>
+        <td colspan="7"></td></tr></tfoot>
+    </table></div>
+  </div>
+  <div class="sbar">
+    <div class="si-l">총 입금</div><div class="si-v pos" id="sbBkIn">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">총 출금</div><div class="si-v neg" id="sbBkOut">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">차입금</div><div class="si-v warn" id="sbLoan">0</div>
+    <div class="si-l">차입상환</div><div class="si-v" id="sbRepay">0</div>
+    <div class="sdv"></div>
+    <div class="si-l">순현금흐름</div><div class="si-v" id="sbNet">0</div>
+  </div>
+</div>
+
+<!-- ══════════════════════════════════════════
+     PAGE 6: 법인카드 청구
+══════════════════════════════════════════ -->
+<div id="pg-card" class="pg">
+  <div class="notice mb10">
+    <b>여신금융협회 표준</b> — KB국민·신한·우리·하나카드 청구내역. 가맹점번호·업종코드 포함. 계정과목 드롭다운 상시 변경.
+  </div>
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>💳 DB_CorporateCard <span class="bnts">여신금융협회 표준</span></h3>
+      <div class="arow">
+        <button class="btn btn-p" onclick="addCardRow()">+ 직접입력</button>
+        <button class="btn btn-excel">📥 카드사 CSV 불러오기</button>
+        <button class="btn btn-g" onclick="expCSV('cdRows','법인카드청구')">⬇ 내보내기</button>
+        <button class="btn btn-d" onclick="delChk('cdTbody','cdRows','rCard')">− 삭제</button>
+      </div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th class="L" style="width:28px"><input type="checkbox" onchange="chkAll('cdTbody',this.checked)" style="accent-color:var(--acc)"></th>
+        <th class="L HL">이용일자</th><th class="L HL">카드번호(뒤4)</th>
+        <th class="L HL">승인번호</th><th class="L HL">가맹점명</th><th class="L HL">업종코드</th>
+        <th class="HL">이용금액</th><th class="HL">부가세</th>
+        <th class="L">카드구분</th><th class="L">계정과목</th>
+        <th class="L">사번</th><th class="L">프로젝트배부</th><th class="L">비고</th>
+      </tr></thead>
+      <tbody id="cdTbody"></tbody>
+      <tfoot><tr><td class="L" colspan="6">합계 (<span id="cdCnt">0</span>건)</td>
+        <td id="cdAmt" class="neg">0</td><td id="cdVat">0</td>
+        <td colspan="5"></td></tr></tfoot>
     </table></div>
   </div>
 </div>
 
+<!-- ══ SCRIPT ══ -->
 <script>
-/* ═══ UTIL ═══ */
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
 const fmtM=n=>{const a=Math.abs(n);if(a>=1e8)return(n/1e8).toFixed(1)+'억';if(a>=1e6)return(n/1e6).toFixed(0)+'백만';if(a>=1e4)return(n/1e4).toFixed(0)+'만';return fmt(n);};
 const pn=s=>{const n=Number(String(s||0).replace(/,/g,''));return isNaN(n)?0:n;};
 const uid=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 const today=()=>new Date().toISOString().slice(0,10);
+const yr=new Date().getFullYear();
 const TC={SI:'#3B82F6',SM:'#10B981',SV:'#F59E0B',SOL:'#EF4444',CT:'#8B5CF6',MT:'#14B8A6'};
+const TYPES=['SI','SM','SV','SOL','CT','MT'];
+const TNAME={SI:'시스템구축',SM:'유지보수',SV:'컨설팅/서비스',SOL:'솔루션판매',CT:'기술지원계약',MT:'장비/자재공급'};
+const STAGES={첩보:10,정보:30,입찰참여:30,기존고객입찰:70,계약협의:80,사업연장:90};
+const ACCTS_PUR=['외주비','인프라비','상품매입가','장비원가','클라우드이용료','SW라이선스','기타직접원가'];
+const ACCTS_BK=['단기차입금','장기차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'];
+const ACCTS_CD=['접대비','출장비','교통비','소모품비','도서인쇄비','교육훈련비','광고선전비','회식비','영업인센티브','기타비용'];
+const CARDS=['KB국민','신한','우리','하나','BC','기타'];
 
-/* ═══ 6대 유형별 원가 항목 정의 ═══ */
-const COST_ITEMS={
-  SI:['직접인건비','외주비','여비교통비','소모품비','접대비','영업인센티브'],
-  SM:['직접인건비','외주비(3rd Party)','현장운영비','소모품비','접대비','영업인센티브'],
-  SV:['직접인건비','인프라비(클라우드)','인프라비(서버임차료)','자문료','리포트제작비','접대비','영업인센티브'],
-  SOL:['상품매입가','직접인건비(커스터마이징)','직접인건비(설치)','패키징비','인증비용','접대비','영업인센티브'],
-  CT:['직접인건비','출장비','교육훈련비','접대비','영업인센티브'],
-  MT:['장비매입원가','운반비','통관비','창고료','설치인건비(외주)','접대비','영업인센티브'],
-};
-const COST_GRADE={SI:['특급','고급','중급','초급','외부'],SM:['상주선임','상주중급','비상주','외부'],
-  SV:['수석컨설턴트','선임컨설턴트','중급','외부'],SOL:['수석','선임','중급','외부'],
-  CT:['수석','선임','중급'],MT:['설치기사','운반','외부']};
-
-/* ═══ MASTER DATA ═══ */
+/* ── MASTER DATA ── */
 let cos=[
-  {사업자번호:'123-45-67890',업체명:'삼성SDS(주)',대표자명:'홍길동',업태:'서비스업',종목:'IT서비스',담당자명:'김담당',최초등록일:'2024-01-05'},
-  {사업자번호:'234-56-78901',업체명:'LG CNS(주)',대표자명:'이대표',업태:'서비스업',종목:'IT서비스',담당자명:'박담당',최초등록일:'2024-02-10'},
-  {사업자번호:'345-67-89012',업체명:'KT클라우드(주)',대표자명:'최사장',업태:'통신업',종목:'클라우드',담당자명:'최담당',최초등록일:'2024-01-15'},
-];
-let mems=[
-  {사번:'M001',성명:'김민준',부서:'개발팀',직급:'선임',입사일:'2020-03-02',상태:'재직'},
-  {사번:'M002',성명:'이서연',부서:'개발팀',직급:'중급',입사일:'2021-07-01',상태:'재직'},
-  {사번:'M003',성명:'박지훈',부서:'인프라팀',직급:'선임',입사일:'2019-01-15',상태:'재직'},
-  {사번:'M004',성명:'정수현',부서:'영업팀',직급:'책임',입사일:'2018-05-20',상태:'재직'},
+  {사업자번호:'123-45-67890',업체명:'삼성SDS(주)',대표자명:'홍길동',업태:'서비스업',종목:'IT서비스',본점소재지:'서울 중구',주소:'서울 중구 삼성로1',담당자명:'김담당',담당자이메일:'kim@sds.com',최초등록일:'2024-01-05'},
+  {사업자번호:'234-56-78901',업체명:'LG CNS(주)',대표자명:'이대표',업태:'서비스업',종목:'IT서비스',본점소재지:'서울 마포',주소:'서울 마포구 LG로1',담당자명:'박담당',담당자이메일:'park@lgcns.com',최초등록일:'2024-02-10'},
+  {사업자번호:'345-67-89012',업체명:'KT클라우드(주)',대표자명:'최사장',업태:'통신업',종목:'클라우드',본점소재지:'서울 서초',주소:'서울 서초구 KT로1',담당자명:'최담당',담당자이메일:'choi@ktcloud.com',최초등록일:'2024-01-15'},
 ];
 let prjs=[
-  {프로젝트코드:'SI-2024-001',사업자번호:'123-45-67890',프로젝트명:'A사 ERP 구축',프로젝트유형:'SI',시작일:'2024-01-01',종료일:'2024-12-31',진행상태:'진행중',비고:''},
-  {프로젝트코드:'SM-2024-001',사업자번호:'234-56-78901',프로젝트명:'B사 시스템 유지보수',프로젝트유형:'SM',시작일:'2024-01-01',종료일:'2024-12-31',진행상태:'진행중',비고:''},
-  {프로젝트코드:'SV-2024-001',사업자번호:'345-67-89012',프로젝트명:'C사 클라우드 인프라',프로젝트유형:'SV',시작일:'2024-03-01',종료일:'2024-09-30',진행상태:'완료',비고:''},
-  {프로젝트코드:'SOL-2024-001',사업자번호:'123-45-67890',프로젝트명:'D사 보안솔루션',프로젝트유형:'SOL',시작일:'2024-04-01',종료일:'2024-06-30',진행상태:'완료',비고:''},
-  {프로젝트코드:'CT-2024-001',사업자번호:'234-56-78901',프로젝트명:'E사 IT컨설팅',프로젝트유형:'CT',시작일:'2024-05-01',종료일:'2024-07-31',진행상태:'완료',비고:''},
-  {프로젝트코드:'MT-2024-001',사업자번호:'345-67-89012',프로젝트명:'F사 서버납품',프로젝트유형:'MT',시작일:'2024-02-01',종료일:'2024-05-31',진행상태:'완료',비고:''},
+  {코드:'SI-2024-001',명:'A사 ERP 구축',사번:'123-45-67890',업체명:'삼성SDS(주)',유형:'SI',시작:'2024-01-01',종료:'2024-12-31',상태:'진행중',등록:today()},
+  {코드:'SM-2024-001',명:'B사 시스템 유지보수',사번:'234-56-78901',업체명:'LG CNS(주)',유형:'SM',시작:'2024-01-01',종료:'2024-12-31',상태:'진행중',등록:today()},
+  {코드:'SV-2024-001',명:'C사 클라우드 인프라',사번:'345-67-89012',업체명:'KT클라우드(주)',유형:'SV',시작:'2024-03-01',종료:'2024-09-30',상태:'완료',등록:today()},
+  {코드:'SOL-2024-001',명:'D사 보안솔루션',사번:'123-45-67890',업체명:'삼성SDS(주)',유형:'SOL',시작:'2024-04-01',종료:'2024-06-30',상태:'완료',등록:today()},
+  {코드:'CT-2024-001',명:'E사 IT컨설팅',사번:'234-56-78901',업체명:'LG CNS(주)',유형:'CT',시작:'2024-05-01',종료:'2024-07-31',상태:'완료',등록:today()},
+  {코드:'MT-2024-001',명:'F사 서버납품',사번:'345-67-89012',업체명:'KT클라우드(주)',유형:'MT',시작:'2024-02-01',종료:'2024-05-31',상태:'완료',등록:today()},
+];
+let mems=[
+  {사번:'2024-01-001',성명:'김민준',구분:'임직원',직급:'선임',입사:'2020-03-02',퇴사:'',연락처:'010-1234-5678',이메일:'kim@mobitech.kr',상태:'근무중'},
+  {사번:'2024-01-002',성명:'이서연',구분:'임직원',직급:'중급',입사:'2021-07-01',퇴사:'',연락처:'010-2345-6789',이메일:'lee@mobitech.kr',상태:'근무중'},
+  {사번:'2024-02-001',성명:'(주)테크파트너',구분:'협력사',직급:'외부',입사:'2024-01-01',퇴사:'',연락처:'02-1234-5678',이메일:'biz@tech.co.kr',상태:'근무중'},
 ];
 let sals=[
-  {기준년월:'2024-11',사번:'M001',성명:'김민준',월급여액:5500000,시간당원가:31250,사대보험:247500,퇴직충당금:82500,월간총원가:5830000,비고:''},
-  {기준년월:'2024-11',사번:'M002',성명:'이서연',월급여액:4200000,시간당원가:23864,사대보험:189000,퇴직충당금:63000,월간총원가:4452000,비고:''},
-  {기준년월:'2024-11',사번:'M003',성명:'박지훈',월급여액:5000000,시간당원가:28409,사대보험:225000,퇴직충당금:75000,월간총원가:5300000,비고:''},
-  {기준년월:'2024-11',사번:'M004',성명:'정수현',월급여액:6000000,시간당원가:34091,사대보험:270000,퇴직충당금:90000,월간총원가:6360000,비고:''},
+  {년월:'2024-11',사번:'2024-01-001',성명:'김민준',연봉:66000000,사대보험:0,월간총원가:0,퇴직충당금:0},
+  {년월:'2024-11',사번:'2024-01-002',성명:'이서연',연봉:50400000,사대보험:0,월간총원가:0,퇴직충당금:0},
 ];
+sals.forEach(s=>{s.사대보험=Math.round(s.연봉*0.17/12);s.월간총원가=Math.round(s.연봉/12)+s.사대보험+Math.round(s.연봉/12*0.5);s.퇴직충당금=Math.round(s.연봉/12);});
 let tsRows=[
-  {기준년월:'2024-11',프로젝트코드:'SI-2024-001',사번:'M001',성명:'김민준',투입공수:0.8,투입시작일:'2024-11-01',투입종료일:'2024-11-22',원가반영여부:'Y'},
-  {기준년월:'2024-11',프로젝트코드:'SI-2024-001',사번:'M002',성명:'이서연',투입공수:1.0,투입시작일:'2024-11-01',투입종료일:'2024-11-30',원가반영여부:'Y'},
-  {기준년월:'2024-11',프로젝트코드:'SM-2024-001',사번:'M003',성명:'박지훈',투입공수:0.5,투입시작일:'2024-11-01',투입종료일:'2024-11-15',원가반영여부:'Y'},
-];
-/* 국세청 매출 세금계산서 */
-let sRows=[
-  {승인번호:'20240102-41000000-00000001',작성일자:'2024-03-31',공급받는자사업자번호:'123-45-67890',공급받는자상호:'삼성SDS(주)',공급가액:640000000,세액:64000000,품목:'SI 개발 용역',프로젝트코드:'SI-2024-001',수금상태:'완료',비고:''},
-  {승인번호:'20240110-41000000-00000002',작성일자:'2024-12-31',공급받는자사업자번호:'234-56-78901',공급받는자상호:'LG CNS(주)',공급가액:192000000,세액:19200000,품목:'SM 유지보수 용역',프로젝트코드:'SM-2024-001',수금상태:'미수',비고:'미수금'},
-  {승인번호:'20240228-41000000-00000003',작성일자:'2024-09-30',공급받는자사업자번호:'345-67-89012',공급받는자상호:'KT클라우드(주)',공급가액:360000000,세액:36000000,품목:'클라우드 인프라 구축',프로젝트코드:'SV-2024-001',수금상태:'완료',비고:''},
-  {승인번호:'20240325-41000000-00000004',작성일자:'2024-06-30',공급받는자사업자번호:'123-45-67890',공급받는자상호:'삼성SDS(주)',공급가액:120000000,세액:12000000,품목:'보안솔루션 공급',프로젝트코드:'SOL-2024-001',수금상태:'완료',비고:''},
-  {승인번호:'20240429-41000000-00000005',작성일자:'2024-07-31',공급받는자사업자번호:'234-56-78901',공급받는자상호:'LG CNS(주)',공급가액:60000000,세액:6000000,품목:'IT전략 컨설팅',프로젝트코드:'CT-2024-001',수금상태:'완료',비고:''},
-  {승인번호:'20240130-41000000-00000006',작성일자:'2024-05-31',공급받는자사업자번호:'345-67-89012',공급받는자상호:'KT클라우드(주)',공급가액:380000000,세액:38000000,품목:'서버장비 납품',프로젝트코드:'MT-2024-001',수금상태:'완료',비고:''},
-];
-/* 국세청 매입 세금계산서 */
-let pRows=[
-  {승인번호:'20240331-41000000-10000001',작성일자:'2024-03-31',공급자사업자번호:'999-88-77001',공급자상호:'(주)테크파트너',공급가액:95000000,세액:9500000,불공제세액:0,계정과목:'외주비',프로젝트코드:'SI-2024-001',배부기준:'직접배부',비고:''},
-  {승인번호:'20240930-41000000-10000002',작성일자:'2024-09-30',공급자사업자번호:'999-88-77002',공급자상호:'AWS Korea LLC',공급가액:178000000,세액:17800000,불공제세액:0,계정과목:'인프라비',프로젝트코드:'SV-2024-001',배부기준:'직접배부',비고:'클라우드'},
-  {승인번호:'20240628-41000000-10000003',작성일자:'2024-06-28',공급자사업자번호:'999-88-77003',공급자상호:'시만텍코리아(주)',공급가액:72000000,세액:7200000,불공제세액:0,계정과목:'상품매입가',프로젝트코드:'SOL-2024-001',배부기준:'직접배부',비고:'보안SW'},
-  {승인번호:'20240520-41000000-10000004',작성일자:'2024-05-20',공급자사업자번호:'999-88-77004',공급자상호:'삼성전자판매(주)',공급가액:268000000,세액:26800000,불공제세액:0,계정과목:'장비원가',프로젝트코드:'MT-2024-001',배부기준:'직접배부',비고:'서버장비'},
-];
-/* 법인카드 */
-let cRows=[
-  {이용일자:'2024-03-15',카드번호:'1234',승인번호:'CD20240315001',가맹점명:'강남갈비',업종코드:'5812',이용금액:350000,부가세:31818,카드구분:'법인카드(KB국민)',계정과목:'접대비',사번:'M001',프로젝트배부:'SI-2024-001',비고:'고객사 미팅'},
-  {이용일자:'2024-04-10',카드번호:'5678',승인번호:'CD20240410001',가맹점명:'코레일',업종코드:'4111',이용금액:156000,부가세:0,카드구분:'법인카드(신한)',계정과목:'출장비',사번:'M004',프로젝트배부:'CT-2024-001',비고:'부산출장'},
-];
-/* 은행거래 */
-let bkRows=[
-  {거래일자:'2024-01-31',거래시각:'14:23:45',계좌번호:'기업은행(사업자)',거래구분:'입금',입금액:100000000,출금액:0,잔액:100000000,거래처:'IBK기업은행',구분:'차입금',계정과목:'단기차입금',사번체크카드:'',프로젝트배부:'공통',비고:'운영자금'},
-  {거래일자:'2024-04-15',거래시각:'11:30:22',계좌번호:'기업은행(사업자)',거래구분:'출금',입금액:0,출금액:50000000,잔액:50000000,거래처:'IBK기업은행',구분:'차입금상환',계정과목:'단기차입금상환',사번체크카드:'',프로젝트배부:'공통',비고:'일부상환'},
-];
-/* 유형별 원가 데이터 (6대 유형 각각) */
-let costData={
-  SI:[
-    {항목:'직접인건비',내역:'김민준 PM 6M/M',등급:'선임',수량:6,단가:5830000,금액:34980000,증빙:'급여대장',비고:''},
-    {항목:'직접인건비',내역:'이서연 개발 8M/M',등급:'중급',수량:8,단가:4452000,금액:35616000,증빙:'급여대장',비고:''},
-    {항목:'외주비',내역:'(주)테크파트너 개발',등급:'외부',수량:4,단가:4000000,금액:16000000,증빙:'세금계산서',비고:''},
-    {항목:'접대비',내역:'고객사 미팅',등급:'-',수량:1,단가:350000,금액:350000,증빙:'법인카드',비고:''},
-  ],
-  SM:[
-    {항목:'직접인건비',내역:'박지훈 상주 12M',등급:'상주선임',수량:12,단가:5300000,금액:63600000,증빙:'급여대장',비고:''},
-    {항목:'외주비(3rd Party)',내역:'SW유지보수 기술지원',등급:'외부',수량:12,단가:2000000,금액:24000000,증빙:'세금계산서',비고:''},
-  ],
-  SV:[
-    {항목:'직접인건비',내역:'컨설턴트 6M/M',등급:'수석컨설턴트',수량:6,단가:7000000,금액:42000000,증빙:'급여대장',비고:''},
-    {항목:'인프라비(클라우드)',내역:'AWS EC2/S3 6개월',등급:'-',수량:6,단가:18000000,금액:108000000,증빙:'세금계산서',비고:'AWS Korea'},
-    {항목:'인프라비(서버임차료)',내역:'IDC 서버 임차',등급:'-',수량:6,단가:5000000,금액:30000000,증빙:'세금계산서',비고:''},
-  ],
-  SOL:[
-    {항목:'상품매입가',내역:'시만텍 보안솔루션 라이선스',등급:'-',수량:1,단가:72000000,금액:72000000,증빙:'세금계산서',비고:'리셀링'},
-    {항목:'직접인건비(설치)',내역:'설치 엔지니어 2M/M',등급:'중급',수량:2,단가:4500000,금액:9000000,증빙:'급여대장',비고:''},
-    {항목:'인증비용',내역:'보안인증 취득',등급:'-',수량:1,단가:3000000,금액:3000000,증빙:'영수증',비고:''},
-  ],
-  CT:[
-    {항목:'직접인건비',내역:'컨설턴트 시간당',등급:'수석',수량:160,단가:150000,금액:24000000,증빙:'급여대장',비고:'160H'},
-    {항목:'출장비',내역:'부산 출장',등급:'-',수량:3,단가:300000,금액:900000,증빙:'법인카드',비고:'KTX+숙박'},
-    {항목:'교육훈련비',내역:'고객사 교육',등급:'-',수량:1,단가:500000,금액:500000,증빙:'영수증',비고:''},
-  ],
-  MT:[
-    {항목:'장비매입원가',내역:'삼성 서버 x5',등급:'-',수량:5,단가:50000000,금액:250000000,증빙:'세금계산서',비고:'삼성전자판매'},
-    {항목:'장비매입원가',내역:'네트워크 스위치',등급:'-',수량:10,단가:1800000,금액:18000000,증빙:'세금계산서',비고:''},
-    {항목:'운반비',내역:'화물운송',등급:'-',수량:1,단가:2500000,금액:2500000,증빙:'세금계산서',비고:'용달'},
-    {항목:'통관비',내역:'수입통관',등급:'-',수량:1,단가:800000,금액:800000,증빙:'영수증',비고:''},
-    {항목:'설치인건비(외주)',내역:'현장 설치팀',등급:'외부',수량:1,단가:5000000,금액:5000000,증빙:'세금계산서',비고:''},
-  ],
-};
-/* 손익 집계 */
-let pnlData=[
-  {코드:'SI-2024-001',명:'A사 ERP 구축',유형:'SI',매출:640000000,인건비:280000000,외주비:95000000,인프라비:0,상품매입가:0,장비원가:0,물류비:0,직접경비:4000000,배부판관비:48000000,마감:'진행중'},
-  {코드:'SM-2024-001',명:'B사 유지보수',유형:'SM',매출:192000000,인건비:72000000,외주비:38000000,인프라비:0,상품매입가:0,장비원가:0,물류비:0,직접경비:6000000,배부판관비:24000000,마감:'진행중'},
-  {코드:'SV-2024-001',명:'C사 클라우드',유형:'SV',매출:360000000,인건비:55000000,외주비:0,인프라비:178000000,상품매입가:0,장비원가:0,물류비:0,직접경비:4000000,배부판관비:30000000,마감:'최종마감'},
-  {코드:'SOL-2024-001',명:'D사 보안솔루션',유형:'SOL',매출:120000000,인건비:18000000,외주비:0,인프라비:0,상품매입가:72000000,장비원가:0,물류비:0,직접경비:3000000,배부판관비:10000000,마감:'최종마감'},
-  {코드:'CT-2024-001',명:'E사 IT컨설팅',유형:'CT',매출:60000000,인건비:28000000,외주비:0,인프라비:0,상품매입가:0,장비원가:0,물류비:0,직접경비:4000000,배부판관비:6000000,마감:'최종마감'},
-  {코드:'MT-2024-001',명:'F사 서버납품',유형:'MT',매출:380000000,인건비:32000000,외주비:0,인프라비:0,상품매입가:0,장비원가:268000000,물류비:8000000,직접경비:6000000,배부판관비:22000000,마감:'최종마감'},
+  {년월:'2024-11',코드:'SI-2024-001',사번:'2024-01-001',성명:'김민준',공수:0.8,시작:'2024-11-01',종료:'2024-11-22',반영:'Y'},
+  {년월:'2024-11',코드:'SI-2024-001',사번:'2024-01-002',성명:'이서연',공수:1.0,시작:'2024-11-01',종료:'2024-11-30',반영:'Y'},
 ];
 let bgtRows=[
-  {프로젝트코드:'SI-2024-001',프로젝트유형:'SI',항목명:'개발PM',소속구분:'내부',성명:'김민준',직급:'선임',공수:6,수량:1,실행단가:5830000,마진율:18,계약단가:6879400,총계약금액:41276400,상태:'확정'},
-  {프로젝트코드:'SI-2024-001',프로젝트유형:'SI',항목명:'외주개발',소속구분:'외부',성명:'(주)테크파트너',직급:'중급',공수:4,수량:1,실행단가:4000000,마진율:20,계약단가:4800000,총계약금액:19200000,상태:'확정'},
-  {프로젝트코드:'MT-2024-001',프로젝트유형:'MT',항목명:'삼성서버',소속구분:'외부',성명:'삼성전자판매',직급:'-',공수:0,수량:5,실행단가:50000000,마진율:8,계약단가:54000000,총계약금액:270000000,상태:'확정'},
+  {코드:'SI-2024-001',유형:'SI',항목:'개발PM',소속:'내부',성명:'김민준',직급:'선임',공수:6,수량:1,실행단가:5830000,마진율:18,계약단가:0,총계약금액:0,상태:'확정'},
+  {코드:'SI-2024-001',유형:'SI',항목:'외주개발',소속:'외부',성명:'(주)테크파트너',직급:'중급',공수:4,수량:1,실행단가:4000000,마진율:20,계약단가:0,총계약금액:0,상태:'확정'},
+  {코드:'MT-2024-001',유형:'MT',항목:'삼성서버',소속:'외부',성명:'삼성전자판매',직급:'-',공수:0,수량:5,실행단가:50000000,마진율:8,계약단가:0,총계약금액:0,상태:'확정'},
 ];
+bgtRows.forEach(b=>{b.계약단가=Math.round(b.실행단가*(1+b.마진율/100));b.총계약금액=Math.round(b.계약단가*(b.공수||1)*b.수량);});
+
+/* ── PNL DATA ── */
+let pnlData=[
+  {코드:'SI-2024-001',명:'A사 ERP 구축',유형:'SI',매출:640000000,인건비:280000000,외주비:95000000,경비:4000000,상품원가:0,공통제경비:48000000,마감:'진행중'},
+  {코드:'SM-2024-001',명:'B사 시스템 유지보수',유형:'SM',매출:192000000,인건비:72000000,외주비:38000000,경비:6000000,상품원가:0,공통제경비:24000000,마감:'진행중'},
+  {코드:'SV-2024-001',명:'C사 클라우드 인프라',유형:'SV',매출:360000000,인건비:55000000,외주비:18000000,경비:4000000,상품원가:0,공통제경비:30000000,마감:'최종마감'},
+  {코드:'SOL-2024-001',명:'D사 보안솔루션',유형:'SOL',매출:120000000,인건비:18000000,외주비:5000000,경비:3000000,상품원가:72000000,공통제경비:10000000,마감:'최종마감'},
+  {코드:'CT-2024-001',명:'E사 IT컨설팅',유형:'CT',매출:60000000,인건비:28000000,외주비:0,경비:4000000,상품원가:0,공통제경비:6000000,마감:'최종마감'},
+  {코드:'MT-2024-001',명:'F사 서버납품',유형:'MT',매출:380000000,인건비:32000000,외주비:12000000,경비:6000000,상품원가:268000000,공통제경비:22000000,마감:'최종마감'},
+];
+
+/* ── PIPELINE ── */
 let pipeRows=[
-  {가망사업명:'G사 클라우드 전환',고객사:'SK하이닉스',유형:'SV',예상수주액:500000000,수주확률:70,예상착수일:'2025-02-01',영업담당자:'정수현',진행단계:'협상',예상마진율:22},
-  {가망사업명:'H사 ERP 2차',고객사:'포스코ICT',유형:'SI',예상수주액:300000000,수주확률:50,예상착수일:'2025-03-01',영업담당자:'정수현',진행단계:'제안',예상마진율:18},
+  {명:'G사 클라우드 전환',고객사:'SK하이닉스',유형:'SV',수주액:500000000,단계:'계약협의',착수:'2025-02-01',담당:'정수현',마진율:22},
+  {명:'H사 ERP 2차 구축',고객사:'포스코ICT',유형:'SI',수주액:300000000,단계:'입찰참여',착수:'2025-03-01',담당:'정수현',마진율:18},
+  {명:'I사 보안솔루션',고객사:'현대오토에버',유형:'SOL',수주액:120000000,단계:'첩보',착수:'2025-04-01',담당:'김민준',마진율:12},
+  {명:'J사 서버납품',고객사:'LG전자',유형:'MT',수주액:250000000,단계:'기존고객입찰',착수:'2025-02-15',담당:'이서연',마진율:8},
+];
+
+/* ── EVIDENCE DATA ── */
+let sRows=[
+  {번호:'20240102-41000000-00000001',일자:'2024-03-31',매수자번호:'123-45-67890',매수자명:'삼성SDS(주)',공급가액:640000000,세액:64000000,품목:'SI 개발용역',코드:'SI-2024-001',수금:'완료',입금예정:'2024-04-30'},
+  {번호:'20240110-41000000-00000002',일자:'2024-12-31',매수자번호:'234-56-78901',매수자명:'LG CNS(주)',공급가액:192000000,세액:19200000,품목:'SM 유지보수',코드:'SM-2024-001',수금:'미수',입금예정:'2025-01-31'},
+  {번호:'20240228-41000000-00000003',일자:'2024-09-30',매수자번호:'345-67-89012',매수자명:'KT클라우드(주)',공급가액:360000000,세액:36000000,품목:'클라우드 인프라',코드:'SV-2024-001',수금:'완료',입금예정:'2024-10-31'},
+];
+let pRows=[
+  {번호:'20240331-41000000-10000001',일자:'2024-03-31',공급자번호:'999-88-77001',공급자명:'(주)테크파트너',공급가액:95000000,세액:9500000,불공제:0,계정:'외주비',코드:'SI-2024-001',배부:'직접배부'},
+  {번호:'20240930-41000000-10000002',일자:'2024-09-30',공급자번호:'999-88-77002',공급자명:'AWS Korea LLC',공급가액:178000000,세액:17800000,불공제:0,계정:'인프라비',코드:'SV-2024-001',배부:'직접배부'},
+  {번호:'20240628-41000000-10000003',일자:'2024-06-28',공급자번호:'999-88-77003',공급자명:'시만텍코리아(주)',공급가액:72000000,세액:7200000,불공제:0,계정:'상품매입가',코드:'SOL-2024-001',배부:'직접배부'},
+];
+let bkRows=[
+  {일자:'2024-01-31',시각:'14:23:45',계좌:'기업은행(사업자)',구분:'입금',입금:100000000,출금:0,잔액:100000000,거래처:'IBK기업은행',분류:'차입금',계정:'단기차입금',사번:'',배부:'공통',비고:'운영자금 차입'},
+  {일자:'2024-02-28',시각:'09:10:00',계좌:'기업은행(사업자)',구분:'출금',입금:0,출금:5830000,잔액:94170000,거래처:'김민준',분류:'급여이체',계정:'급여',사번:'2024-01-001',배부:'SI-2024-001',비고:'2월 급여'},
+  {일자:'2024-04-15',시각:'11:30:22',계좌:'기업은행(사업자)',구분:'출금',입금:0,출금:50000000,잔액:44170000,거래처:'IBK기업은행',분류:'차입금상환',계정:'단기차입금상환',사번:'',배부:'공통',비고:'차입금 일부상환'},
+];
+let cdRows=[
+  {일자:'2024-03-15',카번호:'1234',승인번호:'CD20240315001',가맹점:'강남갈비',업종:'5812',금액:350000,부가세:31818,카드:'KB국민',계정:'접대비',사번:'2024-01-001',배부:'SI-2024-001',비고:'고객사 미팅'},
+  {일자:'2024-04-10',카번호:'5678',승인번호:'CD20240410001',가맹점:'코레일',업종:'4111',금액:156000,부가세:0,카드:'신한',계정:'출장비',사번:'2024-01-002',배부:'CT-2024-001',비고:'부산출장'},
 ];
 const MONTHLY=[
   {m:'1월',r:142e6,c:112e6},{m:'2월',r:158e6,c:125e6},{m:'3월',r:175e6,c:138e6},
@@ -813,192 +778,434 @@ const MONTHLY=[
   {m:'10월',r:252e6,c:196e6},{m:'11월',r:241e6,c:188e6},{m:'12월',r:268e6,c:208e6},
 ];
 
-/* ═══ PNL CALC ═══ */
-const calcP=p=>{
-  const dir=p.인건비+p.외주비+p.인프라비+p.상품매입가+p.장비원가+p.물류비+p.직접경비;
-  const gross=p.매출-dir;
-  const op=gross-p.배부판관비;
-  const rate=p.매출>0?(op/p.매출)*100:0;
-  return{dir,gross,op,rate};
-};
+/* ── CALC ── */
+const cP=p=>{const dir=p.인건비+p.외주비+p.경비+p.상품원가;const gross=p.매출-dir;const op=gross-p.공통제경비;return{dir,gross,op,rate:p.매출>0?(op/p.매출)*100:0};};
+const gWt=p=>Math.round(p.수주액*(STAGES[p.단계]||30)/100);
+const totWt=()=>pipeRows.reduce((s,p)=>s+gWt(p),0);
 
-/* ═══ PAGE NAV ═══ */
 let lC,dC,bC,contC;
+let pf1='ALL',pf2='ALL',stageFilt='ALL';
+
+/* ── PAGE NAV ── */
 function gp(id,btn){
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   if(btn)btn.classList.add('on');
-  const m={dash:rDash,sales:rSales,pur:rPur,card:rCard,bank:rBank,cost:rCost,ts:rTs,master:rMaster,pnl:rPnL};
-  if(m[id])m[id]();
+  ({dash:rDash,master:rMaster,pnl:rPnL,tax:rTax,bank:rBank,card:rCard})[id]?.();
+}
+function showTab(id,btn){
+  const p=document.getElementById(id);if(!p)return;
+  p.closest('.gc').querySelectorAll('.tpane').forEach(x=>x.classList.remove('on'));
+  p.closest('.gc').querySelectorAll('.tbtn').forEach(x=>x.classList.remove('on'));
+  p.classList.add('on');if(btn)btn.classList.add('on');
 }
 
-/* ═══ DASHBOARD ═══ */
-let pfilt='ALL';
-function rDash(){rRisk();rKPI();rPnLT();rPFilter();if(!lC)initCharts();else updCharts();updHdr();}
+/* ── HEADER UPDATE ── */
 function updHdr(){
-  const tot=pnlData.reduce((s,p)=>s+p.매출,0),op=pnlData.reduce((s,p)=>s+calcP(p).op,0);
+  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
+  const op=pnlData.reduce((s,p)=>s+cP(p).op,0);
   const rate=tot>0?(op/tot)*100:0;
-  const hp=document.getElementById('hP');hp.textContent='₩'+fmtM(op);hp.className='hs-v '+(op>=0?'pos':'neg');
-  const hr=document.getElementById('hR');hr.textContent=rate.toFixed(1)+'%';hr.className='hs-v '+(rate>=15?'pos':rate>=0?'warn':'neg');
+  const hp=document.getElementById('hP');if(hp){hp.textContent='₩'+fmtM(op);hp.className='hs-v '+(op>=0?'pos':'neg');}
+  const hr=document.getElementById('hR');if(hr){hr.textContent=rate.toFixed(1)+'%';hr.className='hs-v '+(rate>=15?'pos':rate>=0?'warn':'neg');}
+}
+
+/* ══ DASHBOARD ══ */
+function rDash(){
+  updHdr();rRisk();rKPI();rPredict();rPnLTbl('pB1','pF1','pfT1',pf1,f=>{pf1=f;rDash();});
+  if(!lC)initCharts();else updCharts();
 }
 function rRisk(){
-  const risks=pnlData.filter(p=>{const{op,rate}=calcP(p);return op<0||rate<15;});
-  const rz=document.getElementById('riskZone');
+  const rz=document.getElementById('riskZone');if(!rz)return;
+  const risks=pnlData.filter(p=>{const{op,rate}=cP(p);return op<0||rate<15;});
   if(!risks.length){rz.innerHTML='';return;}
-  rz.innerHTML='<div style="font-size:9px;font-weight:700;letter-spacing:0.1em;color:var(--red);margin-bottom:5px;text-transform:uppercase">⚠ RISK ALERT — 이익률 15% 미달 / 적자 프로젝트 (즉시 조치 필요)</div>'+
-    risks.map(p=>{const{op,rate}=calcP(p);return`<div class="risk-item">
-      <span class="rtag">RISK</span><span class="badge b${p.유형}">${p.유형}</span>
-      <span style="font-weight:700">${p.명}</span><span style="color:var(--muted);font-size:10px">${p.코드}</span>
-      <span style="color:var(--red);margin-left:6px;font-size:11px">${op<0?'적자 발생':'이익률 '+rate.toFixed(1)+'% (목표 15% 미달)'}</span>
-      <span style="margin-left:auto;font-family:\'JetBrains Mono\',monospace;font-size:11px;color:${op>=0?'var(--amber)':'var(--red)'}">${fmt(op)}원 / ${rate.toFixed(1)}%</span>
+  rz.innerHTML='<div style="font-size:9px;font-weight:700;letter-spacing:.1em;color:var(--red);margin-bottom:5px;text-transform:uppercase">⚠ RISK ALERT — 이익률 15% 미달 / 적자 프로젝트</div>'+
+    risks.map(p=>{const{op,rate}=cP(p);return`<div class="risk-item"><span class="rtag">RISK</span>
+      <span class="badge b${p.유형}">${p.유형}</span>
+      <span style="font-weight:700">${p.명}</span>
+      <span class="M" style="font-size:10px">${p.코드}</span>
+      <span style="color:var(--red);font-size:11px;margin-left:6px">${op<0?'적자 발생':'이익률 '+rate.toFixed(1)+'% (목표 15% 미달)'}</span>
+      <span style="margin-left:auto;font-family:'JetBrains Mono',monospace;font-size:11px;color:${op>=0?'var(--amber)':'var(--red)'}">${fmt(op)}원</span>
     </div>`;}).join('');
 }
 function rKPI(){
-  const tot=pnlData.reduce((s,p)=>s+p.매출,0),dir=pnlData.reduce((s,p)=>s+calcP(p).dir,0),
-        lab=pnlData.reduce((s,p)=>s+p.인건비,0),sga=pnlData.reduce((s,p)=>s+p.배부판관비,0),
-        op=pnlData.reduce((s,p)=>s+calcP(p).op,0),rate=tot>0?(op/tot)*100:0;
-  document.getElementById('kGrid').innerHTML=[
-    {l:'전사 총매출액',v:'₩'+fmtM(tot),s:'세금계산서 발급기준',c:'var(--acc)'},
-    {l:'직접원가합계',v:'₩'+fmtM(dir),s:'인건비+외주+인프라+장비+물류+경비',c:'var(--red)'},
-    {l:'인건비합계',v:'₩'+fmtM(lab),s:'M/M 기준 '+( tot>0?(lab/tot*100).toFixed(1):0)+'%',c:'var(--amber)'},
-    {l:'배부판관비',v:'₩'+fmtM(sga),s:'프로젝트 배부완료',c:'var(--purple)'},
-    {l:'영업이익 / 이익률',v:'₩'+fmtM(op),s:rate.toFixed(1)+'%',c:op>=0?'var(--green)':'var(--red)'},
-  ].map(k=>`<div class="kc"><div class="kl">${k.l}</div><div class="kv" style="color:${k.c}">${k.v}</div><div class="ks">${k.s}</div></div>`).join('');
+  const kg=document.getElementById('kGrid');if(!kg)return;
+  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
+  const op=pnlData.reduce((s,p)=>s+cP(p).op,0);
+  const rate=tot>0?(op/tot)*100:0;
+  const pw=totWt();
+  kg.innerHTML=[
+    {l:'확정 총매출액',v:'₩'+fmtM(tot),s:'세금계산서 발급기준',cls:'kc-a',vc:'acc'},
+    {l:'파이프라인 가중합계',v:'₩'+fmtM(pw),s:pipeRows.length+'건 진행',cls:'kc-o',vc:'warn'},
+    {l:'당해연도 예측매출',v:'₩'+fmtM(tot+pw),s:'확정+파이프라인',cls:'kc-p',vc:''},
+    {l:'영업이익',v:'₩'+fmtM(op),s:rate.toFixed(1)+'%',cls:op>=0?'kc-g':'kc-r',vc:op>=0?'pos':'neg'},
+    {l:'영업이익률',v:rate.toFixed(1)+'%',s:'목표: 15% 이상',cls:rate>=15?'kc-g':rate>=0?'kc-o':'kc-r',vc:rate>=15?'pos':rate>=0?'warn':'neg'},
+  ].map(k=>`<div class="kc ${k.cls}"><div class="kl">${k.l}</div>
+    <div class="kv ${k.vc}">${k.v}</div><div class="ks">${k.s}</div></div>`).join('');
 }
-function rPFilter(){
-  const ts=['ALL','SI','SM','SV','SOL','CT','MT'];
-  document.getElementById('pfTabs').innerHTML=ts.map(t=>`
-    <button class="tbtn ${pfilt===t?'on':''}" style="padding:3px 9px;font-size:9px" onclick="pfilt='${t}';rPnLT();rPFilter()">${t==='ALL'?'전체':t}</button>`).join('');
+function rPredict(){
+  const pg3=document.getElementById('predictGrid');if(!pg3)return;
+  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
+  const op=pnlData.reduce((s,p)=>s+cP(p).op,0);
+  const pw=totWt();const predict=tot+pw;
+  const predictOp=op+Math.round(pw*0.15);
+  const predictRate=predict>0?(predictOp/predict)*100:0;
+  pg3.innerHTML=[
+    {l:'확정 실적 매출',v:'₩'+fmtM(tot),s:pnlData.length+'개 프로젝트',c:'acc'},
+    {l:'파이프라인 가중합계',v:'₩'+fmtM(pw),s:pipeRows.length+'건 진행',c:'warn'},
+    {l:'당해연도 예측 총매출',v:'₩'+fmtM(predict),s:'확정+파이프라인',c:'pos'},
+    {l:'확정 영업이익',v:'₩'+fmtM(op),s:(tot>0?(op/tot*100):0).toFixed(1)+'%',c:op>=0?'pos':'neg'},
+    {l:'예측 영업이익',v:'₩'+fmtM(predictOp),s:predictRate.toFixed(1)+'%',c:predictOp>=0?'pos':'neg'},
+    {l:'파이프라인 기여 이익',v:'₩'+fmtM(predictOp-op),s:'추가 수익 예측',c:'warn'},
+  ].map(k=>`<div class="pi"><div class="pi-l">${k.l}</div>
+    <div class="pi-v ${k.c}">${k.v}</div><div class="pi-s">${k.s}</div></div>`).join('');
+
+  const tba=document.getElementById('typeBarArea');if(!tba)return;
+  const maxR=Math.max(...TYPES.map(tp=>{
+    const r=pnlData.filter(p=>p.유형===tp).reduce((s,p)=>s+p.매출,0);
+    const pw2=pipeRows.filter(p=>p.유형===tp).reduce((s,p)=>s+gWt(p),0);
+    return r+pw2||1;
+  }));
+  tba.innerHTML='<div style="display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:6px;margin-top:8px">'+
+    TYPES.map(tp=>{
+      const r=pnlData.filter(p=>p.유형===tp).reduce((s,p)=>s+p.매출,0);
+      const pw2=pipeRows.filter(p=>p.유형===tp).reduce((s,p)=>s+gWt(p),0);
+      const op2=pnlData.filter(p=>p.유형===tp).reduce((s,p)=>s+cP(p).op,0);
+      const rate=r>0?(op2/r*100):0;
+      return`<div style="background:rgba(255,255,255,0.03);border:1px solid var(--br);border-top:2px solid ${TC[tp]};border-radius:7px;padding:8px 10px">
+        <div style="display:flex;align-items:center;gap:5px;margin-bottom:4px">
+          <span class="badge b${tp}">${tp}</span>
+        </div>
+        <div style="font-size:13px;font-weight:700;font-family:'JetBrains Mono',monospace;color:${TC[tp]}">${fmtM(r+pw2)}</div>
+        <div class="fbar"><div class="fbar-r" style="width:${Math.round(r/maxR*100)}%"></div>
+          <div class="fbar-p" style="width:${Math.round(pw2/maxR*100)}%"></div></div>
+        <div style="font-size:9px;color:var(--mu);margin-top:3px">이익률 <span class="${rate>=15?'pos':rate>=0?'warn':'neg'}" style="font-weight:700">${rate.toFixed(1)}%</span></div>
+      </div>`;
+    }).join('')+'</div>';
 }
-function rPnLT(){
-  const vis=pfilt==='ALL'?pnlData:pnlData.filter(p=>p.유형===pfilt);
-  const inp=(p,f)=>p.마감==='최종마감'
-    ?`<span style="font-family:'JetBrains Mono',monospace;font-size:11px">${fmt(p[f])}</span>`
-    :`<input class="ec" value="${fmt(p[f])}" style="width:82px"
+
+/* ── PNL TABLE (공통) ── */
+function rPnLTbl(bodyId,footId,tabsId,filt,onFilt){
+  const tb=document.getElementById(tabsId);
+  if(tb)tb.innerHTML=['ALL',...TYPES].map(t=>
+    `<button class="ftab ${filt===t?'on':''}" onclick="(${onFilt.toString()})('${t}')">${t==='ALL'?'전체':t}</button>`).join('');
+  const vis=filt==='ALL'?pnlData:pnlData.filter(p=>p.유형===filt);
+  const inp=(p,f,w=80)=>{
+    const lk=p.마감==='최종마감';
+    if(lk)return`<span style="font-family:'JetBrains Mono',monospace">${fmt(p[f])}</span>`;
+    return`<input class="ec" value="${fmt(p[f])}" style="width:${w}px"
       onfocus="this.value=String(this.value).replace(/,/g,'')"
       onblur="updP('${p.코드}','${f}',this.value)"
       onkeydown="if(event.key==='Enter')this.blur()">`;
-  document.getElementById('pBody').innerHTML=vis.map(p=>{
-    const{dir,gross,op,rate}=calcP(p);
+  };
+  const body=document.getElementById(bodyId);
+  if(body)body.innerHTML=vis.map(p=>{
+    const{dir,gross,op,rate}=cP(p);
     const lk=p.마감==='최종마감';
     const rc=rate>=15?'pos':rate>=0?'warn':'neg';
     return`<tr>
       <td class="L"><span class="badge b${p.유형}">${p.유형}</span></td>
-      <td class="L M" style="font-size:9px;font-family:'JetBrains Mono',monospace">${p.코드}</td>
+      <td class="L M" style="font-size:10px;font-family:'JetBrains Mono',monospace">${p.코드}</td>
       <td class="L" style="font-weight:700">${p.명}</td>
       <td>${inp(p,'매출')}</td>
       <td style="color:#60A5FA">${inp(p,'인건비')}</td>
-      <td style="color:#34D399">${p.유형==='CT'?'<span style="color:var(--hint);font-size:9px">해당없음</span>':inp(p,'외주비')}</td>
-      <td style="color:#FCD34D">${p.유형==='SV'?inp(p,'인프라비'):'<span style="color:var(--hint);font-size:9px">해당없음</span>'}</td>
-      <td style="color:#FCA5A5">${p.유형==='SOL'?inp(p,'상품매입가'):'<span style="color:var(--hint);font-size:9px">해당없음</span>'}</td>
-      <td style="color:#5EEAD4">${p.유형==='MT'?inp(p,'장비원가'):'<span style="color:var(--hint);font-size:9px">해당없음</span>'}</td>
-      <td style="color:#C4B5FD">${p.유형==='MT'?inp(p,'물류비'):'<span style="color:var(--hint);font-size:9px">해당없음</span>'}</td>
-      <td style="color:#FB923C">${inp(p,'직접경비')}</td>
-      <td style="color:var(--red);font-weight:700">${fmt(dir)}</td>
-      <td>${inp(p,'배부판관비')}</td>
+      <td style="color:#34D399">${p.유형==='CT'?'<span class="M" style="font-size:9px">해당없음</span>':inp(p,'외주비')}</td>
+      <td>${inp(p,'경비')}</td>
+      <td style="color:#FCA5A5">${['CT','SI','SM','SV'].includes(p.유형)?'<span class="M" style="font-size:9px">-</span>':inp(p,'상품원가')}</td>
+      <td class="neg">${fmt(dir)}</td>
       <td class="${gross>=0?'pos':'neg'}">${fmt(gross)}</td>
+      <td>${inp(p,'공통제경비')}</td>
       <td class="${op>=0?'pos':'neg'}" style="font-weight:700">${fmt(op)}</td>
       <td class="${rc}" style="font-weight:700">${rate.toFixed(1)}%</td>
-      <td style="text-align:center"><button class="btn ${lk?'bp':'bd'}" style="font-size:9px;padding:2px 6px" onclick="togPnL('${p.코드}')">${lk?'🔓열기':'🔒마감'}</button></td>
+      <td style="text-align:center">
+        <button class="btn ${lk?'btn-p':'btn-d'}" style="font-size:9px;padding:2px 6px" onclick="togP('${p.코드}')">${lk?'🔓':'🔒'}</button>
+      </td>
     </tr>`;
   }).join('');
-  const sR=vis.reduce((s,p)=>s+p.매출,0),sD=vis.reduce((s,p)=>s+calcP(p).dir,0),
-        sL=vis.reduce((s,p)=>s+p.인건비,0),sO=vis.reduce((s,p)=>s+p.외주비,0),
-        sInf=vis.reduce((s,p)=>s+p.인프라비,0),sSGA=vis.reduce((s,p)=>s+p.배부판관비,0),
-        sOP=vis.reduce((s,p)=>s+calcP(p).op,0),sRt=sR>0?(sOP/sR)*100:0;
-  document.getElementById('pFoot').innerHTML=`<tr>
+  const sR=vis.reduce((s,p)=>s+p.매출,0),sD=vis.reduce((s,p)=>s+cP(p).dir,0);
+  const sG=vis.reduce((s,p)=>s+cP(p).gross,0),sSGA=vis.reduce((s,p)=>s+p.공통제경비,0);
+  const sO=vis.reduce((s,p)=>s+cP(p).op,0),sRt=sR>0?(sO/sR)*100:0;
+  const foot=document.getElementById(footId);
+  if(foot)foot.innerHTML=`<tr>
     <td class="L" colspan="3">합계 (${vis.length}건)</td>
-    <td style="color:var(--acc)">${fmt(sR)}</td>
-    <td style="color:#60A5FA">${fmt(sL)}</td>
-    <td style="color:#34D399">${fmt(sO)}</td>
-    <td style="color:#FCD34D">${fmt(sInf)}</td>
-    <td style="color:#FCA5A5">${fmt(vis.reduce((s,p)=>s+p.상품매입가,0))}</td>
-    <td style="color:#5EEAD4">${fmt(vis.reduce((s,p)=>s+p.장비원가,0))}</td>
-    <td style="color:#C4B5FD">${fmt(vis.reduce((s,p)=>s+p.물류비,0))}</td>
-    <td style="color:#FB923C">${fmt(vis.reduce((s,p)=>s+p.직접경비,0))}</td>
-    <td style="color:var(--red);font-weight:700">${fmt(sD)}</td>
+    <td class="acc">${fmt(sR)}</td>
+    <td style="color:#60A5FA">${fmt(vis.reduce((s,p)=>s+p.인건비,0))}</td>
+    <td style="color:#34D399">${fmt(vis.reduce((s,p)=>s+p.외주비,0))}</td>
+    <td>${fmt(vis.reduce((s,p)=>s+p.경비,0))}</td>
+    <td style="color:#FCA5A5">${fmt(vis.reduce((s,p)=>s+p.상품원가,0))}</td>
+    <td class="neg" style="font-weight:700">${fmt(sD)}</td>
+    <td class="${sG>=0?'pos':'neg'}" style="font-weight:700">${fmt(sG)}</td>
     <td>${fmt(sSGA)}</td>
-    <td class="${vis.reduce((s,p)=>s+calcP(p).gross,0)>=0?'pos':'neg'}" style="font-weight:700">${fmt(vis.reduce((s,p)=>s+calcP(p).gross,0))}</td>
-    <td class="${sOP>=0?'pos':'neg'}" style="font-weight:700">${fmt(sOP)}</td>
-    <td class="${sRt>=15?'pos':sRt>=0?'warn':'neg'}" style="font-weight:700">${sRt.toFixed(1)}%</td>
+    <td class="${sO>=0?'pos':'neg'}" style="font-weight:700;font-size:12px">${fmt(sO)}</td>
+    <td class="${sRt>=15?'pos':sRt>=0?'warn':'neg'}" style="font-weight:700;font-size:12px">${sRt.toFixed(1)}%</td>
     <td></td>
   </tr>`;
 }
-function updP(code,f,v){const p=pnlData.find(x=>x.코드===code);if(p&&p.마감!=='최종마감'){p[f]=pn(v);rDash();}}
-function togPnL(code){const p=pnlData.find(x=>x.코드===code);if(p){p.마감=p.마감==='최종마감'?'진행중':'최종마감';rDash();}}
+function updP(code,f,v){const p=pnlData.find(x=>x.코드===code);if(p&&p.마감!=='최종마감'){p[f]=pn(v);rDash();rPnL();}}
+function togP(code){const p=pnlData.find(x=>x.코드===code);if(p){p.마감=p.마감==='최종마감'?'진행중':'최종마감';rDash();rPnL();}}
 
-/* ═══ CHARTS ═══ */
-function initCharts(){
-  const gc='rgba(255,255,255,0.05)',tc='#64748B';
-  const ax={grid:{color:gc},ticks:{color:tc,font:{size:9}}};
-  const tt={backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(0,212,255,0.2)',borderWidth:1,
-    callbacks:{label:ctx=>` ${ctx.dataset.label}: ₩${ctx.parsed.y.toLocaleString('ko-KR')}`}};
-  document.getElementById('ll').innerHTML=[{c:'#00D4FF',l:'매출액'},{c:'#EF4444',l:'원가합계'},{c:'#10B981',l:'영업이익'}]
-    .map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
-  lC=new Chart(document.getElementById('lc'),{type:'line',
-    data:{labels:MONTHLY.map(m=>m.m),datasets:[
-      {label:'매출액',data:MONTHLY.map(m=>m.r),borderColor:'#00D4FF',backgroundColor:'rgba(0,212,255,0.05)',borderWidth:2,tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#00D4FF'},
-      {label:'원가합계',data:MONTHLY.map(m=>m.c),borderColor:'#EF4444',borderWidth:1.5,tension:.4,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#EF4444'},
-      {label:'영업이익',data:MONTHLY.map(m=>m.r-m.c),borderColor:'#10B981',borderWidth:1.5,tension:.4,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#10B981'},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:tt},
-      scales:{x:{...ax,ticks:{...ax.ticks,autoSkip:false,maxRotation:0}},
-        y:{...ax,ticks:{...ax.ticks,callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}}}}});
-  const ty=['SI','SM','SV','SOL','CT','MT'],cv=Object.values(TC);
-  const tt2=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
-  const tot2=tt2.reduce((s,v)=>s+v,0);
-  document.getElementById('dl').innerHTML=ty.map((t,i)=>`<span class="li"><span class="ls" style="background:${cv[i]}"></span>${t} ${tot2>0?Math.round(tt2[i]/tot2*100):0}%</span>`).join('');
-  dC=new Chart(document.getElementById('dc'),{type:'doughnut',
-    data:{labels:ty,datasets:[{data:tt2,backgroundColor:cv.map(c=>c+'BB'),borderColor:cv,borderWidth:1.5,hoverOffset:5}]},
-    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',
-      plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,callbacks:{label:ctx=>` ₩${ctx.parsed.toLocaleString('ko-KR')}`}}}}});
-  document.getElementById('bl').innerHTML=[{c:'#00D4FF',l:'매출액'},{c:'#EF4444',l:'직접원가'},{c:'#10B981',l:'영업이익'}]
-    .map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
-  bC=new Chart(document.getElementById('bc'),{type:'bar',
-    data:{labels:pnlData.map(p=>p.코드.split('-')[0]),datasets:[
-      {label:'매출액',data:pnlData.map(p=>p.매출),backgroundColor:'rgba(0,212,255,0.28)',borderColor:'#00D4FF',borderWidth:1,borderRadius:3},
-      {label:'직접원가',data:pnlData.map(p=>calcP(p).dir),backgroundColor:'rgba(239,68,68,0.28)',borderColor:'#EF4444',borderWidth:1,borderRadius:3},
-      {label:'영업이익',data:pnlData.map(p=>calcP(p).op),backgroundColor:pnlData.map(p=>calcP(p).op>=0?'rgba(16,185,129,0.5)':'rgba(239,68,68,0.5)'),borderColor:pnlData.map(p=>calcP(p).op>=0?'#10B981':'#EF4444'),borderWidth:1,borderRadius:3},
-    ]},
-    options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},
-      plugins:{legend:{display:false},tooltip:tt},
-      scales:{x:{...ax,ticks:{...ax.ticks,autoSkip:false,maxRotation:0}},
-        y:{...ax,ticks:{...ax.ticks,callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}}}}});}
-function updCharts(){if(!lC)return;
-  const ty=['SI','SM','SV','SOL','CT','MT'],cv=Object.values(TC);
-  const tt2=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
-  const tot2=tt2.reduce((s,v)=>s+v,0);
-  dC.data.datasets[0].data=tt2;dC.update('none');
-  document.getElementById('dl').innerHTML=ty.map((t,i)=>`<span class="li"><span class="ls" style="background:${cv[i]}"></span>${t} ${tot2>0?Math.round(tt2[i]/tot2*100):0}%</span>`).join('');
-  bC.data.datasets[0].data=pnlData.map(p=>p.매출);
-  bC.data.datasets[1].data=pnlData.map(p=>calcP(p).dir);
-  bC.data.datasets[2].data=pnlData.map(p=>calcP(p).op);
-  bC.data.datasets[2].backgroundColor=pnlData.map(p=>calcP(p).op>=0?'rgba(16,185,129,0.5)':'rgba(239,68,68,0.5)');
-  bC.update('none');}
+/* ══ MASTER ══ */
+function rMaster(){rCoTable();rPrjTable();rBgtTable();rMemTable();rSalTable();rTsTable();updBgtPrjSel();}
+function rCoTable(){
+  const b=document.getElementById('coBody');if(!b)return;
+  b.innerHTML=cos.map((c,i)=>`<tr>
+    <td class="L"><input type="checkbox" data-arr="cos" data-i="${i}" style="accent-color:var(--acc)"></td>
+    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${c.사업자번호}</td>
+    <td class="L" style="font-weight:700">${c.업체명}</td><td class="L">${c.대표자명}</td>
+    <td class="L">${c.업태}</td><td class="L">${c.종목}</td><td class="L M" style="font-size:10px">${c.본점소재지}</td>
+    <td class="L">${c.담당자명}</td><td class="L M" style="font-size:10px">${c.담당자이메일}</td>
+    <td class="L M" style="font-size:10px">${c.최초등록일}</td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+  </tr>`).join('');
+}
+function rPrjTable(){
+  const b=document.getElementById('prjBody');if(!b)return;
+  b.innerHTML=prjs.map((p,i)=>`<tr>
+    <td class="L"><input type="checkbox" data-arr="prjs" data-i="${i}" style="accent-color:var(--acc)"></td>
+    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.코드}</td>
+    <td class="L" style="font-weight:700">${p.명}</td>
+    <td class="L M" style="font-size:10px">${p.사번}</td>
+    <td class="L">${p.업체명}</td>
+    <td class="L"><span class="badge b${p.유형}">${p.유형} ${TNAME[p.유형]}</span></td>
+    <td class="L M" style="font-size:10px">${p.시작}</td>
+    <td class="L M" style="font-size:10px">${p.종료}</td>
+    <td style="text-align:center"><span class="badge ${p.상태==='진행중'?'bwn':'bok'}">${p.상태}</span></td>
+    <td class="L M" style="font-size:10px">${p.등록}</td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+  </tr>`).join('');
+}
+function updBgtPrjSel(){
+  const sel=document.getElementById('bgtPrjSel');if(!sel)return;
+  sel.innerHTML='<option value="">전체 프로젝트</option>'+
+    prjs.map(p=>`<option value="${p.코드}">${p.코드} — ${p.명}</option>`).join('');
+}
+function rBgtTable(){
+  const code=document.getElementById('bgtPrjSel')?.value||'';
+  const vis=code?bgtRows.filter(b=>b.코드===code):bgtRows;
+  const body=document.getElementById('bgtBody');if(!body)return;
+  body.innerHTML=vis.map((b,i)=>{
+    const ri=bgtRows.indexOf(b);
+    const inp=(f,w=80,isFloat=false)=>`<input class="ec" value="${isFloat?b[f]:fmt(b[f])}" onfocus="this.value=String(this.value).replace(/,/g,'')"
+      onblur="bgtRows[${ri}]['${f}']=${isFloat?'parseFloat(this.value)||0':'pn(this.value)'};calcBgt(${ri});rBgtTable()" onkeydown="if(event.key==='Enter')this.blur()" style="width:${w}px">`;
+    return`<tr>
+      <td class="L"><input type="checkbox" data-arr="bgtRows" data-i="${ri}" style="accent-color:var(--acc)"></td>
+      <td class="L M" style="font-size:10px">${b.코드}</td>
+      <td class="L"><span class="badge b${b.유형}">${b.유형}</span></td>
+      <td class="L"><input class="ec ecL" value="${b.항목}" onblur="bgtRows[${ri}].항목=this.value" style="width:75px"></td>
+      <td class="L"><select class="ec" style="width:58px" onchange="bgtRows[${ri}].소속=this.value">
+        <option ${b.소속==='내부'?'selected':''}>내부</option><option ${b.소속==='외부'?'selected':''}>외부</option>
+      </select></td>
+      <td class="L"><input class="ec ecL" value="${b.성명}" onblur="bgtRows[${ri}].성명=this.value" style="width:78px"></td>
+      <td class="L"><input class="ec ecL" value="${b.직급}" onblur="bgtRows[${ri}].직급=this.value" style="width:52px"></td>
+      <td>${inp('공수',52,true)}</td>
+      <td>${inp('수량',44,true)}</td>
+      <td>${inp('실행단가')}</td>
+      <td>${inp('마진율',44,true)}</td>
+      <td class="M">${fmt(b.계약단가)}</td>
+      <td class="acc" style="font-weight:700">${fmt(b.총계약금액)}</td>
+      <td style="text-align:center"><span class="badge ${b.상태==='확정'?'bok':'bwn'}">${b.상태}</span></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('bgtTot').textContent=fmt(vis.reduce((s,b)=>s+b.총계약금액,0));
+}
+function calcBgt(i){const b=bgtRows[i];b.계약단가=Math.round(b.실행단가*(1+b.마진율/100));b.총계약금액=Math.round(b.계약단가*(b.공수||1)*b.수량);}
+function rMemTable(){
+  const b=document.getElementById('memBody');if(!b)return;
+  b.innerHTML=mems.map((m,i)=>`<tr>
+    <td class="L"><input type="checkbox" data-arr="mems" data-i="${i}" style="accent-color:var(--acc)"></td>
+    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${m.사번}</td>
+    <td class="L" style="font-weight:700">${m.성명}</td>
+    <td class="L"><span class="badge ${m.구분==='임직원'?'bSI':m.구분==='협력사'?'bSM':'bSV'}">${m.구분}</span></td>
+    <td class="L">${m.직급}</td>
+    <td class="L M" style="font-size:10px">${m.입사}</td>
+    <td class="L M" style="font-size:10px">${m.퇴사||'-'}</td>
+    <td class="L M" style="font-size:10px">${m.연락처}</td>
+    <td class="L M" style="font-size:10px">${m.이메일}</td>
+    <td style="text-align:center"><span class="badge ${m.상태==='근무중'?'bok':'ber'}">${m.상태}</span></td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+  </tr>`).join('');
+}
+function rSalTable(){
+  const b=document.getElementById('salBody');if(!b)return;
+  b.innerHTML=sals.map((s,i)=>`<tr>
+    <td class="L M" style="font-size:10px">${s.년월}</td>
+    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${s.사번}</td>
+    <td class="L" style="font-weight:700">${s.성명}</td>
+    <td><input class="ec" value="${fmt(s.연봉)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
+      onblur="sals[${i}].연봉=pn(this.value);recalcSal(${i});rSalTable()" onkeydown="if(event.key==='Enter')this.blur()" style="width:85px"></td>
+    <td class="warn">${fmt(s.사대보험)}</td>
+    <td class="acc" style="font-weight:700">${fmt(s.월간총원가)}</td>
+    <td class="M">${fmt(s.퇴직충당금)}</td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">완료</button></td>
+  </tr>`).join('');
+  document.getElementById('salAnn').textContent=fmt(sals.reduce((s,x)=>s+x.연봉,0));
+  document.getElementById('salIns').textContent=fmt(sals.reduce((s,x)=>s+x.사대보험,0));
+  document.getElementById('salTot').textContent=fmt(sals.reduce((s,x)=>s+x.월간총원가,0));
+  document.getElementById('salRet').textContent=fmt(sals.reduce((s,x)=>s+x.퇴직충당금,0));
+}
+function recalcSal(i){const s=sals[i];s.사대보험=Math.round(s.연봉*0.17/12);s.월간총원가=Math.round(s.연봉/12)+s.사대보험+Math.round(s.연봉/12*0.5);s.퇴직충당금=Math.round(s.연봉/12);}
+function rTsTable(){
+  const b=document.getElementById('tsBody');if(!b)return;
+  b.innerHTML=tsRows.map((t,i)=>{
+    const sal=sals.find(s=>s.사번===t.사번);
+    const cost=sal?Math.round(t.공수*sal.월간총원가):0;
+    const hCost=sal?sal.월간총원가:0;
+    return`<tr>
+      <td class="L M" style="font-size:10px">${t.년월}</td>
+      <td class="L"><select class="ec" style="width:88px" onchange="tsRows[${i}].코드=this.value">
+        ${prjs.map(p=>`<option value="${p.코드}" ${t.코드===p.코드?'selected':''}>${p.코드}</option>`).join('')}
+      </select></td>
+      <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${t.사번}</td>
+      <td class="L" style="font-weight:700">${t.성명}</td>
+      <td><input class="ec" value="${t.공수}" onfocus="this.value=this.value"
+        onblur="tsRows[${i}].공수=parseFloat(this.value)||0;rTsTable()" onkeydown="if(event.key==='Enter')this.blur()" style="width:60px"></td>
+      <td class="L M" style="font-size:10px">${t.시작}</td>
+      <td class="L M" style="font-size:10px">${t.종료}</td>
+      <td class="M">${fmt(hCost)}</td>
+      <td class="acc" style="font-weight:700">${fmt(cost)}</td>
+      <td style="text-align:center"><select class="ec" style="width:48px" onchange="tsRows[${i}].반영=this.value">
+        <option ${t.반영==='Y'?'selected':''}>Y</option><option ${t.반영==='N'?'selected':''}>N</option>
+      </select></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tsMM').textContent=tsRows.reduce((s,t)=>s+t.공수,0).toFixed(2);
+  document.getElementById('tsCost').textContent=fmt(tsRows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0));
+}
 
-/* ═══ SALES ═══ */
-function rSales(){
-  document.getElementById('sBody').innerHTML=sRows.map((r,i)=>`<tr>
+/* ── ADD FUNCS (Master) ── */
+function addCo(){cos.push({사업자번호:'',업체명:'신규업체',대표자명:'',업태:'',종목:'',본점소재지:'',주소:'',담당자명:'',담당자이메일:'',최초등록일:today()});rCoTable();}
+function addPrj(){const tp='SI';prjs.push({코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-신규-${tp}`,명:'신규 프로젝트',사번:'',업체명:'',유형:tp,시작:today(),종료:today(),상태:'준비',등록:today()});rPrjTable();}
+function addBgt(){bgtRows.push({코드:prjs[0]?.코드||'',유형:'SI',항목:'',소속:'내부',성명:'',직급:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'});rBgtTable();}
+function addMem(){const mo=String(new Date().getMonth()+1).padStart(2,'0');mems.push({사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,성명:'신규',구분:'임직원',직급:'',입사:today(),퇴사:'',연락처:'',이메일:'',상태:'근무중'});rMemTable();}
+function addSal(){sals.push({년월:'2024-11',사번:'',성명:'',연봉:0,사대보험:0,월간총원가:0,퇴직충당금:0});rSalTable();}
+function addTs(){tsRows.push({년월:'2024-11',코드:prjs[0]?.코드||'',사번:'2024-01-001',성명:'김민준',공수:0.5,시작:today(),종료:today(),반영:'Y'});rTsTable();}
+
+/* ══ PNL PAGE ══ */
+function rPnL(){
+  updHdr();rPipeTable();rIS();
+  rPnLTbl('pB2','pF2','pfT2',pf2,f=>{pf2=f;rPnL();});
+  updSbar();
+  if(!contC)initContribChart();else updContribChart();
+}
+function rPipeTable(){
+  const vis=stageFilt==='ALL'?pipeRows:pipeRows.filter(p=>p.단계===stageFilt);
+  const body=document.getElementById('pipeBody');if(!body)return;
+  body.innerHTML=vis.map((p,i)=>{
+    const ri=pipeRows.indexOf(p);
+    const wt=gWt(p);const inc=Math.round(wt*p.마진율/100);
+    const sc={첩보:'var(--mu)',정보:'var(--amber)',입찰참여:'#60A5FA',기존고객입찰:'#C4B5FD',계약협의:'#5EEAD4',사업연장:'var(--green)'};
+    return`<tr>
+      <td class="L"><input type="checkbox" data-i="${ri}" style="accent-color:var(--acc)"></td>
+      <td class="L" style="font-weight:700">${p.명}</td>
+      <td class="L">${p.고객사}</td>
+      <td class="L"><span class="badge b${p.유형}">${p.유형}</span></td>
+      <td><input class="ec" value="${fmt(p.수주액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
+        onblur="pipeRows[${ri}].수주액=pn(this.value);rPnL();rDash()" onkeydown="if(event.key==='Enter')this.blur()" style="width:90px"></td>
+      <td class="L"><select class="ec" style="width:90px" onchange="pipeRows[${ri}].단계=this.value;rPnL();rDash()">
+        ${Object.keys(STAGES).map(s=>`<option value="${s}" ${p.단계===s?'selected':''}>${s}</option>`).join('')}
+      </select></td>
+      <td style="color:${sc[p.단계]||'var(--mu)'};font-weight:700">${STAGES[p.단계]||30}%</td>
+      <td style="color:var(--amber);font-weight:700">${fmt(wt)}</td>
+      <td class="L M" style="font-size:10px">${p.착수}</td>
+      <td class="L">${p.담당}</td>
+      <td><input class="ec" value="${p.마진율}" onfocus="this.value=this.value"
+        onblur="pipeRows[${ri}].마진율=parseFloat(this.value)||0;rPnL();rDash()" onkeydown="if(event.key==='Enter')this.blur()" style="width:48px"></td>
+      <td class="pos" style="font-weight:700">${fmt(inc)}</td>
+      <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">완료</button></td>
+    </tr>`;
+  }).join('');
+  const exp=pipeRows.reduce((s,p)=>s+p.수주액,0);
+  const wt=totWt();const inc=pipeRows.reduce((s,p)=>s+Math.round(gWt(p)*p.마진율/100),0);
+  document.getElementById('pipeCnt').textContent=pipeRows.length;
+  document.getElementById('pipeExp').textContent=fmt(exp);
+  document.getElementById('pipeWt').textContent=fmt(wt);
+  document.getElementById('pipeInc').textContent=fmt(inc);
+}
+function setSF(s,btn){
+  stageFilt=s;
+  document.querySelectorAll('.spill').forEach(b=>b.classList.remove('on'));
+  if(btn)btn.classList.add('on');
+  rPipeTable();
+}
+function addPipe(){pipeRows.push({명:'신규 가망',고객사:'',유형:'SI',수주액:0,단계:'첩보',착수:today(),담당:'',마진율:15});rPnL();rDash();}
+function delChkPipe(){
+  const cbs=document.querySelectorAll('#pipeBody input[type=checkbox]:checked');
+  Array.from(cbs).map(c=>parseInt(c.dataset.i)).sort((a,b)=>b-a).forEach(i=>pipeRows.splice(i,1));
+  rPnL();rDash();
+}
+function rIS(){
+  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
+  const dir=pnlData.reduce((s,p)=>s+cP(p).dir,0);
+  const gross=tot-dir;
+  const sga=pnlData.reduce((s,p)=>s+p.공통제경비,0);
+  const op=gross-sga;
+  const ni=Math.round(op*0.78);
+  const lab=pnlData.reduce((s,p)=>s+p.인건비,0);
+  const out=pnlData.reduce((s,p)=>s+p.외주비,0);
+  const exp=pnlData.reduce((s,p)=>s+p.경비,0);
+  const gds=pnlData.reduce((s,p)=>s+p.상품원가,0);
+  const rows=[
+    ['Ⅰ. 매출액',tot,false,false,'acc'],
+    ['  직접인건비',lab,true,false,''],
+    ['  외주비',out,true,false,''],
+    ['  직접경비',exp,true,false,''],
+    ['  상품원가',gds,true,false,''],
+    ['Ⅱ. 매출원가계',dir,false,false,'neg'],
+    ['Ⅲ. 매출총이익',gross,false,true,gross>=0?'pos':'neg'],
+    ['  매출총이익률',null,true,false,'rate',tot>0?(gross/tot)*100:0],
+    ['Ⅳ. 공통제경비 (-)',sga,false,false,''],
+    ['Ⅴ. 영업이익',op,false,true,op>=0?'pos':'neg'],
+    ['  영업이익률',null,true,false,'rate',tot>0?(op/tot)*100:0],
+    ['Ⅵ. 영업외손익',0,true,false,''],
+    ['Ⅶ. 세전순이익',op,false,true,op>=0?'pos':'neg'],
+    ['  법인세(22%)',-Math.round(op*0.22),true,false,'neg'],
+    ['Ⅷ. 당기순이익',ni,false,true,ni>=0?'pos':'neg'],
+  ];
+  const ia=document.getElementById('isArea');if(!ia)return;
+  ia.innerHTML=rows.map(([label,val,indent,bold,cls,extra])=>{
+    const isRate=cls==='rate';
+    const dispVal=isRate?(extra||0).toFixed(1)+'%':'₩'+fmt(val||0);
+    const c={acc:'var(--acc)',pos:'var(--green)',neg:'var(--red)',warn:'var(--amber)'}[cls]||'var(--mu)';
+    return`<div class="irow ${indent?'indent':''} ${bold?'bold':''}">
+      <span>${label}</span>
+      <span style="font-family:'JetBrains Mono',monospace;font-size:${bold?13:12}px;font-weight:${bold?700:400};color:${c}">${dispVal}</span>
+    </div>`;
+  }).join('');
+}
+function updSbar(){
+  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
+  const dir=pnlData.reduce((s,p)=>s+cP(p).dir,0);
+  const gross=tot-dir;
+  const op=pnlData.reduce((s,p)=>s+cP(p).op,0);
+  const rate=tot>0?(op/tot)*100:0;
+  const pw=totWt();
+  const se=id=>document.getElementById(id);
+  if(se('sbRev'))se('sbRev').textContent='₩'+fmt(tot);
+  if(se('sbCost'))se('sbCost').textContent='₩'+fmt(dir);
+  if(se('sbGross')){se('sbGross').textContent='₩'+fmt(gross);se('sbGross').className='si-v '+(gross>=0?'pos':'neg');}
+  if(se('sbPipe'))se('sbPipe').textContent='₩'+fmt(pw);
+  if(se('sbOp')){se('sbOp').textContent='₩'+fmt(op);se('sbOp').className='si-v '+(op>=0?'pos':'neg');}
+  if(se('sbRate')){se('sbRate').textContent=rate.toFixed(1)+'%';se('sbRate').className='si-v '+(rate>=15?'pos':rate>=0?'warn':'neg');}
+}
+
+/* ══ TAX ══ */
+function rTax(){rSalesTable();rPurTable();}
+function rSalesTable(){
+  const b=document.getElementById('sTbody');if(!b)return;
+  b.innerHTML=sRows.map((r,i)=>`<tr>
     <td class="L"><input type="checkbox" data-arr="sRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-    <td class="L"><input class="ec ecL" value="${r.승인번호}" onblur="sRows[${i}].승인번호=this.value" style="width:155px;font-size:9px"></td>
-    <td class="L"><input class="ec" type="date" value="${r.작성일자}" onchange="sRows[${i}].작성일자=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-    <td class="L"><input class="ec ecL" value="${r.공급받는자사업자번호}" onblur="sRows[${i}].공급받는자사업자번호=this.value" style="width:100px;font-size:10px"></td>
-    <td class="L"><input class="ec ecL" value="${r.공급받는자상호}" onblur="sRows[${i}].공급받는자상호=this.value" style="width:100px"></td>
+    <td class="L M" style="font-size:9px;font-family:'JetBrains Mono',monospace">${r.번호}</td>
+    <td class="L"><input class="ec" type="date" value="${r.일자}" onchange="sRows[${i}].일자=this.value" style="text-align:left;color:var(--tx);width:108px"></td>
+    <td class="L M" style="font-size:10px">${r.매수자번호}</td>
+    <td class="L">${r.매수자명}</td>
     <td><input class="ec" value="${fmt(r.공급가액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="sRows[${i}].공급가액=pn(this.value);sRows[${i}].세액=Math.round(pn(this.value)*0.1);rSales()" onkeydown="if(event.key==='Enter')this.blur()" style="width:90px"></td>
-    <td><input class="ec" value="${fmt(r.세액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="sRows[${i}].세액=pn(this.value);rSales()" onkeydown="if(event.key==='Enter')this.blur()" style="width:80px"></td>
-    <td style="font-weight:700;color:var(--acc)">${fmt(r.공급가액+r.세액)}</td>
-    <td class="L"><input class="ec ecL" value="${r.품목}" onblur="sRows[${i}].품목=this.value" style="width:110px"></td>
-    <td class="L"><select class="ec" style="width:90px" onchange="sRows[${i}].프로젝트코드=this.value">
-      ${prjs.map(p=>`<option value="${p.프로젝트코드}" ${r.프로젝트코드===p.프로젝트코드?'selected':''}>${p.프로젝트코드}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:65px" onchange="sRows[${i}].수금상태=this.value">
-      ${['완료','미수','부분'].map(v=>`<option ${r.수금상태===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${r.비고}" onblur="sRows[${i}].비고=this.value" style="width:80px"></td>
+      onblur="sRows[${i}].공급가액=pn(this.value);sRows[${i}].세액=Math.round(pn(this.value)*0.1);rSalesTable()" onkeydown="if(event.key==='Enter')this.blur()" style="width:88px"></td>
+    <td class="M" style="font-size:10px">${fmt(r.세액)}</td>
+    <td class="pos" style="font-weight:700">${fmt(r.공급가액+r.세액)}</td>
+    <td class="L M" style="font-size:10px">${r.품목}</td>
+    <td class="L"><span class="badge b${prjs.find(p=>p.코드===r.코드)?.유형||'SI'}">${r.코드}</span></td>
+    <td class="L"><span class="badge ${r.수금==='완료'?'bok':'ber'}">${r.수금}</span></td>
+    <td class="L M" style="font-size:10px">${r.입금예정}</td>
   </tr>`).join('');
   const sup=sRows.reduce((s,r)=>s+r.공급가액,0),vat=sRows.reduce((s,r)=>s+r.세액,0);
   document.getElementById('sCnt').textContent=sRows.length;
@@ -1006,408 +1213,164 @@ function rSales(){
   document.getElementById('sVat').textContent=fmt(vat);
   document.getElementById('sTot').textContent=fmt(sup+vat);
 }
-function addSales(){sRows.push({승인번호:'2024'+today().replace(/-/g,'')+'-41000000-'+uid(),작성일자:today(),공급받는자사업자번호:'',공급받는자상호:'',공급가액:0,세액:0,품목:'',프로젝트코드:prjs[0]?.프로젝트코드||'',수금상태:'미수',비고:''});rSales();}
-
-/* ═══ PURCHASE ═══ */
-function rPur(){
-  const accts=['외주비','인프라비','상품매입가','장비원가','물류비','클라우드이용료','SW라이선스','기타직접원가'];
-  document.getElementById('pBody2').innerHTML=pRows.map((r,i)=>`<tr>
+function addSalesRow(){sRows.push({번호:`${yr}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-41000000-${uid()}`,일자:today(),매수자번호:'',매수자명:'',공급가액:0,세액:0,품목:'',코드:prjs[0]?.코드||'',수금:'미수',입금예정:today()});rSalesTable();}
+function rPurTable(){
+  const b=document.getElementById('pTbody');if(!b)return;
+  b.innerHTML=pRows.map((r,i)=>`<tr>
     <td class="L"><input type="checkbox" data-arr="pRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-    <td class="L"><input class="ec ecL" value="${r.승인번호}" onblur="pRows[${i}].승인번호=this.value" style="width:155px;font-size:9px"></td>
-    <td class="L"><input class="ec" type="date" value="${r.작성일자}" onchange="pRows[${i}].작성일자=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-    <td class="L"><input class="ec ecL" value="${r.공급자사업자번호}" onblur="pRows[${i}].공급자사업자번호=this.value" style="width:100px;font-size:10px"></td>
-    <td class="L"><input class="ec ecL" value="${r.공급자상호}" onblur="pRows[${i}].공급자상호=this.value" style="width:100px"></td>
-    <td><input class="ec" value="${fmt(r.공급가액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="pRows[${i}].공급가액=pn(this.value);pRows[${i}].세액=Math.round(pn(this.value)*0.1);rPur()" onkeydown="if(event.key==='Enter')this.blur()" style="width:90px"></td>
-    <td><input class="ec" value="${fmt(r.세액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="pRows[${i}].세액=pn(this.value);rPur()" onkeydown="if(event.key==='Enter')this.blur()" style="width:75px"></td>
-    <td><input class="ec" value="${fmt(r.불공제세액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="pRows[${i}].불공제세액=pn(this.value);rPur()" onkeydown="if(event.key==='Enter')this.blur()" style="width:72px"></td>
-    <td style="color:var(--red)">${fmt(r.공급가액+r.세액)}</td>
-    <td class="L"><select class="ec" style="width:88px" onchange="pRows[${i}].계정과목=this.value">
-      ${accts.map(v=>`<option ${r.계정과목===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:90px" onchange="pRows[${i}].프로젝트코드=this.value">
-      ${prjs.map(p=>`<option value="${p.프로젝트코드}" ${r.프로젝트코드===p.프로젝트코드?'selected':''}>${p.프로젝트코드}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:76px" onchange="pRows[${i}].배부기준=this.value">
-      ${['직접배부','안분배부','공통'].map(v=>`<option ${r.배부기준===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${r.비고}" onblur="pRows[${i}].비고=this.value" style="width:80px"></td>
+    <td class="L M" style="font-size:9px;font-family:'JetBrains Mono',monospace">${r.번호}</td>
+    <td class="L"><input class="ec" type="date" value="${r.일자}" onchange="pRows[${i}].일자=this.value" style="text-align:left;color:var(--tx);width:108px"></td>
+    <td class="L M" style="font-size:10px">${r.공급자번호}</td>
+    <td class="L">${r.공급자명}</td>
+    <td class="neg">${fmt(r.공급가액)}</td>
+    <td class="M" style="font-size:10px">${fmt(r.세액)}</td>
+    <td>${fmt(r.불공제)}</td>
+    <td class="neg" style="font-weight:700">${fmt(r.공급가액+r.세액)}</td>
+    <td class="L"><span class="badge bSV" style="font-size:9px">${r.계정}</span></td>
+    <td class="L M" style="font-size:10px">${r.코드}</td>
+    <td class="L M" style="font-size:10px">${r.배부}</td>
   </tr>`).join('');
-  const sup=pRows.reduce((s,r)=>s+r.공급가액,0),vat=pRows.reduce((s,r)=>s+r.세액,0),nd=pRows.reduce((s,r)=>s+r.불공제세액,0);
+  const sup=pRows.reduce((s,r)=>s+r.공급가액,0),vat=pRows.reduce((s,r)=>s+r.세액,0),nd=pRows.reduce((s,r)=>s+r.불공제,0);
   document.getElementById('pCnt').textContent=pRows.length;
   document.getElementById('pSup').textContent=fmt(sup);
   document.getElementById('pVat').textContent=fmt(vat);
   document.getElementById('pNd').textContent=fmt(nd);
   document.getElementById('pTot').textContent=fmt(sup+vat);
 }
-function addPur(){pRows.push({승인번호:'2024'+today().replace(/-/g,'')+'-41000000-'+uid(),작성일자:today(),공급자사업자번호:'',공급자상호:'',공급가액:0,세액:0,불공제세액:0,계정과목:'외주비',프로젝트코드:prjs[0]?.프로젝트코드||'',배부기준:'직접배부',비고:''});rPur();}
+function addPurRow(){pRows.push({번호:`${yr}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-41000000-${uid()}`,일자:today(),공급자번호:'',공급자명:'',공급가액:0,세액:0,불공제:0,계정:'외주비',코드:prjs[0]?.코드||'',배부:'직접배부'});rPurTable();}
 
-/* ═══ CARD ═══ */
-function rCard(){
-  const accts=['접대비','출장비','교통비','소모품비','도서인쇄비','교육훈련비','광고선전비','기타비용'];
-  const cards=['법인카드(KB국민)','법인카드(신한)','법인카드(우리)','법인카드(하나)','법인카드(BC)'];
-  document.getElementById('cBody').innerHTML=cRows.map((r,i)=>`<tr>
-    <td class="L"><input type="checkbox" data-arr="cRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-    <td class="L"><input class="ec" type="date" value="${r.이용일자}" onchange="cRows[${i}].이용일자=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-    <td class="L"><input class="ec ecL" value="${r.카드번호}" onblur="cRows[${i}].카드번호=this.value" style="width:50px;text-align:center"></td>
-    <td class="L"><input class="ec ecL" value="${r.승인번호}" onblur="cRows[${i}].승인번호=this.value" style="width:110px;font-size:9px"></td>
-    <td class="L"><input class="ec ecL" value="${r.가맹점명}" onblur="cRows[${i}].가맹점명=this.value" style="width:95px"></td>
-    <td class="L"><input class="ec ecL" value="${r.업종코드}" onblur="cRows[${i}].업종코드=this.value" style="width:50px;text-align:center;font-size:10px"></td>
-    <td><input class="ec" value="${fmt(r.이용금액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="cRows[${i}].이용금액=pn(this.value);cRows[${i}].부가세=Math.round(pn(this.value)/11);rCard()" onkeydown="if(event.key==='Enter')this.blur()" style="width:88px"></td>
-    <td style="color:var(--muted);font-size:10px">${fmt(r.부가세)}</td>
-    <td class="L"><select class="ec" style="width:115px" onchange="cRows[${i}].카드구분=this.value">
-      ${cards.map(v=>`<option ${r.카드구분===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:85px" onchange="cRows[${i}].계정과목=this.value">
-      ${accts.map(v=>`<option ${r.계정과목===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:58px" onchange="cRows[${i}].사번=this.value">
-      ${mems.map(m=>`<option value="${m.사번}" ${r.사번===m.사번?'selected':''}>${m.사번}</option>`).join('')}
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${r.프로젝트배부}" onblur="cRows[${i}].프로젝트배부=this.value" style="width:88px;font-size:10px"></td>
-    <td class="L"><input class="ec ecL" value="${r.비고}" onblur="cRows[${i}].비고=this.value" style="width:80px"></td>
-  </tr>`).join('');
-  const amt=cRows.reduce((s,r)=>s+r.이용금액,0),vat=cRows.reduce((s,r)=>s+r.부가세,0);
-  document.getElementById('cCnt').textContent=cRows.length;
-  document.getElementById('cAmt').textContent=fmt(amt);
-  document.getElementById('cVat').textContent=fmt(vat);
-}
-function addCard(){cRows.push({이용일자:today(),카드번호:'1234',승인번호:'CD'+uid(),가맹점명:'',업종코드:'',이용금액:0,부가세:0,카드구분:'법인카드(KB국민)',계정과목:'접대비',사번:'M001',프로젝트배부:'공통',비고:''});rCard();}
-
-/* ═══ BANK ═══ */
+/* ══ BANK ══ */
 function rBank(){
-  const accts_bk=['단기차입금','장기차입금','차입금상환','급여이체','거래처지급','소모품비','기타출금','기타입금'];
-  document.getElementById('bkBody').innerHTML=bkRows.map((r,i)=>`<tr>
+  const b=document.getElementById('bkTbody');if(!b)return;
+  b.innerHTML=bkRows.map((r,i)=>`<tr>
     <td class="L"><input type="checkbox" data-arr="bkRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-    <td class="L"><input class="ec" type="date" value="${r.거래일자}" onchange="bkRows[${i}].거래일자=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-    <td class="L M" style="font-size:10px">${r.거래시각}</td>
-    <td class="L"><select class="ec" style="width:115px" onchange="bkRows[${i}].계좌번호=this.value">
-      ${['기업은행(사업자)','국민은행(사업자)','하나은행(사업자)','신한은행(사업자)'].map(v=>`<option ${r.계좌번호===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><select class="ec" style="width:65px" onchange="bkRows[${i}].거래구분=this.value">
-      ${['입금','출금'].map(v=>`<option ${r.거래구분===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="${r.입금액>0?'pos':''}">${r.입금액>0?fmt(r.입금액):'-'}</td>
-    <td class="${r.출금액>0?'neg':''}">${r.출금액>0?fmt(r.출금액):'-'}</td>
+    <td class="L"><input class="ec" type="date" value="${r.일자}" onchange="bkRows[${i}].일자=this.value" style="text-align:left;color:var(--tx);width:108px"></td>
+    <td class="L M" style="font-size:10px">${r.시각}</td>
+    <td class="L M" style="font-size:10px">${r.계좌}</td>
+    <td class="L"><span class="badge ${r.구분==='입금'?'bok':'ber'}">${r.구분}</span></td>
+    <td class="${r.입금>0?'pos':'M'}">${r.입금>0?fmt(r.입금):'-'}</td>
+    <td class="${r.출금>0?'neg':'M'}">${r.출금>0?fmt(r.출금):'-'}</td>
     <td class="M">${fmt(r.잔액)}</td>
-    <td class="L"><input class="ec ecL" value="${r.거래처}" onblur="bkRows[${i}].거래처=this.value" style="width:105px"></td>
-    <td class="L"><select class="ec" style="width:80px" onchange="bkRows[${i}].구분=this.value">
-      ${['차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'].map(v=>`<option ${r.구분===v?'selected':''}>${v}</option>`).join('')}
+    <td class="L">${r.거래처}</td>
+    <td class="L"><select class="ec" style="width:80px" onchange="bkRows[${i}].분류=this.value">
+      ${['차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'].map(v=>`<option ${r.분류===v?'selected':''}>${v}</option>`).join('')}
     </select></td>
-    <td class="L"><select class="ec" style="width:88px" onchange="bkRows[${i}].계정과목=this.value">
-      ${accts_bk.map(v=>`<option ${r.계정과목===v?'selected':''}>${v}</option>`).join('')}
+    <td class="L"><select class="ec" style="width:90px" onchange="bkRows[${i}].계정=this.value">
+      ${ACCTS_BK.map(v=>`<option ${r.계정===v?'selected':''}>${v}</option>`).join('')}
     </select></td>
-    <td class="L"><select class="ec" style="width:56px" onchange="bkRows[${i}].사번체크카드=this.value">
-      <option value="">-</option>${mems.map(m=>`<option value="${m.사번}" ${r.사번체크카드===m.사번?'selected':''}>${m.사번}</option>`).join('')}
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${r.프로젝트배부}" onblur="bkRows[${i}].프로젝트배부=this.value" style="width:88px;font-size:10px"></td>
-    <td class="L"><input class="ec ecL" value="${r.비고}" onblur="bkRows[${i}].비고=this.value" style="width:80px"></td>
+    <td class="L M" style="font-size:10px">${r.사번||'-'}</td>
+    <td class="L M" style="font-size:10px">${r.배부}</td>
+    <td class="L M" style="font-size:10px">${r.비고}</td>
   </tr>`).join('');
-  const tin=bkRows.reduce((s,r)=>s+r.입금액,0),tout=bkRows.reduce((s,r)=>s+r.출금액,0);
-  const loan=bkRows.filter(r=>r.구분==='차입금').reduce((s,r)=>s+r.입금액,0);
-  const repay=bkRows.filter(r=>r.구분==='차입금상환').reduce((s,r)=>s+r.출금액,0);
+  const tin=bkRows.reduce((s,r)=>s+r.입금,0),tout=bkRows.reduce((s,r)=>s+r.출금,0);
+  const loan=bkRows.filter(r=>r.분류==='차입금').reduce((s,r)=>s+r.입금,0);
+  const rep=bkRows.filter(r=>r.분류==='차입금상환').reduce((s,r)=>s+r.출금,0);
   document.getElementById('bkCnt').textContent=bkRows.length;
-  document.getElementById('bkIn').textContent=fmt(tin);document.getElementById('bkOut').textContent=fmt(tout);
-  document.getElementById('sbIn').textContent='₩'+fmt(tin);document.getElementById('sbOut').textContent='₩'+fmt(tout);
-  document.getElementById('sbLoan').textContent='₩'+fmt(loan);document.getElementById('sbRepay').textContent='₩'+fmt(repay);
-  const ne=document.getElementById('sbNet');ne.textContent='₩'+fmt(tin-tout);ne.className='sv '+(tin-tout>=0?'pos':'neg');
+  document.getElementById('bkIn').textContent=fmt(tin);
+  document.getElementById('bkOut').textContent=fmt(tout);
+  document.getElementById('sbBkIn').textContent='₩'+fmt(tin);
+  document.getElementById('sbBkOut').textContent='₩'+fmt(tout);
+  document.getElementById('sbLoan').textContent='₩'+fmt(loan);
+  document.getElementById('sbRepay').textContent='₩'+fmt(rep);
+  const ne=document.getElementById('sbNet');if(ne){ne.textContent='₩'+fmt(tin-tout);ne.className='si-v '+(tin-tout>=0?'pos':'neg');}
 }
-function addBank(){bkRows.push({거래일자:today(),거래시각:'00:00:00',계좌번호:'기업은행(사업자)',거래구분:'출금',입금액:0,출금액:0,잔액:0,거래처:'',구분:'기타출금',계정과목:'기타출금',사번체크카드:'',프로젝트배부:'공통',비고:''});rBank();}
+function addBankRow(){bkRows.push({일자:today(),시각:'00:00:00',계좌:'기업은행(사업자)',구분:'출금',입금:0,출금:0,잔액:0,거래처:'',분류:'기타출금',계정:'기타출금',사번:'',배부:'공통',비고:''});rBank();}
 
-/* ═══ 유형별 원가 입력 ═══ */
-function showTab(id,btn){
-  document.querySelectorAll('.tpane').forEach(p=>p.classList.remove('on'));
-  document.querySelectorAll('.tbar .tbtn').forEach(b=>b.classList.remove('on'));
-  document.getElementById(id).classList.add('on');
-  if(btn)btn.classList.add('on');
-  rCostSbar();
-}
-function rCost(){
-  // 프로젝트 셀렉트 채우기
-  ['SI','SM','SV','SOL','CT','MT'].forEach(tp=>{
-    const sel=document.getElementById(tp+'-proj');
-    if(sel){
-      sel.innerHTML=prjs.filter(p=>p.프로젝트유형===tp).map(p=>`<option value="${p.프로젝트코드}">${p.프로젝트코드} — ${p.프로젝트명}</option>`).join('');
-      if(!sel.innerHTML)sel.innerHTML='<option value="">해당 프로젝트 없음</option>';
-    }
-    rCostTable(tp);
-  });
-  rCostSbar();
-}
-function rCostTable(tp){
-  const rows=costData[tp]||[];
-  const items=COST_ITEMS[tp]||[];
-  const grades=COST_GRADE[tp]||[];
-  const body=document.getElementById(tp+'-body');
-  if(!body)return;
-  body.innerHTML=rows.map((r,i)=>`<tr>
-    <td class="L"><select class="ec" style="width:120px" onchange="costData['${tp}'][${i}].항목=this.value;rCostSbar()">
-      ${items.map(v=>`<option ${r.항목===v?'selected':''}>${v}</option>`).join('')}
+/* ══ CARD ══ */
+function rCard(){
+  const b=document.getElementById('cdTbody');if(!b)return;
+  b.innerHTML=cdRows.map((r,i)=>`<tr>
+    <td class="L"><input type="checkbox" data-arr="cdRows" data-i="${i}" style="accent-color:var(--acc)"></td>
+    <td class="L"><input class="ec" type="date" value="${r.일자}" onchange="cdRows[${i}].일자=this.value" style="text-align:left;color:var(--tx);width:108px"></td>
+    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${r.카번호}</td>
+    <td class="L M" style="font-size:9px;font-family:'JetBrains Mono',monospace">${r.승인번호}</td>
+    <td class="L">${r.가맹점}</td>
+    <td class="L M" style="font-size:10px">${r.업종}</td>
+    <td><input class="ec" value="${fmt(r.금액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
+      onblur="cdRows[${i}].금액=pn(this.value);cdRows[${i}].부가세=Math.round(pn(this.value)/11);rCard()" onkeydown="if(event.key==='Enter')this.blur()" style="width:85px"></td>
+    <td class="M" style="font-size:10px">${fmt(r.부가세)}</td>
+    <td class="L"><select class="ec" style="width:75px" onchange="cdRows[${i}].카드=this.value">
+      ${CARDS.map(v=>`<option ${r.카드===v?'selected':''}>${v}</option>`).join('')}
     </select></td>
-    <td class="L"><input class="ec ecL" value="${r.내역}" onblur="costData['${tp}'][${i}].내역=this.value" style="width:130px"></td>
-    <td class="L"><select class="ec" style="width:80px" onchange="costData['${tp}'][${i}].등급=this.value">
-      ${['-',...grades].map(v=>`<option ${r.등급===v?'selected':''}>${v}</option>`).join('')}
+    <td class="L"><select class="ec" style="width:88px" onchange="cdRows[${i}].계정=this.value">
+      ${ACCTS_CD.map(v=>`<option ${r.계정===v?'selected':''}>${v}</option>`).join('')}
     </select></td>
-    <td><input class="ec" value="${r.수량}" onfocus="this.value=this.value"
-      onblur="costData['${tp}'][${i}].수량=parseFloat(this.value)||0;costData['${tp}'][${i}].금액=Math.round(costData['${tp}'][${i}].수량*costData['${tp}'][${i}].단가);rCostTable('${tp}');rCostSbar()" onkeydown="if(event.key==='Enter')this.blur()" style="width:60px"></td>
-    <td><input class="ec" value="${fmt(r.단가)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="costData['${tp}'][${i}].단가=pn(this.value);costData['${tp}'][${i}].금액=Math.round(costData['${tp}'][${i}].수량*costData['${tp}'][${i}].단가);rCostTable('${tp}');rCostSbar()" onkeydown="if(event.key==='Enter')this.blur()" style="width:90px"></td>
-    <td style="color:var(--red);font-weight:700">${fmt(r.금액)}</td>
-    <td class="L"><select class="ec" style="width:90px" onchange="costData['${tp}'][${i}].증빙=this.value">
-      ${['급여대장','세금계산서','법인카드','영수증','기타'].map(v=>`<option ${r.증빙===v?'selected':''}>${v}</option>`).join('')}
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${r.비고}" onblur="costData['${tp}'][${i}].비고=this.value" style="width:80px"></td>
-    <td style="text-align:center"><button class="btn bd" style="padding:2px 6px;font-size:9px" onclick="costData['${tp}'].splice(${i},1);rCostTable('${tp}');rCostSbar()">✕</button></td>
+    <td class="L M" style="font-size:10px">${r.사번}</td>
+    <td class="L M" style="font-size:10px">${r.배부}</td>
+    <td class="L M" style="font-size:10px">${r.비고}</td>
   </tr>`).join('');
-  const tot=rows.reduce((s,r)=>s+r.금액,0);
-  const te=document.getElementById(tp+'-tot');
-  if(te)te.textContent=fmt(tot);
+  const amt=cdRows.reduce((s,r)=>s+r.금액,0),vat=cdRows.reduce((s,r)=>s+r.부가세,0);
+  document.getElementById('cdCnt').textContent=cdRows.length;
+  document.getElementById('cdAmt').textContent=fmt(amt);
+  document.getElementById('cdVat').textContent=fmt(vat);
 }
-function addCostRow(tp){
-  const items=COST_ITEMS[tp]||[];
-  costData[tp].push({항목:items[0]||'직접인건비',내역:'',등급:'-',수량:1,단가:0,금액:0,증빙:'세금계산서',비고:''});
-  rCostTable(tp);rCostSbar();
+function addCardRow(){cdRows.push({일자:today(),카번호:'0000',승인번호:'CD'+uid(),가맹점:'',업종:'',금액:0,부가세:0,카드:'KB국민',계정:'접대비',사번:'',배부:'공통',비고:''});rCard();}
+
+/* ══ CHARTS ══ */
+function initCharts(){
+  const gc='rgba(255,255,255,0.05)',tc='#64748B';
+  const ax={grid:{color:gc},ticks:{color:tc,font:{size:9}}};
+  const tt={backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(0,212,255,0.2)',borderWidth:1,callbacks:{label:ctx=>` ${ctx.dataset.label}: ₩${ctx.parsed.y.toLocaleString('ko-KR')}`}};
+  document.getElementById('ll').innerHTML=[{c:'#00D4FF',l:'매출액'},{c:'#EF4444',l:'원가합계'},{c:'#10B981',l:'영업이익'}].map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
+  lC=new Chart(document.getElementById('lc'),{type:'line',data:{labels:MONTHLY.map(m=>m.m),datasets:[
+    {label:'매출액',data:MONTHLY.map(m=>m.r),borderColor:'#00D4FF',backgroundColor:'rgba(0,212,255,0.05)',borderWidth:2,tension:.4,fill:true,pointRadius:3,pointBackgroundColor:'#00D4FF'},
+    {label:'원가합계',data:MONTHLY.map(m=>m.c),borderColor:'#EF4444',borderWidth:1.5,tension:.4,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#EF4444'},
+    {label:'영업이익',data:MONTHLY.map(m=>m.r-m.c),borderColor:'#10B981',borderWidth:1.5,tension:.4,borderDash:[4,3],pointRadius:2,pointBackgroundColor:'#10B981'},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:tt},
+    scales:{x:{...ax,ticks:{...ax.ticks,autoSkip:false,maxRotation:0}},y:{...ax,ticks:{...ax.ticks,callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}}}}});
+  const ty=TYPES,cv=Object.values(TC),dd=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
+  const tot2=dd.reduce((s,v)=>s+v,0);
+  document.getElementById('dl').innerHTML=ty.map((t,i)=>`<span class="li"><span class="ls" style="background:${cv[i]}"></span>${t} ${tot2>0?Math.round(dd[i]/tot2*100):0}%</span>`).join('');
+  dC=new Chart(document.getElementById('dc'),{type:'doughnut',data:{labels:ty,datasets:[{data:dd,backgroundColor:cv.map(c=>c+'BB'),borderColor:cv,borderWidth:1.5,hoverOffset:5}]},
+    options:{responsive:true,maintainAspectRatio:false,cutout:'62%',plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(255,255,255,0.1)',borderWidth:1,callbacks:{label:ctx=>` ₩${ctx.parsed.toLocaleString('ko-KR')}`}}}}});
+  document.getElementById('bl').innerHTML=[{c:'#00D4FF',l:'매출액'},{c:'#EF4444',l:'직접원가'},{c:'#10B981',l:'영업이익'}].map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
+  bC=new Chart(document.getElementById('bc'),{type:'bar',data:{labels:pnlData.map(p=>p.코드.split('-')[0]),datasets:[
+    {label:'매출액',data:pnlData.map(p=>p.매출),backgroundColor:'rgba(0,212,255,0.28)',borderColor:'#00D4FF',borderWidth:1,borderRadius:3},
+    {label:'직접원가',data:pnlData.map(p=>cP(p).dir),backgroundColor:'rgba(239,68,68,0.28)',borderColor:'#EF4444',borderWidth:1,borderRadius:3},
+    {label:'영업이익',data:pnlData.map(p=>cP(p).op),backgroundColor:pnlData.map(p=>cP(p).op>=0?'rgba(16,185,129,0.5)':'rgba(239,68,68,0.5)'),borderColor:pnlData.map(p=>cP(p).op>=0?'#10B981':'#EF4444'),borderWidth:1,borderRadius:3},
+  ]},options:{responsive:true,maintainAspectRatio:false,interaction:{mode:'index',intersect:false},plugins:{legend:{display:false},tooltip:tt},
+    scales:{x:{...ax,ticks:{...ax.ticks,autoSkip:false,maxRotation:0}},y:{...ax,ticks:{...ax.ticks,callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}}}}});
 }
-function rCostSbar(){
-  // 현재 활성 탭의 프로젝트 코드 찾기
-  const activeTp=['SI','SM','SV','SOL','CT','MT'].find(tp=>document.getElementById('t'+tp)?.classList.contains('on'))||'SI';
-  const sel=document.getElementById(activeTp+'-proj');
-  const code=sel?.value||'';
-  const pnl=pnlData.find(p=>p.코드===code);
-  const rev=pnl?pnl.매출:sRows.filter(r=>r.프로젝트코드===code).reduce((s,r)=>s+r.공급가액,0);
-  const rows=costData[activeTp]||[];
-  const lab=rows.filter(r=>r.항목.includes('인건비')).reduce((s,r)=>s+r.금액,0);
-  const out=rows.filter(r=>r.항목.includes('외주')).reduce((s,r)=>s+r.금액,0);
-  const inf=rows.filter(r=>r.항목.includes('인프라')).reduce((s,r)=>s+r.금액,0);
-  const gds=rows.filter(r=>r.항목.includes('상품매입')).reduce((s,r)=>s+r.금액,0);
-  const eqp=rows.filter(r=>r.항목.includes('장비매입')).reduce((s,r)=>s+r.금액,0);
-  const log=rows.filter(r=>['운반','통관','창고'].some(k=>r.항목.includes(k))).reduce((s,r)=>s+r.금액,0);
-  const exp=rows.filter(r=>!r.항목.includes('인건비')&&!r.항목.includes('외주')&&!r.항목.includes('인프라')&&!r.항목.includes('상품매입')&&!r.항목.includes('장비매입')&&!['운반','통관','창고'].some(k=>r.항목.includes(k))).reduce((s,r)=>s+r.금액,0);
-  const cost=rows.reduce((s,r)=>s+r.금액,0);
-  const gross=rev-cost;
-  const rate=rev>0?(gross/rev)*100:0;
-  document.getElementById('cRev').textContent='₩'+fmt(rev);
-  document.getElementById('cLab').textContent='₩'+fmt(lab);
-  document.getElementById('cOut').textContent='₩'+fmt(out);
-  document.getElementById('cInf').textContent='₩'+fmt(inf);
-  document.getElementById('cGds').textContent='₩'+fmt(gds);
-  document.getElementById('cEqp').textContent='₩'+fmt(eqp);
-  document.getElementById('cLog').textContent='₩'+fmt(log);
-  document.getElementById('cExp').textContent='₩'+fmt(exp);
-  document.getElementById('cCost').textContent='₩'+fmt(cost);
-  const ge=document.getElementById('cGross');ge.textContent='₩'+fmt(gross);ge.className='sv '+(gross>=0?'pos':'neg');
-  const re=document.getElementById('cRate');re.textContent=rate.toFixed(1)+'%';re.className='sv '+(rate>=15?'pos':rate>=0?'warn':'neg');
+function updCharts(){
+  if(!lC||!dC||!bC)return;
+  const ty=TYPES,cv=Object.values(TC),dd=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
+  const tot2=dd.reduce((s,v)=>s+v,0);
+  dC.data.datasets[0].data=dd;dC.update('none');
+  document.getElementById('dl').innerHTML=ty.map((t,i)=>`<span class="li"><span class="ls" style="background:${cv[i]}"></span>${t} ${tot2>0?Math.round(dd[i]/tot2*100):0}%</span>`).join('');
+  bC.data.datasets[0].data=pnlData.map(p=>p.매출);
+  bC.data.datasets[1].data=pnlData.map(p=>cP(p).dir);
+  bC.data.datasets[2].data=pnlData.map(p=>cP(p).op);
+  bC.data.datasets[2].backgroundColor=pnlData.map(p=>cP(p).op>=0?'rgba(16,185,129,0.5)':'rgba(239,68,68,0.5)');
+  bC.update('none');
 }
-function applyCost(tp){
-  const sel=document.getElementById(tp+'-proj');const code=sel?.value;
-  if(!code){alert('프로젝트를 선택하세요!');return;}
-  const p=pnlData.find(x=>x.코드===code);
-  if(!p){alert('손익 집계에 해당 프로젝트가 없습니다.');return;}
-  if(p.마감==='최종마감'){alert('최종마감된 프로젝트는 수정할 수 없습니다.');return;}
-  const rows=costData[tp]||[];
-  p.인건비=rows.filter(r=>r.항목.includes('인건비')).reduce((s,r)=>s+r.금액,0);
-  p.외주비=rows.filter(r=>r.항목.includes('외주')).reduce((s,r)=>s+r.금액,0);
-  p.인프라비=rows.filter(r=>r.항목.includes('인프라')).reduce((s,r)=>s+r.금액,0);
-  p.상품매입가=rows.filter(r=>r.항목.includes('상품매입')).reduce((s,r)=>s+r.금액,0);
-  p.장비원가=rows.filter(r=>r.항목.includes('장비매입')).reduce((s,r)=>s+r.금액,0);
-  p.물류비=rows.filter(r=>['운반','통관','창고'].some(k=>r.항목.includes(k))).reduce((s,r)=>s+r.금액,0);
-  p.직접경비=rows.filter(r=>!r.항목.includes('인건비')&&!r.항목.includes('외주')&&!r.항목.includes('인프라')&&!r.항목.includes('상품매입')&&!r.항목.includes('장비매입')&&!['운반','통관','창고'].some(k=>r.항목.includes(k))).reduce((s,r)=>s+r.금액,0);
-  alert(`✅ [${code}] 손익에 원가 반영 완료!\n인건비:${fmt(p.인건비)} / 외주:${fmt(p.외주비)} / 인프라:${fmt(p.인프라비)}\n상품매입:${fmt(p.상품매입가)} / 장비:${fmt(p.장비원가)} / 물류:${fmt(p.물류비)}`);
+function initContribChart(){
+  const ty=TYPES,cv=Object.values(TC);
+  const ops=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+cP(p).op,0));
+  const revs=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
+  document.getElementById('contribLeg').innerHTML=[{c:'#00D4FF',l:'영업이익'},{c:'#F59E0B',l:'이익률%'}].map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
+  contC=new Chart(document.getElementById('contribC'),{type:'bar',data:{labels:ty,datasets:[
+    {label:'영업이익',data:ops,backgroundColor:ops.map((v,i)=>v>=0?cv[i]+'99':cv[i]+'55'),borderColor:cv,borderWidth:1.5,borderRadius:4},
+    {label:'이익률%',data:revs.map((r,i)=>r>0?(ops[i]/r)*100:0),type:'line',yAxisID:'y2',borderColor:'#F59E0B',borderWidth:1.5,borderDash:[4,3],pointRadius:4,pointBackgroundColor:'#F59E0B',tension:.3},
+  ]},options:{responsive:true,maintainAspectRatio:false,
+    plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},
+    scales:{x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748B',font:{size:10}}},
+      y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748B',font:{size:10},callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}},
+      y2:{position:'right',grid:{display:false},ticks:{color:'#F59E0B',font:{size:10},callback:v=>v.toFixed(0)+'%'}}}}});
+}
+function updContribChart(){
+  if(!contC)return;
+  const ty=TYPES,cv=Object.values(TC);
+  const ops=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+cP(p).op,0));
+  const revs=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
+  contC.data.datasets[0].data=ops;contC.data.datasets[0].backgroundColor=ops.map((v,i)=>v>=0?cv[i]+'99':cv[i]+'55');
+  contC.data.datasets[1].data=revs.map((r,i)=>r>0?(ops[i]/r)*100:0);contC.update('none');
 }
 
-/* ═══ TIMESHEET ═══ */
-function rTs(){
-  document.getElementById('salBody').innerHTML=sals.map((s,i)=>`<tr>
-    <td class="L">${s.기준년월}</td>
-    <td class="L M" style="font-family:'JetBrains Mono',monospace">${s.사번}</td>
-    <td class="L" style="font-weight:700">${s.성명}</td>
-    <td class="L">${mems.find(m=>m.사번===s.사번)?.부서||''}</td>
-    <td class="L">${mems.find(m=>m.사번===s.사번)?.직급||''}</td>
-    <td>${fmt(s.월급여액)}</td><td>${fmt(s.시간당원가)}</td>
-    <td>${fmt(s.사대보험)}</td><td>${fmt(s.퇴직충당금)}</td>
-    <td style="color:var(--acc);font-weight:700">${fmt(s.월간총원가)}</td>
-    <td class="L M">${s.비고}</td>
-  </tr>`).join('');
-  document.getElementById('salBase').textContent=fmt(sals.reduce((a,s)=>a+s.월급여액,0));
-  document.getElementById('salIns').textContent=fmt(sals.reduce((a,s)=>a+s.사대보험,0));
-  document.getElementById('salRet').textContent=fmt(sals.reduce((a,s)=>a+s.퇴직충당금,0));
-  document.getElementById('salTot').textContent=fmt(sals.reduce((a,s)=>a+s.월간총원가,0));
-  document.getElementById('tsBody').innerHTML=tsRows.map((t,i)=>{
-    const sal=sals.find(s=>s.사번===t.사번);
-    const cost=sal?Math.round(t.투입공수*sal.월간총원가):0;
-    return`<tr>
-      <td class="L"><input type="checkbox" data-arr="tsRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-      <td class="L"><input class="ec ecL" value="${t.기준년월}" onblur="tsRows[${i}].기준년월=this.value" style="width:72px"></td>
-      <td class="L"><select class="ec" style="width:90px" onchange="tsRows[${i}].프로젝트코드=this.value">
-        ${prjs.map(p=>`<option value="${p.프로젝트코드}" ${t.프로젝트코드===p.프로젝트코드?'selected':''}>${p.프로젝트코드}</option>`).join('')}
-      </select></td>
-      <td class="L"><select class="ec" style="width:58px" onchange="tsRows[${i}].사번=this.value;tsRows[${i}].성명=mems.find(m=>m.사번===this.value)?.성명||'';rTs()">
-        ${mems.map(m=>`<option value="${m.사번}" ${t.사번===m.사번?'selected':''}>${m.사번}</option>`).join('')}
-      </select></td>
-      <td class="L">${t.성명}</td>
-      <td><input class="ec" value="${t.투입공수}" onfocus="this.value=this.value"
-        onblur="tsRows[${i}].투입공수=parseFloat(this.value)||0;rTs()" onkeydown="if(event.key==='Enter')this.blur()" style="width:65px"></td>
-      <td class="L"><input class="ec" type="date" value="${t.투입시작일}" onchange="tsRows[${i}].투입시작일=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-      <td class="L"><input class="ec" type="date" value="${t.투입종료일}" onchange="tsRows[${i}].투입종료일=this.value" style="color:var(--text);text-align:left;width:108px"></td>
-      <td class="M">${sal?fmt(sal.월간총원가):'-'}</td>
-      <td style="color:var(--acc);font-weight:700">${fmt(cost)}</td>
-      <td style="text-align:center"><select class="ec" style="width:48px" onchange="tsRows[${i}].원가반영여부=this.value">
-        <option ${t.원가반영여부==='Y'?'selected':''}>Y</option>
-        <option ${t.원가반영여부==='N'?'selected':''}>N</option>
-      </select></td>
-    </tr>`;
-  }).join('');
-  document.getElementById('tsMM').textContent=tsRows.reduce((s,t)=>s+t.투입공수,0).toFixed(2);
-  document.getElementById('tsCost').textContent=fmt(tsRows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.투입공수*sal.월간총원가):0);},0));
-}
-function addTs(){tsRows.push({기준년월:'2024-11',프로젝트코드:prjs[0]?.프로젝트코드||'',사번:'M001',성명:'김민준',투입공수:0.5,투입시작일:today(),투입종료일:today(),원가반영여부:'Y'});rTs();}
-function addSal(){sals.push({기준년월:'2024-11',사번:'',성명:'',월급여액:0,시간당원가:0,사대보험:0,퇴직충당금:0,월간총원가:0,비고:''});rTs();}
-
-/* ═══ MASTER ═══ */
-function rMaster(){
-  document.getElementById('coBody').innerHTML=cos.map(c=>`<tr>
-    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${c.사업자번호}</td>
-    <td class="L" style="font-weight:700">${c.업체명}</td>
-    <td class="L">${c.대표자명}</td><td class="L">${c.업태}</td><td class="L">${c.종목}</td>
-    <td class="L">${c.담당자명}</td><td class="L M" style="font-size:10px">${c.최초등록일}</td>
-  </tr>`).join('');
-  document.getElementById('memBody').innerHTML=mems.map(m=>`<tr>
-    <td class="L M" style="font-family:'JetBrains Mono',monospace">${m.사번}</td>
-    <td class="L" style="font-weight:700">${m.성명}</td>
-    <td class="L">${m.부서}</td><td class="L">${m.직급}</td>
-    <td class="L M" style="font-size:10px">${m.입사일}</td>
-    <td style="text-align:center"><span class="badge ${m.상태==='재직'?'bok':'berr'}">${m.상태}</span></td>
-  </tr>`).join('');
-  document.getElementById('prjBody').innerHTML=prjs.map(p=>`<tr>
-    <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${p.프로젝트코드}</td>
-    <td class="L M" style="font-size:10px">${p.사업자번호}</td>
-    <td class="L" style="font-weight:700">${p.프로젝트명}</td>
-    <td class="L"><span class="badge b${p.프로젝트유형}">${p.프로젝트유형}</span></td>
-    <td class="L M" style="font-size:10px">${p.시작일}</td><td class="L M" style="font-size:10px">${p.종료일}</td>
-    <td style="text-align:center"><span class="badge ${p.진행상태==='진행중'?'bwarn':p.진행상태==='완료'?'bok':'berr'}">${p.진행상태}</span></td>
-    <td class="L M" style="font-size:10px">${p.비고}</td>
-  </tr>`).join('');
-  document.getElementById('bgtBody').innerHTML=bgtRows.map((b,i)=>`<tr>
-    <td class="L"><input type="checkbox" data-arr="bgtRows" data-i="${i}" style="accent-color:var(--acc)"></td>
-    <td class="L M" style="font-size:10px">${b.프로젝트코드}</td>
-    <td class="L"><span class="badge b${b.프로젝트유형}">${b.프로젝트유형}</span></td>
-    <td class="L"><input class="ec ecL" value="${b.항목명}" onblur="bgtRows[${i}].항목명=this.value" style="width:78px"></td>
-    <td class="L"><select class="ec" style="width:56px" onchange="bgtRows[${i}].소속구분=this.value">
-      <option ${b.소속구분==='내부'?'selected':''}>내부</option><option ${b.소속구분==='외부'?'selected':''}>외부</option>
-    </select></td>
-    <td class="L"><input class="ec ecL" value="${b.성명}" onblur="bgtRows[${i}].성명=this.value" style="width:78px"></td>
-    <td class="L"><input class="ec ecL" value="${b.직급}" onblur="bgtRows[${i}].직급=this.value" style="width:55px"></td>
-    <td><input class="ec" value="${b.공수}" onfocus="this.value=this.value"
-      onblur="bgtRows[${i}].공수=parseFloat(this.value)||0;calcBgt(${i});rMaster()" onkeydown="if(event.key==='Enter')this.blur()" style="width:52px"></td>
-    <td><input class="ec" value="${b.수량}" onfocus="this.value=this.value"
-      onblur="bgtRows[${i}].수량=parseFloat(this.value)||0;calcBgt(${i});rMaster()" onkeydown="if(event.key==='Enter')this.blur()" style="width:44px"></td>
-    <td><input class="ec" value="${fmt(b.실행단가)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
-      onblur="bgtRows[${i}].실행단가=pn(this.value);calcBgt(${i});rMaster()" onkeydown="if(event.key==='Enter')this.blur()" style="width:82px"></td>
-    <td><input class="ec" value="${b.마진율}" onfocus="this.value=this.value"
-      onblur="bgtRows[${i}].마진율=parseFloat(this.value)||0;calcBgt(${i});rMaster()" onkeydown="if(event.key==='Enter')this.blur()" style="width:44px"></td>
-    <td class="M">${fmt(b.계약단가)}</td>
-    <td style="color:var(--acc);font-weight:700">${fmt(b.총계약금액)}</td>
-    <td style="text-align:center"><span class="badge ${b.상태==='확정'?'bok':'bwarn'}">${b.상태}</span></td>
-  </tr>`).join('');
-  document.getElementById('bgtTot').textContent=fmt(bgtRows.reduce((s,b)=>s+b.총계약금액,0));
-}
-function calcBgt(i){const b=bgtRows[i];b.계약단가=Math.round(b.실행단가*(1+b.마진율/100));b.총계약금액=Math.round(b.계약단가*(b.공수||1)*b.수량);}
-function addCo(){cos.push({사업자번호:'',업체명:'신규업체',대표자명:'',업태:'',종목:'',담당자명:'',최초등록일:today()});rMaster();}
-function addMem(){mems.push({사번:'M'+String(mems.length+1).padStart(3,'0'),성명:'신규',부서:'',직급:'',입사일:today(),상태:'재직'});rMaster();}
-function addPrj(){prjs.push({프로젝트코드:'NEW-'+uid(),사업자번호:'',프로젝트명:'신규 프로젝트',프로젝트유형:'SI',시작일:today(),종료일:today(),진행상태:'준비',비고:''});rMaster();}
-function addBgt(){bgtRows.push({프로젝트코드:prjs[0]?.프로젝트코드||'',프로젝트유형:'SI',항목명:'',소속구분:'내부',성명:'',직급:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'});rMaster();}
-
-/* ═══ P&L PAGE ═══ */
-function rPnL(){
-  const tot=pnlData.reduce((s,p)=>s+p.매출,0);
-  const dir=pnlData.reduce((s,p)=>s+calcP(p).dir,0);
-  const gross=tot-dir;
-  const sga=pnlData.reduce((s,p)=>s+p.배부판관비,0);
-  const op=gross-sga;
-  const ni=Math.round(op*0.78);
-  const lab=pnlData.reduce((s,p)=>s+p.인건비,0);
-  const out=pnlData.reduce((s,p)=>s+p.외주비,0);
-  const inf=pnlData.reduce((s,p)=>s+p.인프라비,0);
-  const gds=pnlData.reduce((s,p)=>s+p.상품매입가,0);
-  const eqp=pnlData.reduce((s,p)=>s+p.장비원가,0);
-  const log=pnlData.reduce((s,p)=>s+p.물류비,0);
-  const exp=pnlData.reduce((s,p)=>s+p.직접경비,0);
-  const rows=[
-    ['Ⅰ. 매출액',tot,false,false],
-    ['  세금계산서 발급 공급가액',sRows.reduce((s,r)=>s+r.공급가액,0),true,false],
-    ['Ⅱ. 매출원가 (-)',dir,false,false],
-    ['  ① 인건비합계 (M/M 기반)',lab,true,false,'col-인건비'],
-    ['  ② 외주비 (세금계산서매입)',out,true,false,'col-외주비'],
-    ['  ③ 인프라비 [SV]',inf,true,false,'col-인프라비'],
-    ['  ④ 상품매입가 [SOL]',gds,true,false,'col-상품매입'],
-    ['  ⑤ 장비매입원가 [MT]',eqp,true,false,'col-장비원가'],
-    ['  ⑥ 물류비 [MT]',log,true,false,'col-물류비'],
-    ['  ⑦ 직접경비 (카드/영수증)',exp,true,false,'col-직접경비'],
-    ['Ⅲ. 매출총이익',gross,false,true,'col-매출총이익'],
-    ['  매출총이익률',null,true,false,'rate',tot>0?(gross/tot)*100:0],
-    ['Ⅳ. 판매비및관리비 (배부) (-)',sga,false,false],
-    ['Ⅴ. 영업이익',op,false,true,''],
-    ['  영업이익률',null,true,false,'rate',tot>0?(op/tot)*100:0],
-    ['Ⅵ. 영업외손익',0,true,false],
-    ['Ⅶ. 법인세비용차감전순이익',op,false,true],
-    ['  법인세비용 22% (-)',Math.round(op*0.22),true,false],
-    ['Ⅷ. 당기순이익',ni,false,true],
-  ];
-  document.getElementById('isArea').innerHTML=rows.map(([label,val,indent,bold,cls,extra])=>{
-    const isRate=cls==='rate';
-    const c=isRate?(extra>=15?'var(--green)':extra>=0?'var(--amber)':'var(--red)')
-      :(bold?(val>=0?'var(--green)':'var(--red)'):(cls?`var(--text)`:'var(--muted)'));
-    return`<div class="irow ${indent?'indent':''} ${bold?'bold':''}">
-      <span class="${cls&&!isRate?cls:''}">${label}</span>
-      <span style="font-family:'JetBrains Mono',monospace;color:${c};${bold?'font-size:13px':''}">
-        ${isRate?(extra||0).toFixed(1)+'%':'₩'+fmt(val||0)}
-      </span>
-    </div>`;
-  }).join('');
-  if(!contC){
-    const ty=['SI','SM','SV','SOL','CT','MT'],cv=Object.values(TC);
-    const opByTy=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+calcP(p).op,0));
-    const revByTy=ty.map(t=>pnlData.filter(p=>p.유형===t).reduce((s,p)=>s+p.매출,0));
-    document.getElementById('contribLeg').innerHTML=[{c:'#00D4FF',l:'영업이익'},{c:'#F59E0B',l:'이익률%'}]
-      .map(x=>`<span class="li"><span class="ls" style="background:${x.c}"></span>${x.l}</span>`).join('');
-    contC=new Chart(document.getElementById('contribC'),{type:'bar',
-      data:{labels:ty,datasets:[
-        {label:'영업이익',data:opByTy,backgroundColor:opByTy.map((v,i)=>v>=0?cv[i]+'99':cv[i]+'55'),borderColor:cv,borderWidth:1.5,borderRadius:4},
-        {label:'이익률%',data:revByTy.map((r,i)=>r>0?(opByTy[i]/r)*100:0),type:'line',yAxisID:'y2',borderColor:'#F59E0B',borderWidth:1.5,borderDash:[4,3],pointRadius:4,pointBackgroundColor:'#F59E0B',tension:.3},
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,
-        plugins:{legend:{display:false},tooltip:{backgroundColor:'rgba(11,22,40,0.95)',titleColor:'#E2E8F0',bodyColor:'#94A3B8',borderColor:'rgba(255,255,255,0.1)',borderWidth:1}},
-        scales:{
-          x:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748B',font:{size:10}}},
-          y:{grid:{color:'rgba(255,255,255,0.05)'},ticks:{color:'#64748B',font:{size:10},callback:v=>v>=1e8?(v/1e8).toFixed(0)+'억':v>=1e6?(v/1e6).toFixed(0)+'백만':v}},
-          y2:{position:'right',grid:{display:false},ticks:{color:'#F59E0B',font:{size:10},callback:v=>v.toFixed(0)+'%'}},
-        }}});
-  }
-  document.getElementById('pipeBody').innerHTML=pipeRows.map((p,i)=>`<tr>
-    <td class="L" style="font-weight:700">${p.가망사업명}</td>
-    <td class="L">${p.고객사}</td>
-    <td class="L"><span class="badge b${p.유형}">${p.유형}</span></td>
-    <td>${fmt(p.예상수주액)}</td>
-    <td>${p.수주확률}%</td>
-    <td style="color:var(--acc);font-weight:700">${fmt(Math.round(p.예상수주액*p.수주확률/100))}</td>
-    <td class="L M" style="font-size:10px">${p.예상착수일}</td>
-    <td class="L">${p.영업담당자}</td>
-    <td class="L"><span class="badge ${p.진행단계==='협상'?'bok':p.진행단계==='제안'?'bwarn':'berr'}">${p.진행단계}</span></td>
-    <td class="${p.예상마진율>=15?'pos':p.예상마진율>=10?'warn':'neg'}">${p.예상마진율}%</td>
-  </tr>`).join('');
-  document.getElementById('pipeExp').textContent=fmt(pipeRows.reduce((s,p)=>s+p.예상수주액,0));
-  document.getElementById('pipeWt').textContent=fmt(pipeRows.reduce((s,p)=>s+Math.round(p.예상수주액*p.수주확률/100),0));
-}
-function addPipe(){pipeRows.push({가망사업명:'신규',고객사:'',유형:'SI',예상수주액:0,수주확률:30,예상착수일:today(),영업담당자:'',진행단계:'발굴',예상마진율:15});rPnL();}
-
-/* ═══ CSV UTILS ═══ */
-function chkAll(id,v){document.querySelectorAll(`#${id} input[type=checkbox]`).forEach(c=>c.checked=v);}
-function delChk(arrName,renderFn){
+/* ══ COMMON UTILS ══ */
+function chkAll(tbId,v){document.querySelectorAll(`#${tbId} input[type=checkbox]`).forEach(c=>c.checked=v);}
+function delChk(tbId,arrName,renderFn){
   const arr=eval(arrName);
-  const cbs=document.querySelectorAll(`[data-arr="${arrName}"]:checked`);
+  const cbs=document.querySelectorAll(`#${tbId} input[type=checkbox]:checked`);
   Array.from(cbs).map(c=>parseInt(c.dataset.i)).sort((a,b)=>b-a).forEach(i=>arr.splice(i,1));
   eval(renderFn+'()');
 }
@@ -1419,75 +1382,7 @@ function expCSV(arrName,name){
   a.download=`${name}_${today()}.csv`;a.click();
 }
 
-/* CSV IMPORT MODAL */
-let mTarget='',mRows=[],mHdrs=[];
-const MSCHEMA={
-  sales:{arr:'sRows',render:'rSales',label:'매출 세금계산서',fields:['승인번호','작성일자','공급받는자사업자번호','공급받는자상호','공급가액','세액','품목','프로젝트코드','수금상태','비고']},
-  pur:{arr:'pRows',render:'rPur',label:'매입 세금계산서',fields:['승인번호','작성일자','공급자사업자번호','공급자상호','공급가액','세액','불공제세액','계정과목','프로젝트코드','배부기준','비고']},
-  card:{arr:'cRows',render:'rCard',label:'법인카드 청구내역',fields:['이용일자','카드번호','승인번호','가맹점명','업종코드','이용금액','부가세','카드구분','계정과목','사번','프로젝트배부','비고']},
-  bank:{arr:'bkRows',render:'rBank',label:'은행 거래내역',fields:['거래일자','거래시각','계좌번호','거래구분','입금액','출금액','잔액','거래처','구분','계정과목','사번체크카드','프로젝트배부','비고']},
-  salary:{arr:'sals',render:'rTs',label:'급여 대장',fields:['기준년월','사번','성명','월급여액','시간당원가','사대보험','퇴직충당금','월간총원가','비고']},
-  ts:{arr:'tsRows',render:'rTs',label:'투입공수',fields:['기준년월','프로젝트코드','사번','성명','투입공수','투입시작일','투입종료일','원가반영여부']},
-  co:{arr:'cos',render:'rMaster',label:'업체 마스터',fields:['사업자번호','업체명','대표자명','업태','종목','담당자명','최초등록일']},
-  prj:{arr:'prjs',render:'rMaster',label:'프로젝트 마스터',fields:['프로젝트코드','사업자번호','프로젝트명','프로젝트유형','시작일','종료일','진행상태','비고']},
-  bgt:{arr:'bgtRows',render:'rMaster',label:'예산 계획',fields:['프로젝트코드','프로젝트유형','항목명','소속구분','성명','직급','공수','수량','실행단가','마진율','계약단가','총계약금액','상태']},
-};
-function openM(t){
-  mTarget=t;mRows=[];mHdrs=[];
-  const sc=MSCHEMA[t];
-  document.getElementById('mTitle').textContent='📥 '+sc.label+' CSV 불러오기';
-  document.getElementById('mprev').style.display='none';
-  document.getElementById('mImport').disabled=true;document.getElementById('mImport').style.opacity='.5';
-  document.getElementById('fi').value='';document.getElementById('dz').classList.remove('drag');
-  document.getElementById('modal').style.display='flex';
-}
-function closeModal(){document.getElementById('modal').style.display='none';}
-function onDrop(e){e.preventDefault();document.getElementById('dz').classList.remove('drag');const f=e.dataTransfer.files[0];if(f)onFile(f);}
-function onFile(file){
-  if(!file)return;
-  const rd=new FileReader();
-  rd.onload=e=>{
-    let txt=e.target.result;
-    if(/\ufffd/.test(txt)){const r2=new FileReader();r2.onload=e2=>parseCSV(e2.target.result);r2.readAsText(file,'EUC-KR');return;}
-    parseCSV(txt);
-  };
-  rd.readAsText(file,'UTF-8');
-}
-function parseCSV(txt){
-  const lines=txt.trim().split(/\r?\n/).filter(l=>l.trim());
-  if(lines.length<2){alert('데이터가 없습니다.');return;}
-  mHdrs=lines[0].split(',').map(h=>h.trim().replace(/^"|"$/g,''));
-  mRows=lines.slice(1).map(line=>{
-    const vals=[];let cur='',inQ=false;
-    for(const ch of line){if(ch==='"'){inQ=!inQ;}else if(ch===','&&!inQ){vals.push(cur.trim());cur='';}else{cur+=ch;}}
-    vals.push(cur.trim());
-    const obj={};mHdrs.forEach((h,i)=>{obj[h]=(vals[i]||'').replace(/^"|"$/g,'');});
-    return obj;
-  });
-  const prev=document.getElementById('mprev');
-  prev.style.display='block';
-  prev.textContent=`✅ ${mRows.length}행 파싱완료\n\n샘플(첫3행):\n`+mRows.slice(0,3).map(r=>JSON.stringify(r)).join('\n');
-  document.getElementById('mImport').disabled=false;document.getElementById('mImport').style.opacity='1';
-}
-function doImport(){
-  if(!mRows.length){closeModal();return;}
-  const sc=MSCHEMA[mTarget];
-  const arr=eval(sc.arr);
-  let cnt=0;
-  mRows.forEach(row=>{
-    const obj={};
-    sc.fields.forEach(f=>{const v=row[f]||'';obj[f]=isNaN(v)||v===''?v:Number(v);});
-    if(mTarget==='sales'&&!obj.세액&&obj.공급가액)obj.세액=Math.round(obj.공급가액*0.1);
-    if(mTarget==='pur'&&!obj.세액&&obj.공급가액)obj.세액=Math.round(obj.공급가액*0.1);
-    if(mTarget==='pur'&&!obj.불공제세액)obj.불공제세액=0;
-    if(mTarget==='card'&&!obj.부가세&&obj.이용금액)obj.부가세=Math.round(obj.이용금액/11);
-    arr.push(obj);cnt++;
-  });
-  closeModal();eval(sc.render+'()');
-  alert(`✅ ${cnt}건 가져오기 완료!`);
-}
-
-/* ═══ INIT ═══ */
+/* ══ INIT ══ */
 rDash();
 </script>
 </body>

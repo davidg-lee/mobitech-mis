@@ -6,6 +6,7 @@
 <title>(주)모비텍 중앙 경영관리 시스템 Final</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <style>
 :root{
   --bg:#0B1628;--bg2:#112040;--bg3:#1a2d52;--bg4:#0d1e38;
@@ -1382,8 +1383,681 @@ function expCSV(arrName,name){
   a.download=`${name}_${today()}.csv`;a.click();
 }
 
+/* ══════════════════════════════════════════════════════════
+   SUPABASE 연동 레이어
+   ▶ SUPABASE_URL / SUPABASE_ANON_KEY 를 본인 값으로 교체하세요.
+   ▶ Supabase 프로젝트: Settings → API 에서 확인
+══════════════════════════════════════════════════════════ */
+
+const SUPABASE_URL  = 'https://abcdefghijk.supabase.co';
+const SUPABASE_ANON = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...';
+
+let sb = null; // Supabase 클라이언트
+let DB_MODE = false; // true: DB연동 / false: 로컬샘플 모드
+
+/* ── DB 연동 상태 표시 ── */
+function showDbStatus(connected) {
+  const existing = document.getElementById('dbStatus');
+  if (existing) existing.remove();
+  const el = document.createElement('div');
+  el.id = 'dbStatus';
+  el.style.cssText = `position:fixed;bottom:12px;right:16px;z-index:999;padding:5px 12px;
+    border-radius:99px;font-size:10px;font-weight:700;font-family:'Noto Sans KR',sans-serif;
+    border:1px solid;cursor:pointer;transition:all .2s;`;
+  if (connected) {
+    el.style.background = 'rgba(16,185,129,0.15)';
+    el.style.color = '#34D399';
+    el.style.borderColor = 'rgba(16,185,129,0.3)';
+    el.textContent = '🟢 Supabase 연결됨';
+  } else {
+    el.style.background = 'rgba(245,158,11,0.15)';
+    el.style.color = '#FCD34D';
+    el.style.borderColor = 'rgba(245,158,11,0.3)';
+    el.textContent = '🟡 로컬 샘플 모드';
+    el.title = 'SUPABASE_URL/KEY를 설정하면 DB에 영구 저장됩니다';
+  }
+  document.body.appendChild(el);
+}
+
+/* ── 저장 피드백 토스트 ── */
+function toast(msg, type = 'ok') {
+  const t = document.createElement('div');
+  t.style.cssText = `position:fixed;top:60px;right:16px;z-index:9999;padding:7px 16px;
+    border-radius:8px;font-size:11px;font-weight:700;font-family:'Noto Sans KR',sans-serif;
+    transition:opacity .4s;border:1px solid;`;
+  if (type === 'ok') {
+    t.style.background = 'rgba(16,185,129,0.18)';
+    t.style.color = '#34D399';
+    t.style.borderColor = 'rgba(16,185,129,0.35)';
+  } else {
+    t.style.background = 'rgba(239,68,68,0.18)';
+    t.style.color = '#FCA5A5';
+    t.style.borderColor = 'rgba(239,68,68,0.35)';
+  }
+  t.textContent = msg;
+  document.body.appendChild(t);
+  setTimeout(() => { t.style.opacity = '0'; setTimeout(() => t.remove(), 400); }, 2000);
+}
+
+/* ── DB 오류 핸들러 ── */
+function dbErr(label, err) {
+  console.error(`[DB] ${label}:`, err?.message || err);
+  toast(`저장 실패(${label}): ${err?.message?.slice(0,40) || '알 수 없는 오류'}`, 'err');
+}
+
+/* ══════════════════════════════════════════════
+   LOAD FUNCTIONS — Supabase → 로컬 변수
+══════════════════════════════════════════════ */
+async function dbLoad() {
+  if (!DB_MODE) return;
+  try {
+    await Promise.all([
+      loadCos(), loadPrjs(), loadMems(),
+      loadSals(), loadPnLDB(), loadPipeDB(),
+      loadSalesDB(), loadPurDB(), loadBankDB(), loadCardDB()
+    ]);
+    toast('✅ DB 데이터 로드 완료');
+  } catch(e) { dbErr('dbLoad', e); }
+}
+
+async function loadCos() {
+  const { data, error } = await sb.from('company_master').select('*').eq('is_active', true).order('company_name');
+  if (error) return dbErr('loadCos', error);
+  cos = data.map(c => ({
+    사업자번호:c.biz_no, 업체명:c.company_name, 대표자명:c.ceo_name||'',
+    업태:c.biz_type_text||'', 종목:c.biz_item||'', 본점소재지:c.hq_address||'',
+    주소:c.full_address||'', 담당자명:c.contact_name||'', 담당자이메일:c.contact_email||'',
+    최초등록일:c.first_reg_date||today(), _id:c.id
+  }));
+}
+async function loadPrjs() {
+  const { data, error } = await sb.from('project_master').select('*').order('project_code');
+  if (error) return dbErr('loadPrjs', error);
+  prjs = data.map(p => ({
+    코드:p.project_code, 명:p.project_name, 사번:p.biz_no||'',
+    업체명:p.company_name||'', 유형:p.biz_type, 시작:p.start_date||'',
+    종료:p.end_date||'', 상태:p.status, 등록:p.reg_datetime?.slice(0,10)||today(), _id:p.id
+  }));
+}
+async function loadMems() {
+  const { data, error } = await sb.from('member_master').select('*').order('emp_no');
+  if (error) return dbErr('loadMems', error);
+  mems = data.map(m => ({
+    사번:m.emp_no, 성명:m.full_name, 구분:m.member_cat, 직급:m.grade||'',
+    입사:m.join_date||'', 퇴사:m.resign_date||'', 연락처:m.phone||'',
+    이메일:m.personal_email||'', 상태:m.emp_status, _id:m.id
+  }));
+}
+async function loadSals() {
+  const { data, error } = await sb.from('salary_cost').select('*').order('ref_yearmonth', { ascending:false });
+  if (error) return dbErr('loadSals', error);
+  sals = data.map(s => ({
+    년월:s.ref_yearmonth, 사번:s.emp_no, 성명:s.full_name,
+    연봉:s.annual_salary||0, 사대보험:s.social_insurance||0,
+    월간총원가:s.monthly_total_cost||0, 퇴직충당금:s.severance_reserve||0, _id:s.id
+  }));
+}
+async function loadPnLDB() {
+  const { data, error } = await sb.from('project_pnl').select('*').order('project_code');
+  if (error) return dbErr('loadPnLDB', error);
+  pnlData = data.map(p => ({
+    코드:p.project_code, 명:p.project_name, 유형:p.biz_type,
+    매출:p.total_revenue||0, 인건비:p.direct_labor||0,
+    외주비:p.outsourcing||0, 경비:p.direct_expenses||0,
+    상품원가:p.goods_cost||0, 공통제경비:p.sg_and_a||0,
+    마감:p.closing_status, _id:p.id
+  }));
+}
+async function loadPipeDB() {
+  const { data, error } = await sb.from('sales_pipeline').select('*').order('expected_start');
+  if (error) return dbErr('loadPipeDB', error);
+  pipeRows = data.map(p => ({
+    명:p.opportunity_name, 고객사:p.customer_name||'', 유형:p.biz_type,
+    수주액:p.expected_amount||0, 단계:p.stage,
+    착수:p.expected_start||'', 담당:p.sales_person||'',
+    마진율:p.expected_margin||15, _id:p.id
+  }));
+}
+async function loadSalesDB() {
+  const { data, error } = await sb.from('sales_revenue').select('*').order('issue_date', {ascending:false});
+  if (error) return dbErr('loadSalesDB', error);
+  sRows = data.map(r => ({
+    번호:r.nts_approval_no||'', 일자:r.issue_date||'',
+    매수자번호:r.buyer_biz_no||'', 매수자명:r.buyer_name||'',
+    공급가액:r.supply_amount||0, 세액:r.vat_amount||0,
+    품목:r.item_desc||'', 코드:r.project_code||'',
+    수금:r.payment_stat, 입금예정:r.expected_pay_date||'', _id:r.id
+  }));
+}
+async function loadPurDB() {
+  const { data, error } = await sb.from('purchase_invoice').select('*').order('issue_date', {ascending:false});
+  if (error) return dbErr('loadPurDB', error);
+  pRows = data.map(r => ({
+    번호:r.nts_approval_no||'', 일자:r.issue_date||'',
+    공급자번호:r.supplier_biz_no||'', 공급자명:r.supplier_name||'',
+    공급가액:r.supply_amount||0, 세액:r.vat_amount||0,
+    불공제:r.non_deductible_vat||0, 계정:r.account_subject||'외주비',
+    코드:r.project_code||'', 배부:r.alloc_basis||'직접배부', _id:r.id
+  }));
+}
+async function loadBankDB() {
+  const { data, error } = await sb.from('bank_transaction').select('*').order('tx_date', {ascending:false});
+  if (error) return dbErr('loadBankDB', error);
+  bkRows = data.map(r => ({
+    일자:r.tx_date||'', 시각:r.tx_time||'00:00:00', 계좌:r.account_no||'',
+    구분:r.tx_direction, 입금:r.deposit_amount||0, 출금:r.withdrawal_amount||0,
+    잔액:r.balance||0, 거래처:r.counterparty||'', 분류:r.tx_category||'',
+    계정:r.account_subject||'', 사번:r.emp_no||'', 배부:r.project_code||'',
+    비고:r.notes||'', _id:r.id
+  }));
+}
+async function loadCardDB() {
+  const { data, error } = await sb.from('corporate_card').select('*').order('use_date', {ascending:false});
+  if (error) return dbErr('loadCardDB', error);
+  cdRows = data.map(r => ({
+    일자:r.use_date||'', 카번호:r.card_last4||'', 승인번호:r.approval_no||'',
+    가맹점:r.merchant_name||'', 업종:r.merchant_biz_code||'',
+    금액:r.use_amount||0, 부가세:r.vat_amount||0, 카드:r.card_company||'KB국민',
+    계정:r.account_subject||'', 사번:r.emp_no||'', 배부:r.project_alloc||'',
+    비고:r.notes||'', _id:r.id
+  }));
+}
+
+/* ══════════════════════════════════════════════
+   SAVE FUNCTIONS — 로컬 변수 → Supabase
+   낙관적 업데이트: UI 즉시 반영 후 DB 비동기 저장
+══════════════════════════════════════════════ */
+
+/* ── 손익집계(PnL) 저장 — 트리거가 서버에서 자동재산 ── */
+async function savePnLRow(code, field, value) {
+  if (!DB_MODE) return;
+  const p = pnlData.find(x => x.코드 === code);
+  if (!p?._id) return;
+  const MAP = {
+    매출:'total_revenue', 인건비:'direct_labor', 외주비:'outsourcing',
+    경비:'direct_expenses', 상품원가:'goods_cost', 공통제경비:'sg_and_a'
+  };
+  const { error } = await sb.from('project_pnl')
+    .update({ [MAP[field]]: value })
+    .eq('id', p._id);
+  if (error) { dbErr('savePnL', error); return; }
+  // 트리거 계산값(영업이익/이익률) 다시 로드
+  await loadPnLDB();
+  rDash(); rPnL();
+  toast('💾 손익 저장됨');
+}
+
+/* ── 마감 상태 토글 저장 ── */
+async function saveClosingToggle(code, newStatus) {
+  if (!DB_MODE) return;
+  const p = pnlData.find(x => x.코드 === code);
+  if (!p?._id) return;
+  const { error } = await sb.from('project_pnl')
+    .update({ closing_status: newStatus })
+    .eq('id', p._id);
+  if (error) { dbErr('saveClosing', error); return; }
+  toast(newStatus === '최종마감' ? '🔒 마감 완료 저장됨' : '🔓 마감 해제됨');
+}
+
+/* ── 파이프라인 저장 ── */
+async function savePipeRow(idx) {
+  if (!DB_MODE) return;
+  const p = pipeRows[idx];
+  if (!p) return;
+  const payload = {
+    opportunity_name: p.명, customer_name: p.고객사,
+    biz_type: p.유형, expected_amount: p.수주액,
+    stage: p.단계, expected_start: p.착수 || null,
+    sales_person: p.담당, expected_margin: p.마진율
+  };
+  if (p._id) {
+    const { error } = await sb.from('sales_pipeline').update(payload).eq('id', p._id);
+    if (error) return dbErr('savePipe(update)', error);
+  } else {
+    const { data, error } = await sb.from('sales_pipeline').insert(payload).select('id').single();
+    if (error) return dbErr('savePipe(insert)', error);
+    pipeRows[idx]._id = data.id;
+  }
+  // 트리거 계산값(가중수주액) 반영
+  await loadPipeDB();
+  rPnL(); rDash();
+  toast('💾 파이프라인 저장됨');
+}
+
+/* ── 업체 마스터 저장 ── */
+async function saveCoRow(idx) {
+  if (!DB_MODE) return;
+  const c = cos[idx];
+  const payload = {
+    biz_no:c.사업자번호, company_name:c.업체명, ceo_name:c.대표자명,
+    biz_type_text:c.업태, biz_item:c.종목, hq_address:c.본점소재지,
+    full_address:c.주소, contact_name:c.담당자명, contact_email:c.담당자이메일
+  };
+  if (c._id) {
+    const { error } = await sb.from('company_master').update(payload).eq('id', c._id);
+    if (error) return dbErr('saveCo(update)', error);
+  } else {
+    const { data, error } = await sb.from('company_master').insert(payload).select('id').single();
+    if (error) return dbErr('saveCo(insert)', error);
+    cos[idx]._id = data.id;
+  }
+  toast('💾 업체 저장됨');
+}
+
+/* ── 프로젝트 마스터 저장 ── */
+async function savePrjRow(idx) {
+  if (!DB_MODE) return;
+  const p = prjs[idx];
+  const co = cos.find(c => c.사업자번호 === p.사번);
+  const payload = {
+    project_code:p.코드, project_name:p.명, company_id:co?._id||null,
+    biz_no:p.사번, company_name:p.업체명, biz_type:p.유형,
+    start_date:p.시작||null, end_date:p.종료||null, status:p.상태
+  };
+  if (p._id) {
+    const { error } = await sb.from('project_master').update(payload).eq('id', p._id);
+    if (error) return dbErr('savePrj(update)', error);
+  } else {
+    const { data, error } = await sb.from('project_master').insert(payload).select('id').single();
+    if (error) return dbErr('savePrj(insert)', error);
+    prjs[idx]._id = data.id;
+  }
+  toast('💾 프로젝트 저장됨');
+}
+
+/* ── 예산계획 저장 ── */
+async function saveBgtRow(idx) {
+  if (!DB_MODE) return;
+  const b = bgtRows[idx];
+  const pj = prjs.find(p => p.코드 === b.코드);
+  const payload = {
+    project_id:pj?._id||null, project_code:b.코드, biz_type:b.유형,
+    item_name:b.항목, member_type_cat:b.소속, member_name:b.성명,
+    grade:b.직급, manmonth:b.공수, quantity:b.수량,
+    exec_unit_price:b.실행단가, margin_rate:b.마진율, item_status:b.상태
+  };
+  if (b._id) {
+    const { error } = await sb.from('budget_plan').update(payload).eq('id', b._id);
+    if (error) return dbErr('saveBgt(update)', error);
+  } else {
+    const { data, error } = await sb.from('budget_plan').insert(payload).select('id').single();
+    if (error) return dbErr('saveBgt(insert)', error);
+    bgtRows[idx]._id = data.id;
+  }
+  toast('💾 예산 저장됨');
+}
+
+/* ── 임직원 저장 ── */
+async function saveMemRow(idx) {
+  if (!DB_MODE) return;
+  const m = mems[idx];
+  const payload = {
+    emp_no:m.사번, full_name:m.성명, member_cat:m.구분, grade:m.직급,
+    join_date:m.입사||null, resign_date:m.퇴사||null,
+    phone:m.연락처, personal_email:m.이메일, emp_status:m.상태
+  };
+  if (m._id) {
+    const { error } = await sb.from('member_master').update(payload).eq('id', m._id);
+    if (error) return dbErr('saveMem(update)', error);
+  } else {
+    const { data, error } = await sb.from('member_master').insert(payload).select('id').single();
+    if (error) return dbErr('saveMem(insert)', error);
+    mems[idx]._id = data.id;
+  }
+  toast('💾 임직원 저장됨');
+}
+
+/* ── 급여 원가 저장 — 트리거가 4대보험/월간총원가 자동계산 ── */
+async function saveSalRow(idx) {
+  if (!DB_MODE) return;
+  const s = sals[idx];
+  const payload = {
+    ref_yearmonth:s.년월, emp_no:s.사번, full_name:s.성명, annual_salary:s.연봉
+  };
+  const { data, error } = await sb.from('salary_cost')
+    .upsert(payload, { onConflict:'ref_yearmonth,emp_no' }).select('*').single();
+  if (error) return dbErr('saveSal', error);
+  // 트리거 계산값 반영
+  sals[idx] = { ...s, 사대보험:data.social_insurance, 월간총원가:data.monthly_total_cost, 퇴직충당금:data.severance_reserve, _id:data.id };
+  rSalTable();
+  toast('💾 급여 저장됨 (4대보험 자동계산)');
+}
+
+/* ── M/M 투입 저장 ── */
+async function saveTsRow(idx) {
+  if (!DB_MODE) return;
+  const t = tsRows[idx];
+  const pj = prjs.find(p => p.코드 === t.코드);
+  const mem = mems.find(m => m.사번 === t.사번);
+  const payload = {
+    ref_yearmonth:t.년월, project_id:pj?._id||null, project_code:t.코드,
+    member_id:mem?._id||null, emp_no:t.사번, full_name:t.성명,
+    input_mm:t.공수, start_date:t.시작||null, end_date:t.종료||null,
+    cost_applied:t.반영 === 'Y'
+  };
+  const { data, error } = await sb.from('timesheet')
+    .upsert(payload, { onConflict:'ref_yearmonth,project_code,emp_no' }).select('*').single();
+  if (error) return dbErr('saveTs', error);
+  tsRows[idx]._id = data.id;
+  toast(`💾 M/M 저장됨 (계산원가: ₩${fmt(data.calc_cost||0)})`);
+}
+
+/* ── 매출 세금계산서 저장 ── */
+async function saveSalesRow_db(idx) {
+  if (!DB_MODE) return;
+  const r = sRows[idx];
+  const pj = prjs.find(p => p.코드 === r.코드);
+  const payload = {
+    nts_approval_no:r.번호, issue_date:r.일자,
+    buyer_biz_no:r.매수자번호, buyer_name:r.매수자명,
+    supply_amount:r.공급가액, item_desc:r.품목,
+    project_id:pj?._id||null, project_code:r.코드,
+    payment_stat:r.수금, expected_pay_date:r.입금예정||null
+  };
+  if (r._id) {
+    const { error } = await sb.from('sales_revenue').update(payload).eq('id', r._id);
+    if (error) return dbErr('saveSales(update)', error);
+  } else {
+    const { data, error } = await sb.from('sales_revenue').insert(payload).select('id').single();
+    if (error) return dbErr('saveSales(insert)', error);
+    sRows[idx]._id = data.id;
+  }
+  await loadSalesDB();
+  rSalesTable();
+  toast('💾 매출 세금계산서 저장됨');
+}
+
+/* ── 매입 세금계산서 저장 ── */
+async function savePurRow_db(idx) {
+  if (!DB_MODE) return;
+  const r = pRows[idx];
+  const pj = prjs.find(p => p.코드 === r.코드);
+  const payload = {
+    nts_approval_no:r.번호, issue_date:r.일자,
+    supplier_biz_no:r.공급자번호, supplier_name:r.공급자명,
+    supply_amount:r.공급가액, vat_amount:r.세액,
+    non_deductible_vat:r.불공제, account_subject:r.계정,
+    project_id:pj?._id||null, project_code:r.코드, alloc_basis:r.배부
+  };
+  if (r._id) {
+    const { error } = await sb.from('purchase_invoice').update(payload).eq('id', r._id);
+    if (error) return dbErr('savePur(update)', error);
+  } else {
+    const { data, error } = await sb.from('purchase_invoice').insert(payload).select('id').single();
+    if (error) return dbErr('savePur(insert)', error);
+    pRows[idx]._id = data.id;
+  }
+  toast('💾 매입 세금계산서 저장됨');
+}
+
+/* ── 은행 거래 저장 ── */
+async function saveBankRow_db(idx) {
+  if (!DB_MODE) return;
+  const r = bkRows[idx];
+  const mem = mems.find(m => m.사번 === r.사번);
+  const payload = {
+    tx_date:r.일자, tx_time:r.시각||null, account_no:r.계좌,
+    tx_direction:r.구분, deposit_amount:r.입금, withdrawal_amount:r.출금,
+    balance:r.잔액, counterparty:r.거래처, tx_category:r.분류,
+    account_subject:r.계정, emp_no:r.사번||null,
+    member_id:mem?._id||null, project_code:r.배부||null, notes:r.비고
+  };
+  if (r._id) {
+    const { error } = await sb.from('bank_transaction').update(payload).eq('id', r._id);
+    if (error) return dbErr('saveBank(update)', error);
+  } else {
+    const { data, error } = await sb.from('bank_transaction').insert(payload).select('id').single();
+    if (error) return dbErr('saveBank(insert)', error);
+    bkRows[idx]._id = data.id;
+  }
+  toast('💾 은행 거래 저장됨');
+}
+
+/* ── 법인카드 저장 ── */
+async function saveCardRow_db(idx) {
+  if (!DB_MODE) return;
+  const r = cdRows[idx];
+  const mem = mems.find(m => m.사번 === r.사번);
+  const payload = {
+    use_date:r.일자, card_last4:r.카번호, approval_no:r.승인번호,
+    merchant_name:r.가맹점, merchant_biz_code:r.업종,
+    use_amount:r.금액, card_company:r.카드, account_subject:r.계정,
+    emp_no:r.사번||null, member_id:mem?._id||null,
+    project_alloc:r.배부||null, notes:r.비고
+  };
+  if (r._id) {
+    const { error } = await sb.from('corporate_card').update(payload).eq('id', r._id);
+    if (error) return dbErr('saveCard(update)', error);
+  } else {
+    const { data, error } = await sb.from('corporate_card').insert(payload).select('id').single();
+    if (error) return dbErr('saveCard(insert)', error);
+    cdRows[idx]._id = data.id;
+  }
+  toast('💾 법인카드 저장됨');
+}
+
+/* ── DB 행 삭제 ── */
+async function dbDelete(tableName, id) {
+  if (!DB_MODE || !id) return;
+  const { error } = await sb.from(tableName).delete().eq('id', id);
+  if (error) dbErr(`delete(${tableName})`, error);
+}
+
+/* ══════════════════════════════════════════════
+   REALTIME 구독 — 멀티유저 실시간 동기화
+══════════════════════════════════════════════ */
+function initRealtime() {
+  if (!DB_MODE) return;
+  sb.channel('mobitech-pnl')
+    .on('postgres_changes', { event:'*', schema:'public', table:'project_pnl' },
+      () => { loadPnLDB().then(() => { rDash(); rPnL(); }); })
+    .subscribe();
+  sb.channel('mobitech-pipe')
+    .on('postgres_changes', { event:'*', schema:'public', table:'sales_pipeline' },
+      () => { loadPipeDB().then(() => { rPnL(); rDash(); }); })
+    .subscribe();
+}
+
+/* ══════════════════════════════════════════════
+   기존 함수 Supabase 연동 오버라이드
+   낙관적 업데이트: UI 즉시 → DB 비동기 저장
+══════════════════════════════════════════════ */
+
+/* 손익 수정 */
+function updP(code, f, v) {
+  const p = pnlData.find(x => x.코드 === code);
+  if (p && p.마감 !== '최종마감') {
+    p[f] = pn(v);
+    rDash(); rPnL();
+    savePnLRow(code, f, pn(v)); // 비동기 DB 저장
+  }
+}
+
+/* 마감 토글 */
+function togP(code) {
+  const p = pnlData.find(x => x.코드 === code);
+  if (p) {
+    const ns = p.마감 === '최종마감' ? '진행중' : '최종마감';
+    p.마감 = ns;
+    rDash(); rPnL();
+    saveClosingToggle(code, ns); // 비동기 DB 저장
+  }
+}
+
+/* 파이프라인 추가 */
+function addPipe() {
+  const row = { 명:'신규 가망', 고객사:'', 유형:'SI', 수주액:0, 단계:'첩보', 착수:today(), 담당:'', 마진율:15 };
+  pipeRows.push(row);
+  rPnL(); rDash();
+  savePipeRow(pipeRows.length - 1);
+}
+
+/* 파이프라인 인라인 수정 후 저장 (onblur에서 호출) */
+function updatePipeField(idx, field, val) {
+  if (!pipeRows[idx]) return;
+  pipeRows[idx][field] = field === '수주액' || field === '마진율' ? pn(val) : val;
+  if (field === '단계') {
+    const prob = { 첩보:10, 정보:30, 입찰참여:30, 기존고객입찰:70, 계약협의:80, 사업연장:90 };
+    // stage 변경은 서버 트리거가 확률 자동계산
+  }
+  rPnL(); rDash();
+  savePipeRow(idx);
+}
+
+/* 업체 추가 */
+function addCo() {
+  const row = { 사업자번호:'', 업체명:'신규업체', 대표자명:'', 업태:'', 종목:'', 본점소재지:'', 주소:'', 담당자명:'', 담당자이메일:'', 최초등록일:today() };
+  cos.push(row);
+  rCoTable();
+  saveCoRow(cos.length - 1);
+}
+
+/* 프로젝트 추가 */
+function addPrj() {
+  const tp = 'SI';
+  const row = { 코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-신규-${tp}`, 명:'신규 프로젝트', 사번:'', 업체명:'', 유형:tp, 시작:today(), 종료:today(), 상태:'준비', 등록:today() };
+  prjs.push(row);
+  rPrjTable();
+  savePrjRow(prjs.length - 1);
+}
+
+/* 예산 추가 */
+function addBgt() {
+  const row = { 코드:prjs[0]?.코드||'', 유형:'SI', 항목:'', 소속:'내부', 성명:'', 직급:'', 공수:1, 수량:1, 실행단가:0, 마진율:15, 계약단가:0, 총계약금액:0, 상태:'검토' };
+  bgtRows.push(row);
+  rBgtTable();
+  saveBgtRow(bgtRows.length - 1);
+}
+
+/* 임직원 추가 */
+function addMem() {
+  const mo = String(new Date().getMonth()+1).padStart(2,'0');
+  const row = { 사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`, 성명:'신규', 구분:'임직원', 직급:'', 입사:today(), 퇴사:'', 연락처:'', 이메일:'', 상태:'근무중' };
+  mems.push(row);
+  rMemTable();
+  saveMemRow(mems.length - 1);
+}
+
+/* 급여 추가 */
+function addSal() {
+  const row = { 년월:'2024-11', 사번:'', 성명:'', 연봉:0, 사대보험:0, 월간총원가:0, 퇴직충당금:0 };
+  sals.push(row);
+  rSalTable();
+}
+
+/* M/M 추가 */
+function addTs() {
+  const row = { 년월:'2024-11', 코드:prjs[0]?.코드||'', 사번:'2024-01-001', 성명:'김민준', 공수:0.5, 시작:today(), 종료:today(), 반영:'Y' };
+  tsRows.push(row);
+  rTsTable();
+  saveTsRow(tsRows.length - 1);
+}
+
+/* 매출 세금계산서 추가 */
+function addSalesRow() {
+  const row = { 번호:`${yr}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-41000000-${uid()}`, 일자:today(), 매수자번호:'', 매수자명:'', 공급가액:0, 세액:0, 품목:'', 코드:prjs[0]?.코드||'', 수금:'미수', 입금예정:today() };
+  sRows.push(row);
+  rSalesTable();
+  saveSalesRow_db(sRows.length - 1);
+}
+
+/* 매입 세금계산서 추가 */
+function addPurRow() {
+  const row = { 번호:`${yr}${String(new Date().getMonth()+1).padStart(2,'0')}${String(new Date().getDate()).padStart(2,'0')}-41000000-${uid()}`, 일자:today(), 공급자번호:'', 공급자명:'', 공급가액:0, 세액:0, 불공제:0, 계정:'외주비', 코드:prjs[0]?.코드||'', 배부:'직접배부' };
+  pRows.push(row);
+  rPurTable();
+  savePurRow_db(pRows.length - 1);
+}
+
+/* 은행 거래 추가 */
+function addBankRow() {
+  const row = { 일자:today(), 시각:'00:00:00', 계좌:'기업은행(사업자)', 구분:'출금', 입금:0, 출금:0, 잔액:0, 거래처:'', 분류:'기타출금', 계정:'기타출금', 사번:'', 배부:'공통', 비고:'' };
+  bkRows.push(row);
+  rBank();
+  saveBankRow_db(bkRows.length - 1);
+}
+
+/* 법인카드 추가 */
+function addCardRow() {
+  const row = { 일자:today(), 카번호:'0000', 승인번호:'CD'+uid(), 가맹점:'', 업종:'', 금액:0, 부가세:0, 카드:'KB국민', 계정:'접대비', 사번:'', 배부:'공통', 비고:'' };
+  cdRows.push(row);
+  rCard();
+  saveCardRow_db(cdRows.length - 1);
+}
+
+/* ── delChk 오버라이드: DB 삭제 포함 ── */
+function delChk(tbId, arrName, renderFn) {
+  const arr = eval(arrName);
+  const TABLE_MAP = {
+    coBody:'company_master', prjBody:'project_master',
+    bgtBody:'budget_plan', memBody:'member_master',
+    sTbody:'sales_revenue', pTbody:'purchase_invoice',
+    bkTbody:'bank_transaction', cdTbody:'corporate_card'
+  };
+  const tableName = TABLE_MAP[tbId];
+  const cbs = document.querySelectorAll(`#${tbId} input[type=checkbox]:checked`);
+  const idxs = Array.from(cbs).map(c => parseInt(c.dataset.i)).sort((a,b) => b-a);
+  idxs.forEach(i => {
+    if (tableName && arr[i]?._id) dbDelete(tableName, arr[i]._id);
+    arr.splice(i, 1);
+  });
+  eval(renderFn + '()');
+  if (idxs.length) toast(`🗑 ${idxs.length}건 삭제됨`);
+}
+
+/* ── calcBgt 오버라이드: 저장 포함 ── */
+function calcBgt(i) {
+  const b = bgtRows[i];
+  b.계약단가 = Math.round(b.실행단가 * (1 + b.마진율 / 100));
+  b.총계약금액 = Math.round(b.계약단가 * (b.공수 || 1) * b.수량);
+  saveBgtRow(i);
+}
+
+/* ── recalcSal 오버라이드: 저장 포함 ── */
+function recalcSal(i) {
+  const s = sals[i];
+  // DB 트리거가 서버에서 자동계산 — 로컬 미리보기용
+  s.사대보험 = Math.round(s.연봉 * 0.17 / 12);
+  s.월간총원가 = Math.round(s.연봉 / 12) + s.사대보험 + Math.round(s.연봉 / 12 * 0.5);
+  s.퇴직충당금 = Math.round(s.연봉 / 12);
+  saveSalRow(i);
+}
+
+/* ══════════════════════════════════════════════
+   앱 초기화
+══════════════════════════════════════════════ */
+async function initApp() {
+  // Supabase URL/Key 유효성 검사
+  if (SUPABASE_URL.includes('YOUR_PROJECT') || SUPABASE_ANON === 'YOUR_ANON_KEY') {
+    console.warn('[Mobitech] Supabase URL/Key 미설정 → 로컬 샘플 모드로 실행');
+    DB_MODE = false;
+    showDbStatus(false);
+    rDash();
+    return;
+  }
+
+  try {
+    sb = supabase.createClient(SUPABASE_URL, SUPABASE_ANON);
+    // 연결 테스트
+    const { error } = await sb.from('company_master').select('id').limit(1);
+    if (error) throw error;
+    DB_MODE = true;
+    showDbStatus(true);
+    // 전체 데이터 로드
+    await dbLoad();
+    initRealtime();
+    rDash();
+    console.log('✅ [Mobitech] Supabase 연동 완료');
+  } catch (e) {
+    console.warn('[Mobitech] DB 연결 실패 → 로컬 모드:', e.message);
+    DB_MODE = false;
+    showDbStatus(false);
+    rDash();
+  }
+}
+
 /* ══ INIT ══ */
-rDash();
+initApp();
 </script>
 </body>
 </html>

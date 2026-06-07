@@ -1,0 +1,990 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>(주)모비텍 중앙 경영관리 시스템</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://unpkg.com/react@18/umd/react.development.js"></script>
+<script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+<script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@300;400;500;600;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
+<style>
+  :root {
+    --navy:   #0B1628;
+    --navy2:  #112040;
+    --navy3:  #1a2d52;
+    --accent: #00D4FF;
+    --accent2:#3B82F6;
+    --green:  #10B981;
+    --red:    #EF4444;
+    --amber:  #F59E0B;
+    --text:   #E2E8F0;
+    --muted:  #94A3B8;
+    --border: rgba(255,255,255,0.08);
+    --card:   rgba(17,32,64,0.85);
+    --glow:   0 0 24px rgba(0,212,255,0.12);
+  }
+  * { box-sizing: border-box; }
+  body {
+    background: var(--navy);
+    color: var(--text);
+    font-family: 'Noto Sans KR', sans-serif;
+    margin: 0;
+    min-height: 100vh;
+    background-image:
+      radial-gradient(ellipse at 10% 20%, rgba(0,212,255,0.05) 0%, transparent 50%),
+      radial-gradient(ellipse at 90% 80%, rgba(59,130,246,0.06) 0%, transparent 50%),
+      repeating-linear-gradient(0deg, transparent, transparent 40px, rgba(255,255,255,0.01) 40px, rgba(255,255,255,0.01) 41px),
+      repeating-linear-gradient(90deg, transparent, transparent 40px, rgba(255,255,255,0.01) 40px, rgba(255,255,255,0.01) 41px);
+  }
+  .mono { font-family: 'JetBrains Mono', monospace; }
+  .glass {
+    background: var(--card);
+    border: 1px solid var(--border);
+    backdrop-filter: blur(12px);
+    border-radius: 12px;
+  }
+  .accent-glow { box-shadow: var(--glow); }
+  .kpi-card {
+    background: linear-gradient(135deg, var(--navy2), var(--navy3));
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 20px 24px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s, box-shadow 0.2s;
+  }
+  .kpi-card:hover { transform: translateY(-2px); box-shadow: var(--glow); }
+  .kpi-card::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0; right: 0;
+    height: 2px;
+    background: linear-gradient(90deg, var(--accent), var(--accent2));
+  }
+  .kpi-label { font-size: 11px; font-weight: 600; letter-spacing: 0.1em; color: var(--muted); text-transform: uppercase; }
+  .kpi-value { font-size: 28px; font-weight: 700; letter-spacing: -0.02em; margin: 6px 0 2px; font-family: 'JetBrains Mono', monospace; }
+  .kpi-sub   { font-size: 12px; color: var(--muted); }
+  .badge-si   { background: rgba(59,130,246,0.2); color: #60A5FA; border: 1px solid rgba(59,130,246,0.3); }
+  .badge-sm   { background: rgba(16,185,129,0.2); color: #34D399; border: 1px solid rgba(16,185,129,0.3); }
+  .badge-sv   { background: rgba(245,158,11,0.2); color: #FCD34D; border: 1px solid rgba(245,158,11,0.3); }
+  .badge-sol  { background: rgba(239,68,68,0.2);  color: #FCA5A5; border: 1px solid rgba(239,68,68,0.3); }
+  .badge-ct   { background: rgba(139,92,246,0.2); color: #C4B5FD; border: 1px solid rgba(139,92,246,0.3); }
+  .badge-mt   { background: rgba(20,184,166,0.2); color: #5EEAD4; border: 1px solid rgba(20,184,166,0.3); }
+  .badge { padding: 2px 10px; border-radius: 99px; font-size: 11px; font-weight: 700; letter-spacing: 0.05em; }
+  .editable-cell {
+    background: rgba(0,212,255,0.04);
+    border: 1px solid rgba(0,212,255,0.2);
+    border-radius: 6px;
+    padding: 4px 8px;
+    width: 100%;
+    text-align: right;
+    color: var(--accent);
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    outline: none;
+    transition: border-color 0.15s, background 0.15s, box-shadow 0.15s;
+  }
+  .editable-cell:focus {
+    border-color: var(--accent);
+    background: rgba(0,212,255,0.08);
+    box-shadow: 0 0 0 2px rgba(0,212,255,0.15);
+  }
+  .editable-cell:disabled {
+    background: rgba(255,255,255,0.02);
+    border-color: rgba(255,255,255,0.06);
+    color: var(--muted);
+    cursor: not-allowed;
+  }
+  .readonly-cell {
+    font-family: 'JetBrains Mono', monospace;
+    font-size: 13px;
+    text-align: right;
+    padding: 4px 8px;
+  }
+  .tbl-header {
+    background: var(--navy3);
+    border-bottom: 1px solid var(--border);
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.08em;
+    color: var(--muted);
+    text-transform: uppercase;
+    padding: 10px 8px;
+    white-space: nowrap;
+  }
+  .tbl-row {
+    border-bottom: 1px solid var(--border);
+    transition: background 0.15s;
+  }
+  .tbl-row:hover { background: rgba(255,255,255,0.025); }
+  .tbl-cell { padding: 10px 8px; font-size: 13px; vertical-align: middle; }
+  .profit-pos { color: var(--green); }
+  .profit-neg { color: var(--red); }
+  .profit-neu { color: var(--muted); }
+  .btn {
+    padding: 8px 18px;
+    border-radius: 8px;
+    font-size: 12px;
+    font-weight: 700;
+    letter-spacing: 0.06em;
+    cursor: pointer;
+    border: none;
+    transition: all 0.2s;
+  }
+  .btn-open   { background: rgba(0,212,255,0.15); color: var(--accent); border: 1px solid rgba(0,212,255,0.4); }
+  .btn-open:hover { background: rgba(0,212,255,0.25); }
+  .btn-close  { background: rgba(239,68,68,0.15); color: #FCA5A5; border: 1px solid rgba(239,68,68,0.4); }
+  .btn-close:hover { background: rgba(239,68,68,0.25); }
+  .btn-locked { background: rgba(255,255,255,0.05); color: var(--muted); border: 1px solid var(--border); cursor: default; }
+  .chart-container { position: relative; }
+  .scrollbar-hide::-webkit-scrollbar { display: none; }
+  .tag-closed {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(239,68,68,0.15); color: #FCA5A5;
+    border: 1px solid rgba(239,68,68,0.3);
+    border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  }
+  .tag-open {
+    display: inline-flex; align-items: center; gap: 4px;
+    background: rgba(16,185,129,0.15); color: #34D399;
+    border: 1px solid rgba(16,185,129,0.3);
+    border-radius: 99px; padding: 2px 8px; font-size: 10px; font-weight: 700;
+  }
+  .section-title {
+    font-size: 13px; font-weight: 700; letter-spacing: 0.1em;
+    text-transform: uppercase; color: var(--muted);
+    display: flex; align-items: center; gap: 8px;
+  }
+  .section-title::after {
+    content: ''; flex: 1; height: 1px;
+    background: linear-gradient(90deg, var(--border), transparent);
+  }
+  canvas { max-width: 100%; }
+  @keyframes fadeInUp {
+    from { opacity:0; transform: translateY(16px); }
+    to   { opacity:1; transform: translateY(0); }
+  }
+  .fade-in { animation: fadeInUp 0.4s ease forwards; }
+  .notice-bar {
+    background: linear-gradient(90deg, rgba(0,212,255,0.08), transparent);
+    border-left: 3px solid var(--accent);
+    padding: 8px 16px;
+    font-size: 12px;
+    color: var(--muted);
+    border-radius: 0 8px 8px 0;
+    margin-bottom: 16px;
+  }
+</style>
+</head>
+<body>
+<div id="root"></div>
+<script type="text/babel">
+const { useState, useEffect, useRef, useCallback, useMemo } = React;
+
+// ─── 유틸리티 ───────────────────────────────────────────────────────────────
+const fmt = (n) => Math.round(n).toLocaleString('ko-KR');
+const fmtM = (n) => {
+  const m = Math.abs(n);
+  if (m >= 1e8) return (n/1e8).toFixed(1) + '억';
+  if (m >= 1e4) return (n/1e4).toFixed(0) + '만';
+  return fmt(n);
+};
+const pct = (n) => (n >= 0 ? '+' : '') + n.toFixed(1) + '%';
+
+// 문자열 → 숫자 파싱 (콤마 제거)
+const parseNum = (s) => {
+  const n = Number(String(s).replace(/,/g, ''));
+  return isNaN(n) ? 0 : n;
+};
+
+// ─── 초기 데이터 ─────────────────────────────────────────────────────────────
+const PROJECT_TYPES = ['SI', 'SM', 'SV', 'SOL', 'CT', 'MT'];
+
+const TYPE_META = {
+  SI:  { label: 'SI',  desc: '시스템통합',   color: '#3B82F6', bg: 'badge-si',  icon: '⚙️' },
+  SM:  { label: 'SM',  desc: '유지보수',     color: '#10B981', bg: 'badge-sm',  icon: '🔧' },
+  SV:  { label: 'SV',  desc: '인프라서비스', color: '#F59E0B', bg: 'badge-sv',  icon: '🖥️' },
+  SOL: { label: 'SOL', desc: '솔루션공급',   color: '#EF4444', bg: 'badge-sol', icon: '📦' },
+  CT:  { label: 'CT',  desc: '컨설팅',       color: '#8B5CF6', bg: 'badge-ct',  icon: '📋' },
+  MT:  { label: 'MT',  desc: '장비납품',     color: '#14B8A6', bg: 'badge-mt',  icon: '🏗️' },
+};
+
+const MONTHS = ['1월','2월','3월','4월','5월','6월','7월','8월','9월','10월','11월','12월'];
+
+// 초기 프로젝트 손익 데이터
+const INIT_PROJECTS = [
+  {
+    id: 'P001', code: 'SI-2024-001', name: 'A사 ERP 구축 프로젝트', type: 'SI', client: '삼성SDS',
+    수주액: 800000000, closing: '진행중',
+    총매출액: 640000000, 인건비합계: 280000000, 직접원가: 80000000,
+    외주비: 95000000, 인프라비: 0, 상품매입가: 0, 장비원가: 0, 기타직접: 4000000,
+    배부판관비: 48000000,
+  },
+  {
+    id: 'P002', code: 'SM-2024-001', name: 'B사 시스템 유지보수', type: 'SM', client: 'LG CNS',
+    수주액: 240000000, closing: '진행중',
+    총매출액: 192000000, 인건비합계: 72000000, 직접원가: 45000000,
+    외주비: 38000000, 인프라비: 0, 상품매입가: 0, 장비원가: 0, 기타직접: 6000000,
+    배부판관비: 24000000,
+  },
+  {
+    id: 'P003', code: 'SV-2024-001', name: 'C사 클라우드 인프라 구축', type: 'SV', client: 'KT클라우드',
+    수주액: 360000000, closing: '최종마감',
+    총매출액: 360000000, 인건비합계: 55000000, 직접원가: 215000000,
+    외주비: 18000000, 인프라비: 178000000, 상품매입가: 0, 장비원가: 0, 기타직접: 4000000,
+    배부판관비: 30000000,
+  },
+  {
+    id: 'P004', code: 'SOL-2024-001', name: 'D사 보안솔루션 공급', type: 'SOL', client: '현대오토에버',
+    수주액: 180000000, closing: '진행중',
+    총매출액: 120000000, 인건비합계: 18000000, 직접원가: 85000000,
+    외주비: 5000000, 인프라비: 0, 상품매입가: 72000000, 장비원가: 0, 기타직접: 3000000,
+    배부판관비: 10000000,
+  },
+  {
+    id: 'P005', code: 'CT-2024-001', name: 'E사 IT전략 컨설팅', type: 'CT', client: 'SK하이닉스',
+    수주액: 60000000, closing: '진행중',
+    총매출액: 60000000, 인건비합계: 28000000, 직접원가: 18000000,
+    외주비: 8000000, 인프라비: 0, 상품매입가: 0, 장비원가: 0, 기타직접: 4000000,
+    배부판관비: 6000000,
+  },
+  {
+    id: 'P006', code: 'MT-2024-001', name: 'F사 서버장비 납품 및 설치', type: 'MT', client: 'POSCO ICT',
+    수주액: 450000000, closing: '진행중',
+    총매출액: 380000000, 인건비합계: 32000000, 직접원가: 295000000,
+    외주비: 12000000, 인프라비: 0, 상품매입가: 0, 장비원가: 268000000, 기타직접: 6000000,
+    배부판관비: 22000000,
+  },
+];
+
+// 월별 매출 데이터 (12개월)
+const INIT_MONTHLY = [
+  { month:'1월',  revenue:142000000, cost:112000000 },
+  { month:'2월',  revenue:158000000, cost:125000000 },
+  { month:'3월',  revenue:175000000, cost:138000000 },
+  { month:'4월',  revenue:163000000, cost:130000000 },
+  { month:'5월',  revenue:189000000, cost:149000000 },
+  { month:'6월',  revenue:201000000, cost:158000000 },
+  { month:'7월',  revenue:195000000, cost:153000000 },
+  { month:'8월',  revenue:218000000, cost:172000000 },
+  { month:'9월',  revenue:234000000, cost:182000000 },
+  { month:'10월', revenue:252000000, cost:196000000 },
+  { month:'11월', revenue:241000000, cost:188000000 },
+  { month:'12월', revenue:268000000, cost:208000000 },
+];
+
+// 손익 계산 함수
+const calcPnL = (p) => {
+  const directTotal = (p.인건비합계 || 0) + (p.외주비||0) + (p.인프라비||0) + (p.상품매입가||0) + (p.장비원가||0) + (p.기타직접||0);
+  const grossProfit = p.총매출액 - directTotal;
+  const opProfit    = grossProfit - (p.배부판관비 || 0);
+  const opRate      = p.총매출액 > 0 ? (opProfit / p.총매출액) * 100 : 0;
+  const grossRate   = p.총매출액 > 0 ? (grossProfit / p.총매출액) * 100 : 0;
+  return { directTotal, grossProfit, grossRate, opProfit, opRate };
+};
+
+// ─── KPI 카드 ────────────────────────────────────────────────────────────────
+function KpiCard({ label, value, sub, color, icon }) {
+  const colorMap = { cyan: '#00D4FF', green: '#10B981', amber: '#F59E0B', red: '#EF4444', blue: '#3B82F6' };
+  const c = colorMap[color] || '#00D4FF';
+  return (
+    <div className="kpi-card fade-in">
+      <div style={{ position:'absolute', top:16, right:16, fontSize:22, opacity:0.3 }}>{icon}</div>
+      <div className="kpi-label">{label}</div>
+      <div className="kpi-value" style={{ color: c }}>{value}</div>
+      <div className="kpi-sub">{sub}</div>
+    </div>
+  );
+}
+
+// ─── 차트: 월별 매출/이익 꺾은선 ────────────────────────────────────────────
+function LineChartCard({ monthly }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chartRef.current) { chartRef.current.destroy(); }
+    const ctx = ref.current.getContext('2d');
+    chartRef.current = new Chart(ctx, {
+      type: 'line',
+      data: {
+        labels: monthly.map(m => m.month),
+        datasets: [
+          {
+            label: '매출액',
+            data: monthly.map(m => m.revenue),
+            borderColor: '#00D4FF',
+            backgroundColor: 'rgba(0,212,255,0.06)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#00D4FF',
+            pointRadius: 4,
+            pointHoverRadius: 7,
+          },
+          {
+            label: '원가합계',
+            data: monthly.map(m => m.cost),
+            borderColor: '#EF4444',
+            backgroundColor: 'rgba(239,68,68,0.04)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: true,
+            pointBackgroundColor: '#EF4444',
+            pointRadius: 4,
+            pointHoverRadius: 7,
+          },
+          {
+            label: '영업이익',
+            data: monthly.map(m => m.revenue - m.cost),
+            borderColor: '#10B981',
+            backgroundColor: 'rgba(16,185,129,0.05)',
+            borderWidth: 2,
+            tension: 0.4,
+            fill: false,
+            pointBackgroundColor: '#10B981',
+            pointRadius: 3,
+            pointHoverRadius: 6,
+            borderDash: [4, 3],
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#94A3B8', font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: 'rgba(11,22,40,0.95)',
+            borderColor: 'rgba(0,212,255,0.3)',
+            borderWidth: 1,
+            titleColor: '#E2E8F0',
+            bodyColor: '#94A3B8',
+            callbacks: {
+              label: ctx => ` ${ctx.dataset.label}: ₩${ctx.parsed.y.toLocaleString('ko-KR')}`
+            }
+          }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.04)' }, ticks: { color: '#64748B', font: { size: 11 } } },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#64748B', font: { size: 10, family: 'JetBrains Mono' },
+              callback: v => (v >= 1e8 ? (v/1e8).toFixed(0)+'억' : v >= 1e4 ? (v/1e4).toFixed(0)+'만' : v)
+            }
+          }
+        }
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [monthly]);
+
+  return (
+    <div className="glass p-4" style={{ height: 280 }}>
+      <div className="section-title mb-3" style={{ fontSize:11 }}>📈 월별 매출 / 원가 / 영업이익 추이</div>
+      <div className="chart-container" style={{ height: 230 }}>
+        <canvas ref={ref}></canvas>
+      </div>
+    </div>
+  );
+}
+
+// ─── 차트: 사업 유형별 도넛 ─────────────────────────────────────────────────
+function DonutChartCard({ projects }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+
+  const byType = useMemo(() => {
+    const map = {};
+    PROJECT_TYPES.forEach(t => { map[t] = 0; });
+    projects.forEach(p => { map[p.type] = (map[p.type] || 0) + p.총매출액; });
+    return map;
+  }, [projects]);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chartRef.current) chartRef.current.destroy();
+    const ctx = ref.current.getContext('2d');
+    chartRef.current = new Chart(ctx, {
+      type: 'doughnut',
+      data: {
+        labels: PROJECT_TYPES.map(t => `${t} (${TYPE_META[t].desc})`),
+        datasets: [{
+          data: PROJECT_TYPES.map(t => byType[t] || 0),
+          backgroundColor: PROJECT_TYPES.map(t => TYPE_META[t].color + 'CC'),
+          borderColor: PROJECT_TYPES.map(t => TYPE_META[t].color),
+          borderWidth: 1.5,
+          hoverOffset: 8,
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        cutout: '65%',
+        plugins: {
+          legend: { position: 'right', labels: { color: '#94A3B8', font: { size: 10, family: 'Noto Sans KR' }, boxWidth: 10, padding: 8 } },
+          tooltip: {
+            backgroundColor: 'rgba(11,22,40,0.95)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            callbacks: { label: ctx => ` ₩${ctx.parsed.toLocaleString('ko-KR')}` }
+          }
+        }
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [byType]);
+
+  return (
+    <div className="glass p-4" style={{ height: 280 }}>
+      <div className="section-title mb-3" style={{ fontSize:11 }}>🥧 사업 유형별 매출 구성비</div>
+      <div className="chart-container" style={{ height: 230 }}>
+        <canvas ref={ref}></canvas>
+      </div>
+    </div>
+  );
+}
+
+// ─── 차트: 프로젝트별 영업이익 바 ────────────────────────────────────────────
+function BarChartCard({ projects }) {
+  const ref = useRef(null);
+  const chartRef = useRef(null);
+
+  const pnlData = useMemo(() =>
+    projects.map(p => ({ ...p, ...calcPnL(p) }))
+  , [projects]);
+
+  useEffect(() => {
+    if (!ref.current) return;
+    if (chartRef.current) chartRef.current.destroy();
+    const ctx = ref.current.getContext('2d');
+    chartRef.current = new Chart(ctx, {
+      type: 'bar',
+      data: {
+        labels: pnlData.map(p => p.code),
+        datasets: [
+          {
+            label: '총매출액',
+            data: pnlData.map(p => p.총매출액),
+            backgroundColor: 'rgba(0,212,255,0.3)',
+            borderColor: '#00D4FF',
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+          {
+            label: '직접원가',
+            data: pnlData.map(p => p.directTotal),
+            backgroundColor: 'rgba(239,68,68,0.3)',
+            borderColor: '#EF4444',
+            borderWidth: 1,
+            borderRadius: 4,
+          },
+          {
+            label: '영업이익',
+            data: pnlData.map(p => p.opProfit),
+            backgroundColor: pnlData.map(p => p.opProfit >= 0 ? 'rgba(16,185,129,0.5)' : 'rgba(239,68,68,0.5)'),
+            borderColor: pnlData.map(p => p.opProfit >= 0 ? '#10B981' : '#EF4444'),
+            borderWidth: 1,
+            borderRadius: 4,
+          }
+        ]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: { labels: { color: '#94A3B8', font: { size: 11, family: 'Noto Sans KR' }, boxWidth: 12 } },
+          tooltip: {
+            backgroundColor: 'rgba(11,22,40,0.95)',
+            borderColor: 'rgba(255,255,255,0.1)',
+            borderWidth: 1,
+            callbacks: { label: ctx => ` ${ctx.dataset.label}: ₩${ctx.parsed.y.toLocaleString('ko-KR')}` }
+          }
+        },
+        scales: {
+          x: { grid: { color: 'rgba(255,255,255,0.03)' }, ticks: { color: '#64748B', font: { size: 10, family: 'JetBrains Mono' } } },
+          y: {
+            grid: { color: 'rgba(255,255,255,0.04)' },
+            ticks: {
+              color: '#64748B', font: { size: 10, family: 'JetBrains Mono' },
+              callback: v => (v >= 1e8 ? (v/1e8).toFixed(0)+'억' : v >= 1e4 ? (v/1e4).toFixed(0)+'만' : v)
+            }
+          }
+        }
+      }
+    });
+    return () => { if (chartRef.current) chartRef.current.destroy(); };
+  }, [pnlData]);
+
+  return (
+    <div className="glass p-4" style={{ height: 280 }}>
+      <div className="section-title mb-3" style={{ fontSize:11 }}>📊 프로젝트별 매출 / 원가 / 영업이익</div>
+      <div className="chart-container" style={{ height: 230 }}>
+        <canvas ref={ref}></canvas>
+      </div>
+    </div>
+  );
+}
+
+// ─── 편집 가능 셀 ─────────────────────────────────────────────────────────────
+function EditCell({ value, onChange, disabled }) {
+  const [local, setLocal] = useState(fmt(value));
+  const [focused, setFocused] = useState(false);
+
+  useEffect(() => {
+    if (!focused) setLocal(fmt(value));
+  }, [value, focused]);
+
+  const handleFocus = () => {
+    setFocused(true);
+    setLocal(String(Math.round(value)));
+  };
+  const handleBlur = () => {
+    setFocused(false);
+    const n = parseNum(local);
+    setLocal(fmt(n));
+    onChange(n);
+  };
+  const handleChange = (e) => { setLocal(e.target.value); };
+  const handleKeyDown = (e) => { if (e.key === 'Enter') e.target.blur(); };
+
+  return (
+    <input
+      type="text"
+      className="editable-cell"
+      value={local}
+      onChange={handleChange}
+      onFocus={handleFocus}
+      onBlur={handleBlur}
+      onKeyDown={handleKeyDown}
+      disabled={disabled}
+    />
+  );
+}
+
+// ─── 손익 테이블 행 ──────────────────────────────────────────────────────────
+function PnLRow({ proj, onUpdate, onToggleClose }) {
+  const locked = proj.closing === '최종마감';
+  const pnl = calcPnL(proj);
+
+  const upd = (field) => (val) => {
+    if (locked) return;
+    onUpdate(proj.id, field, val);
+  };
+
+  const rateColor = (r) => r >= 20 ? 'profit-pos' : r >= 5 ? 'profit-neu' : 'profit-neg';
+
+  return (
+    <tr className="tbl-row">
+      {/* 구분 */}
+      <td className="tbl-cell" style={{ minWidth: 60 }}>
+        <div style={{ display:'flex', flexDirection:'column', gap:4, alignItems:'center' }}>
+          <span className={`badge ${TYPE_META[proj.type].bg}`}>{proj.type}</span>
+          {locked
+            ? <span className="tag-closed">🔒 마감</span>
+            : <span className="tag-open">✏️ 수정</span>
+          }
+        </div>
+      </td>
+      {/* 프로젝트 */}
+      <td className="tbl-cell" style={{ minWidth: 200 }}>
+        <div style={{ fontSize:12, fontWeight:700, color:'#E2E8F0', marginBottom:2 }}>{proj.name}</div>
+        <div style={{ fontSize:10, color:'var(--muted)', fontFamily:'JetBrains Mono' }}>{proj.code}</div>
+        <div style={{ fontSize:10, color:'#60A5FA', marginTop:1 }}>{proj.client}</div>
+      </td>
+      {/* 수주액 */}
+      <td className="tbl-cell" style={{ minWidth: 110 }}>
+        <div className="readonly-cell" style={{ color:'#CBD5E1' }}>{fmt(proj.수주액)}</div>
+      </td>
+      {/* ★ 총매출액 (편집) */}
+      <td className="tbl-cell" style={{ minWidth: 120 }}>
+        <EditCell value={proj.총매출액} onChange={upd('총매출액')} disabled={locked}/>
+      </td>
+      {/* ★ 인건비합계 (편집) */}
+      <td className="tbl-cell" style={{ minWidth: 120 }}>
+        <EditCell value={proj.인건비합계} onChange={upd('인건비합계')} disabled={locked}/>
+      </td>
+      {/* ★ 직접원가합계 (편집: 외주+인프라+상품+장비+기타) */}
+      <td className="tbl-cell" style={{ minWidth: 130 }}>
+        <EditCell value={pnl.directTotal - proj.인건비합계} onChange={(v) => {
+          // 직접원가(인건비 제외)를 입력하면 외주비에 반영
+          upd('외주비')(Math.max(0, v - (proj.인프라비||0) - (proj.상품매입가||0) - (proj.장비원가||0) - (proj.기타직접||0)));
+        }} disabled={locked}/>
+        <div style={{ fontSize:10, color:'var(--muted)', marginTop:2 }}>
+          <span title="외주비">외주:{fmtM(proj.외주비||0)}</span>
+          {proj.인프라비>0 && <span title="인프라비"> | 인프라:{fmtM(proj.인프라비)}</span>}
+          {proj.상품매입가>0 && <span title="상품매입가"> | 상품:{fmtM(proj.상품매입가)}</span>}
+          {proj.장비원가>0 && <span title="장비원가"> | 장비:{fmtM(proj.장비원가)}</span>}
+        </div>
+      </td>
+      {/* 직접원가합계 (자동) */}
+      <td className="tbl-cell" style={{ minWidth: 110 }}>
+        <div className="readonly-cell" style={{ color:'#FCA5A5' }}>{fmt(pnl.directTotal)}</div>
+      </td>
+      {/* ★ 배부판관비 (편집) */}
+      <td className="tbl-cell" style={{ minWidth: 120 }}>
+        <EditCell value={proj.배부판관비} onChange={upd('배부판관비')} disabled={locked}/>
+      </td>
+      {/* 매출총이익 (자동) */}
+      <td className="tbl-cell" style={{ minWidth: 110 }}>
+        <div className={`readonly-cell ${pnl.grossProfit >= 0 ? 'profit-pos' : 'profit-neg'}`}>
+          {fmt(pnl.grossProfit)}
+        </div>
+        <div style={{ fontSize:10, color:'var(--muted)' }}>{pnl.grossRate.toFixed(1)}%</div>
+      </td>
+      {/* 영업이익 (자동) */}
+      <td className="tbl-cell" style={{ minWidth: 110 }}>
+        <div className={`readonly-cell mono ${pnl.opProfit >= 0 ? 'profit-pos' : 'profit-neg'}`} style={{ fontSize:15, fontWeight:700 }}>
+          {fmt(pnl.opProfit)}
+        </div>
+      </td>
+      {/* 영업이익률 (자동) */}
+      <td className="tbl-cell" style={{ minWidth: 80 }}>
+        <div className={`readonly-cell mono ${rateColor(pnl.opRate)}`} style={{ fontSize:15, fontWeight:700 }}>
+          {pnl.opRate.toFixed(1)}%
+        </div>
+      </td>
+      {/* 마감 제어 */}
+      <td className="tbl-cell" style={{ minWidth: 100 }}>
+        <button
+          className={`btn ${locked ? 'btn-open' : 'btn-close'}`}
+          onClick={() => onToggleClose(proj.id)}
+        >
+          {locked ? '🔓 수정열기' : '🔒 마감완료'}
+        </button>
+      </td>
+    </tr>
+  );
+}
+
+// ─── 메인 앱 ─────────────────────────────────────────────────────────────────
+function App() {
+  const [projects, setProjects] = useState(INIT_PROJECTS);
+  const [monthly] = useState(INIT_MONTHLY);
+  const [activeTab, setActiveTab] = useState('ALL');
+
+  // 전사 KPI 계산
+  const kpi = useMemo(() => {
+    const totalRevenue  = projects.reduce((s, p) => s + p.총매출액, 0);
+    const totalLabor    = projects.reduce((s, p) => s + p.인건비합계, 0);
+    const totalDirect   = projects.reduce((s, p) => s + calcPnL(p).directTotal, 0);
+    const totalSGA      = projects.reduce((s, p) => s + (p.배부판관비 || 0), 0);
+    const totalOpProfit = projects.reduce((s, p) => s + calcPnL(p).opProfit, 0);
+    const opRate        = totalRevenue > 0 ? (totalOpProfit / totalRevenue) * 100 : 0;
+    const수주액합계     = projects.reduce((s, p) => s + p.수주액, 0);
+    return { totalRevenue, totalLabor, totalDirect, totalSGA, totalOpProfit, opRate, 수주액합계 };
+  }, [projects]);
+
+  // 필터된 프로젝트
+  const filtered = useMemo(() =>
+    activeTab === 'ALL' ? projects : projects.filter(p => p.type === activeTab)
+  , [projects, activeTab]);
+
+  // 업데이트 핸들러
+  const handleUpdate = useCallback((id, field, val) => {
+    setProjects(prev => prev.map(p => p.id === id ? { ...p, [field]: val } : p));
+  }, []);
+
+  // 마감 토글
+  const handleToggleClose = useCallback((id) => {
+    setProjects(prev => prev.map(p =>
+      p.id === id ? { ...p, closing: p.closing === '최종마감' ? '진행중' : '최종마감' } : p
+    ));
+  }, []);
+
+  // 마감 요약
+  const closedCount = projects.filter(p => p.closing === '최종마감').length;
+
+  return (
+    <div style={{ minHeight:'100vh', padding:'0 0 48px 0' }}>
+      {/* ── 헤더 ── */}
+      <header style={{
+        background: 'linear-gradient(180deg, rgba(11,22,40,0.98), rgba(11,22,40,0.85))',
+        borderBottom: '1px solid rgba(0,212,255,0.12)',
+        padding: '16px 32px',
+        display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+        position: 'sticky', top: 0, zIndex: 100,
+        backdropFilter: 'blur(20px)',
+      }}>
+        <div style={{ display:'flex', alignItems:'center', gap:16 }}>
+          <div style={{
+            width:40, height:40, borderRadius:10,
+            background:'linear-gradient(135deg, #00D4FF, #3B82F6)',
+            display:'flex', alignItems:'center', justifyContent:'center',
+            fontSize:20, boxShadow:'0 0 20px rgba(0,212,255,0.4)',
+          }}>⬡</div>
+          <div>
+            <div style={{ fontSize:17, fontWeight:900, letterSpacing:'-0.02em' }}>
+              <span style={{ color:'#00D4FF' }}>(주)모비텍</span>
+              <span style={{ color:'#E2E8F0' }}> 중앙 경영관리 시스템</span>
+            </div>
+            <div style={{ fontSize:11, color:'var(--muted)', letterSpacing:'0.08em', marginTop:1 }}>
+              MOBITECH ERP · 증빙기반 손익 실시간 추적 플랫폼 · 2024 회계연도
+            </div>
+          </div>
+        </div>
+        <div style={{ display:'flex', alignItems:'center', gap:12 }}>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:10, color:'var(--muted)', letterSpacing:'0.08em' }}>마감현황</div>
+            <div style={{ fontSize:13, fontWeight:700, color: closedCount > 0 ? '#FCA5A5' : '#34D399' }}>
+              {closedCount}/{projects.length} 건 마감
+            </div>
+          </div>
+          <div style={{
+            width:1, height:32, background:'var(--border)', margin:'0 4px'
+          }}/>
+          <div style={{ textAlign:'right' }}>
+            <div style={{ fontSize:10, color:'var(--muted)', letterSpacing:'0.08em' }}>기준일</div>
+            <div className="mono" style={{ fontSize:12, color:'#60A5FA' }}>2024-12-31</div>
+          </div>
+        </div>
+      </header>
+
+      <div style={{ padding:'24px 32px' }}>
+        {/* ── 공지 바 ── */}
+        <div className="notice-bar">
+          💡 <strong style={{ color:'var(--accent)' }}>실시간 연동 모드:</strong>
+          &nbsp;하단 테이블에서 <strong>총매출액 · 인건비합계 · 직접원가 · 배부판관비</strong> 수정 시 영업이익·이익률이 즉시 재계산되어 상단 KPI 및 차트에 반영됩니다.
+          &nbsp;｜ 마감완료된 행은 입력이 잠깁니다. 증빙근거: 세금계산서(매출/매입) · 법인카드 · 계좌이체
+        </div>
+
+        {/* ── KPI 카드 ── */}
+        <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:12, marginBottom:20 }}>
+          <KpiCard
+            label="전사 수주액"
+            value={`₩${fmtM(kpi.수주액합계)}`}
+            sub={`${projects.length}개 프로젝트`}
+            color="blue" icon="📝"
+          />
+          <KpiCard
+            label="인식 총매출액"
+            value={`₩${fmtM(kpi.totalRevenue)}`}
+            sub="세금계산서 발급 기준"
+            color="cyan" icon="💰"
+          />
+          <KpiCard
+            label="인건비합계"
+            value={`₩${fmtM(kpi.totalLabor)}`}
+            sub={`매출 대비 ${kpi.totalRevenue > 0 ? (kpi.totalLabor/kpi.totalRevenue*100).toFixed(1) : 0}%`}
+            color="amber" icon="👥"
+          />
+          <KpiCard
+            label="직접원가합계"
+            value={`₩${fmtM(kpi.totalDirect)}`}
+            sub="외주+인프라+상품+장비+기타"
+            color="red" icon="📦"
+          />
+          <KpiCard
+            label="배부판관비합계"
+            value={`₩${fmtM(kpi.totalSGA)}`}
+            sub="프로젝트별 배부 완료"
+            color="amber" icon="🏢"
+          />
+          <KpiCard
+            label="영업이익 / 이익률"
+            value={`₩${fmtM(kpi.totalOpProfit)}`}
+            sub={`영업이익률 ${kpi.opRate.toFixed(1)}%`}
+            color={kpi.totalOpProfit >= 0 ? 'green' : 'red'} icon="📈"
+          />
+        </div>
+
+        {/* ── 차트 3개 ── */}
+        <div style={{ display:'grid', gridTemplateColumns:'2fr 1fr 1fr', gap:12, marginBottom:20 }}>
+          <LineChartCard monthly={monthly}/>
+          <DonutChartCard projects={projects}/>
+          <BarChartCard projects={projects}/>
+        </div>
+
+        {/* ── 손익 관리 테이블 ── */}
+        <div className="glass" style={{ overflow:'hidden' }}>
+          {/* 테이블 헤더 영역 */}
+          <div style={{
+            padding:'16px 20px', borderBottom:'1px solid var(--border)',
+            display:'flex', alignItems:'center', justifyContent:'space-between', flexWrap:'wrap', gap:12
+          }}>
+            <div>
+              <div style={{ fontSize:14, fontWeight:800, letterSpacing:'-0.01em', color:'#E2E8F0' }}>
+                📋 프로젝트별 손익 집계 테이블
+              </div>
+              <div style={{ fontSize:11, color:'var(--muted)', marginTop:2 }}>
+                DB_Project_Profit_Loss · 실무자 상시 보완 · BEFORE INSERT OR UPDATE 트리거 연동
+              </div>
+            </div>
+            {/* 사업 유형 필터 탭 */}
+            <div style={{ display:'flex', gap:6 }}>
+              {['ALL', ...PROJECT_TYPES].map(t => (
+                <button
+                  key={t}
+                  onClick={() => setActiveTab(t)}
+                  style={{
+                    padding:'5px 12px',
+                    borderRadius:8,
+                    fontSize:11,
+                    fontWeight:700,
+                    cursor:'pointer',
+                    border: activeTab === t ? `1px solid ${t === 'ALL' ? '#00D4FF' : TYPE_META[t]?.color}` : '1px solid var(--border)',
+                    background: activeTab === t ? (t === 'ALL' ? 'rgba(0,212,255,0.15)' : TYPE_META[t]?.color + '25') : 'transparent',
+                    color: activeTab === t ? (t === 'ALL' ? '#00D4FF' : TYPE_META[t]?.color) : 'var(--muted)',
+                    transition: 'all 0.2s',
+                  }}
+                >
+                  {t === 'ALL' ? '전체' : `${t} (${TYPE_META[t].desc})`}
+                </button>
+              ))}
+            </div>
+          </div>
+
+          {/* 스크롤 테이블 */}
+          <div className="scrollbar-hide" style={{ overflowX:'auto' }}>
+            <table style={{ width:'100%', borderCollapse:'collapse', minWidth:1300 }}>
+              <thead>
+                <tr>
+                  {[
+                    '유형/상태', '프로젝트',
+                    '수주액', '총매출액★', '인건비합계★',
+                    '직접원가(외주+α)★', '직접원가합계',
+                    '배부판관비★',
+                    '매출총이익', '영업이익', '이익률', '마감 제어'
+                  ].map((h, i) => (
+                    <th key={i} className="tbl-header" style={{
+                      textAlign: i <= 1 ? 'left' : 'right',
+                      background: h.includes('★') ? 'rgba(0,212,255,0.06)' : undefined,
+                      color: h.includes('★') ? '#67E8F9' : undefined,
+                    }}>{h}</th>
+                  ))}
+                </tr>
+              </thead>
+              <tbody>
+                {filtered.map(p => (
+                  <PnLRow
+                    key={p.id}
+                    proj={p}
+                    onUpdate={handleUpdate}
+                    onToggleClose={handleToggleClose}
+                  />
+                ))}
+              </tbody>
+              {/* 합계 행 */}
+              <tfoot>
+                <tr style={{
+                  background: 'linear-gradient(90deg, rgba(0,212,255,0.06), transparent)',
+                  borderTop: '2px solid rgba(0,212,255,0.2)',
+                }}>
+                  <td colSpan={2} className="tbl-cell" style={{ fontWeight:800, fontSize:12, color:'#00D4FF', letterSpacing:'0.06em' }}>
+                    📊 합계 ({filtered.length}건)
+                  </td>
+                  <td className="tbl-cell readonly-cell" style={{ color:'#CBD5E1' }}>
+                    {fmt(filtered.reduce((s,p)=>s+p.수주액,0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell" style={{ color:'#00D4FF', fontWeight:700 }}>
+                    {fmt(filtered.reduce((s,p)=>s+p.총매출액,0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell" style={{ color:'#FCD34D', fontWeight:700 }}>
+                    {fmt(filtered.reduce((s,p)=>s+p.인건비합계,0))}
+                  </td>
+                  <td className="tbl-cell" colSpan={1}></td>
+                  <td className="tbl-cell readonly-cell" style={{ color:'#FCA5A5', fontWeight:700 }}>
+                    {fmt(filtered.reduce((s,p)=>s+calcPnL(p).directTotal,0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell" style={{ color:'#FCD34D', fontWeight:700 }}>
+                    {fmt(filtered.reduce((s,p)=>s+(p.배부판관비||0),0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell profit-pos" style={{ fontWeight:700 }}>
+                    {fmt(filtered.reduce((s,p)=>s+calcPnL(p).grossProfit,0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell mono" style={{ fontSize:16, fontWeight:900, color: filtered.reduce((s,p)=>s+calcPnL(p).opProfit,0) >= 0 ? '#10B981' : '#EF4444' }}>
+                    {fmt(filtered.reduce((s,p)=>s+calcPnL(p).opProfit,0))}
+                  </td>
+                  <td className="tbl-cell readonly-cell mono" style={{ fontSize:16, fontWeight:900, color: '#00D4FF' }}>
+                    {(() => {
+                      const r = filtered.reduce((s,p)=>s+p.총매출액,0);
+                      const op = filtered.reduce((s,p)=>s+calcPnL(p).opProfit,0);
+                      return r > 0 ? (op/r*100).toFixed(1)+'%' : '-';
+                    })()}
+                  </td>
+                  <td className="tbl-cell"></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+        </div>
+
+        {/* ── 증빙 유형 범례 ── */}
+        <div className="glass" style={{ padding:'16px 20px', marginTop:12 }}>
+          <div className="section-title" style={{ marginBottom:12 }}>🗂️ 증빙 체계 범례</div>
+          <div style={{ display:'flex', flexWrap:'wrap', gap:16 }}>
+            {[
+              { icon:'📄', label:'세금계산서 발급', desc:'매출 인식 기준', color:'#60A5FA' },
+              { icon:'📥', label:'세금계산서 수취', desc:'외주비·매입원가', color:'#FCA5A5' },
+              { icon:'💳', label:'법인신용카드', desc:'운영비·판관비', color:'#FCD34D' },
+              { icon:'🏧', label:'체크카드·통장출금', desc:'소액경비·급여이체', color:'#86EFAC' },
+              { icon:'🏦', label:'금융거래계좌', desc:'차입금·상환', color:'#C4B5FD' },
+            ].map((item, i) => (
+              <div key={i} style={{ display:'flex', alignItems:'center', gap:8 }}>
+                <span style={{ fontSize:18 }}>{item.icon}</span>
+                <div>
+                  <div style={{ fontSize:12, fontWeight:700, color: item.color }}>{item.label}</div>
+                  <div style={{ fontSize:10, color:'var(--muted)' }}>{item.desc}</div>
+                </div>
+              </div>
+            ))}
+            <div style={{ marginLeft:'auto', textAlign:'right' }}>
+              <div style={{ fontSize:10, color:'var(--muted)' }}>★ 표시 칼럼은 실무자 수정 가능</div>
+              <div style={{ fontSize:10, color:'var(--muted)' }}>자동 계산: 직접원가합계 · 매출총이익 · 영업이익 · 이익률</div>
+            </div>
+          </div>
+        </div>
+
+        {/* ── 6대 사업유형 설명 ── */}
+        <div className="glass" style={{ padding:'16px 20px', marginTop:12 }}>
+          <div className="section-title" style={{ marginBottom:12 }}>⚙️ 6대 사업 유형별 핵심 원가 항목</div>
+          <div style={{ display:'grid', gridTemplateColumns:'repeat(6,1fr)', gap:10 }}>
+            {PROJECT_TYPES.map(type => {
+              const meta = TYPE_META[type];
+              const descs = {
+                SI: ['인건비 M/M 관리', '투입공수 × 실행단가', 'DB_Timesheet 연동'],
+                SM: ['월 고정비 관리', '정기 유지보수 인력', 'SLA 기반 청구'],
+                SV: ['인프라비 분리 계상', '클라우드·서버 비용', '세금계산서 수취'],
+                SOL: ['상품매입가 관리', '솔루션 라이선스', '마진율 핵심'],
+                CT: ['단발성 직접경비', '컨설팅 인건비', '법인카드 증빙'],
+                MT: ['장비매입원가', '물류비 분리', '검수·설치비 포함'],
+              };
+              return (
+                <div key={type} style={{
+                  background:'rgba(255,255,255,0.02)',
+                  border:`1px solid ${meta.color}30`,
+                  borderRadius:10, padding:'12px 14px',
+                  borderTop:`2px solid ${meta.color}`,
+                }}>
+                  <div style={{ display:'flex', alignItems:'center', gap:8, marginBottom:8 }}>
+                    <span style={{ fontSize:18 }}>{meta.icon}</span>
+                    <span className={`badge ${meta.bg}`}>{type}</span>
+                  </div>
+                  <div style={{ fontSize:11, fontWeight:700, color: meta.color, marginBottom:6 }}>{meta.desc}</div>
+                  {descs[type].map((d,i) => (
+                    <div key={i} style={{ fontSize:10, color:'var(--muted)', lineHeight:'1.6' }}>· {d}</div>
+                  ))}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* ── 푸터 ── */}
+        <div style={{ marginTop:16, textAlign:'center', color:'var(--muted)', fontSize:10, letterSpacing:'0.06em' }}>
+          (주)모비텍 중앙 경영관리 시스템 v1.0 · Supabase PostgreSQL · React 18 · Chart.js 4 · Tailwind CSS
+          &nbsp;·&nbsp; 국세청 증빙 체계 기반 · 6대 사업 유형 손익 실시간 추적
+        </div>
+      </div>
+    </div>
+  );
+}
+
+ReactDOM.createRoot(document.getElementById('root')).render(<App/>);
+</script>
+</body>
+</html>

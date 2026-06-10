@@ -2182,32 +2182,28 @@ const XL_DEFS={
   co:{
     name:'업체마스터',
     cols:['사업자번호','업체명','대표자명','업태','종목','본점소재지','담당자명','담당자이메일','최초등록일'],
-    req:['사업자번호','업체명'],
-    example:['(예시)123-45-67890','(예시)한국전자(주)','홍길동','제조업','전자부품','서울 강남구','김담당','kim@example.com','2026-01-01']
+    req:['사업자번호','업체명']
   },
   prj:{
     name:'프로젝트마스터',
     cols:['프로젝트명','사업자번호','유형','시작일','종료일','상태'],
-    req:['프로젝트명'],
-    example:['(예시)A사 ERP 구축','123-45-67890','SI','2026-01-01','2026-12-31','진행중']
+    req:['프로젝트명']
   },
   bgt:{
     name:'예산계획',
     cols:['프로젝트코드','항목명','소속구분','성명','직급','공수','수량','실행단가','마진율','상태'],
-    req:['프로젝트코드','항목명'],
-    example:['(예시)P2026-001-한국전자-SI','개발PM','내부','홍길동','선임',6,1,5830000,18,'확정']
+    req:['프로젝트코드','항목명']
   }
 };
 
 /* ── 폼 다운로드 ── */
 function downloadForm(t){
   const d=XL_DEFS[t];if(!d||typeof XLSX==='undefined')return toast('엑셀 라이브러리 로드 실패','err');
-  const note=['※ 첫 행(예시)은 삭제 후 작성하세요. "(예시)"가 포함된 행은 업로드 시 자동 제외됩니다.'];
-  const ws=XLSX.utils.aoa_to_sheet([d.cols, d.example]);
+  const ws=XLSX.utils.aoa_to_sheet([d.cols]);
   ws['!cols']=d.cols.map(c=>({wch:Math.max(c.length*2+4,14)}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,d.name);
-  const ws2=XLSX.utils.aoa_to_sheet([note,[''],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
+  const ws2=XLSX.utils.aoa_to_sheet([['※ 1행(제목줄) 아래부터 데이터를 작성하세요.'],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
   XLSX.utils.book_append_sheet(wb,ws2,'작성안내');
   XLSX.writeFile(wb,`${d.name}_업로드폼.xlsx`);
   toast('📋 업로드 폼 다운로드 완료');
@@ -2244,14 +2240,25 @@ function xlParse(input){
     const ws=wb.Sheets[wb.SheetNames[0]];
     const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
     const errors=[];
+    let emptyCnt=0;
     xlRows=[];
+
+    // 양식(헤더) 일치 여부 검사
+    if(raw.length){
+      const fileKeys=Object.keys(raw[0]);
+      const matched=d.cols.filter(c=>fileKeys.includes(c));
+      if(matched.length===0){
+        toast('양식이 일치하지 않습니다. "폼 다운로드"로 받은 파일에 작성해주세요.','err');
+        document.getElementById('xlFile').value='';
+        return;
+      }
+    }
+
     raw.forEach((r,i)=>{
       const row={};
       d.cols.forEach(c=>row[c]=xlNorm(r[c]));
-      // 예시 행 제외
-      if(Object.values(row).some(v=>String(v).includes('(예시)')))return;
       // 빈 행 제외
-      if(Object.values(row).every(v=>v===''||v===0))return;
+      if(Object.values(row).every(v=>v===''||v===0)){emptyCnt++;return;}
       // 필수값 검증
       const miss=d.req.filter(k=>!String(row[k]).trim());
       if(miss.length){errors.push(`${i+2}행: ${miss.join(', ')} 누락`);return;}
@@ -2276,7 +2283,9 @@ function xlParse(input){
     document.getElementById('xlSummary').innerHTML=
       `<b style="color:var(--green)">${xlRows.length}건</b> 등록 가능`+
       (errors.length?` · <b style="color:var(--red)">${errors.length}건</b> 제외`:'')+
-      ` <span style="color:var(--mu)">(파일: ${file.name})</span>`;
+      (emptyCnt?` · 빈 행 ${emptyCnt}건 무시`:'')+
+      ` <span style="color:var(--mu)">(파일: ${file.name})</span>`+
+      (xlRows.length===0&&!errors.length?'<br><span style="color:#FCD34D;font-size:10px">⚠ 등록할 행이 없습니다. 첫 번째 시트의 제목줄 아래에 데이터를 작성했는지 확인해주세요.</span>':'');
     document.getElementById('xlHead').innerHTML='<tr>'+d.cols.map(c=>`<th class="L" style="font-size:10px">${c}</th>`).join('')+'</tr>';
     document.getElementById('xlBody').innerHTML=xlRows.slice(0,8).map(r=>
       '<tr>'+d.cols.map(c=>`<td class="L" style="font-size:10px">${typeof r[c]==='number'?r[c].toLocaleString('ko-KR'):r[c]}</td>`).join('')+'</tr>'

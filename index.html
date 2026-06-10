@@ -305,7 +305,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
     <!-- ② 프로젝트 마스터 -->
     <div id="mPrj" class="tpane">
       <div class="notice">
-        <b>DB_Project_Master</b> — DB_Company_Master 기반. 프로젝트코드 자동생성: P연도-001-업체명-유형. 사업자번호 선택 시 업체명 자동연동.
+        <b>DB_Project_Master</b> — DB_Company_Master 기반. 프로젝트코드 자동생성: 유형-연도-일련번호 (예: SI-2026-001). 사업자번호 선택 시 업체명 자동연동.
       </div>
       <div class="arow" style="margin-bottom:8px">
         <button class="btn btn-p" onclick="openEntryModal('prj')">+ 직접입력</button>
@@ -693,6 +693,18 @@ const pn=s=>{const n=Number(String(s||0).replace(/,/g,''));return isNaN(n)?0:n;}
 const uid=()=>Math.random().toString(36).slice(2,8).toUpperCase();
 const today=()=>new Date().toISOString().slice(0,10);
 const yr=new Date().getFullYear();
+/* 프로젝트코드 자동생성: 유형-연도-일련번호3자리 (유형·연도별 순차 증가) */
+function genPrjCode(tp){
+  const pre=`${tp}-${yr}-`;
+  let max=0;
+  prjs.forEach(p=>{
+    if(p.코드&&p.코드.startsWith(pre)){
+      const n=parseInt(p.코드.slice(pre.length),10);
+      if(!isNaN(n)&&n>max)max=n;
+    }
+  });
+  return pre+String(max+1).padStart(3,'0');
+}
 const TC={SI:'#3B82F6',SM:'#10B981',SV:'#F59E0B',SOL:'#EF4444',CT:'#8B5CF6',MT:'#14B8A6'};
 const TYPES=['SI','SM','SV','SOL','CT','MT'];
 const TNAME={SI:'시스템구축',SM:'유지보수',SV:'컨설팅/서비스',SOL:'솔루션판매',CT:'기술지원계약',MT:'장비/자재공급'};
@@ -1022,7 +1034,7 @@ function rTsTable(){
 
 /* ── ADD FUNCS (Master) ── */
 function addCo(){cos.push({사업자번호:'',업체명:'신규업체',대표자명:'',업태:'',종목:'',본점소재지:'',주소:'',담당자명:'',담당자이메일:'',최초등록일:today()});rCoTable();}
-function addPrj(){const tp='SI';prjs.push({코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-신규-${tp}`,명:'신규 프로젝트',사번:'',업체명:'',유형:tp,시작:today(),종료:today(),상태:'준비',등록:today()});rPrjTable();}
+function addPrj(){const tp='SI';prjs.push({코드:genPrjCode(tp),명:'신규 프로젝트',사번:'',업체명:'',유형:tp,시작:today(),종료:today(),상태:'준비',등록:today()});rPrjTable();}
 function addBgt(){bgtRows.push({코드:prjs[0]?.코드||'',유형:'SI',항목:'',소속:'내부',성명:'',직급:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'});rBgtTable();}
 function addMem(){const mo=String(new Date().getMonth()+1).padStart(2,'0');mems.push({사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,성명:'신규',구분:'임직원',직급:'',입사:today(),퇴사:'',연락처:'',이메일:'',상태:'근무중'});rMemTable();}
 function addSal(){sals.push({년월:'2024-11',사번:'',성명:'',연봉:0,사대보험:0,월간총원가:0,퇴직충당금:0});rSalTable();}
@@ -1869,7 +1881,7 @@ function addCo() {
 /* 프로젝트 추가 */
 function addPrj() {
   const tp = 'SI';
-  const row = { 코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-신규-${tp}`, 명:'신규 프로젝트', 사번:'', 업체명:'', 유형:tp, 시작:today(), 종료:today(), 상태:'준비', 등록:today() };
+  const row = { 코드:genPrjCode(tp), 명:'신규 프로젝트', 사번:'', 업체명:'', 유형:tp, 시작:today(), 종료:today(), 상태:'준비', 등록:today() };
   prjs.push(row);
   rPrjTable();
   savePrjRow(prjs.length - 1);
@@ -2073,7 +2085,7 @@ function openEntryModal(t,idx=null){
   document.getElementById('mmFields').innerHTML=
     mmDefs(t,row).map(f=>mmField(f,src[f.k])).join('')+
     (t==='bgt'?'<div class="mm-hint">계약단가 = 실행단가 × (1+마진율%) · 총계약금액 = 계약단가 × 공수 × 수량</div>':'')+
-    (t==='prj'&&idx===null?'<div class="mm-hint">프로젝트코드는 저장 시 "P연도-순번-업체명-유형" 형식으로 자동 생성됩니다.</div>':'');
+    (t==='prj'&&idx===null?'<div class="mm-hint">프로젝트코드는 저장 시 "유형-연도-일련번호" 형식(예: SI-2026-001)으로 자동 생성됩니다.</div>':'');
   if(t==='bgt')mmBgtCalc();
   document.getElementById('mmOverlay').classList.add('on');
   const first=document.querySelector('#mmFields input:not([readonly]),#mmFields select');
@@ -2131,8 +2143,7 @@ function saveEntryModal(){
     const biz=mmVal('사번'), co=cos.find(c=>c.사업자번호===biz);
     let code=mmVal('코드');
     if(isNew||!code){
-      const clean=(co?.업체명||'신규').replace(/\(주\)|\s/g,'').slice(0,8)||'신규';
-      code=`P${yr}-${String(prjs.length+1).padStart(3,'0')}-${clean}-${mmVal('유형')}`;
+      code=genPrjCode(mmVal('유형'));
     }
     const row=isNew?{등록:today()}:prjs[mmIdx];
     Object.assign(row,{코드:code,명:name,사번:biz,업체명:co?.업체명||'',유형:mmVal('유형'),
@@ -2326,8 +2337,7 @@ async function xlConfirm(){
     rows.forEach((r,i)=>{
       const co=cos.find(c=>c.사업자번호===r.사업자번호);
       const tp=r.유형||'SI';
-      const clean=(co?.업체명||'신규').replace(/\(주\)|\s/g,'').slice(0,8)||'신규';
-      prjs.push({코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-${clean}-${tp}`,
+      prjs.push({코드:genPrjCode(tp),
         명:r.프로젝트명,사번:r.사업자번호,업체명:co?.업체명||'',유형:tp,
         시작:r.시작일||'',종료:r.종료일||'',상태:r.상태||'준비',등록:today()});
     });

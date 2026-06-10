@@ -2442,6 +2442,8 @@ initApp();
 .mm-f label b{color:var(--red);margin-left:2px}
 .mm-f input,.mm-f select{background:var(--bg4);border:1px solid var(--br2);border-radius:7px;color:var(--tx);padding:8px 10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .15s}
 .mm-f input:focus,.mm-f select:focus{border-color:var(--acc)}
+.mm-f input[type="date"]::-webkit-calendar-picker-indicator{filter:invert(1);opacity:.85;cursor:pointer}
+.mm-f input[type="date"]::-webkit-calendar-picker-indicator:hover{opacity:1}
 .mm-f input[readonly]{background:rgba(255,255,255,0.03);color:var(--mu);cursor:default}
 .mm-hint{grid-column:1/-1;font-size:10px;color:var(--hint);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px}
 .mm-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--br)}

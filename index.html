@@ -7,6 +7,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
 <style>
 :root{
   --bg:#0B1628;--bg2:#112040;--bg3:#1a2d52;--bg4:#0d1e38;
@@ -285,8 +286,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
       </div>
       <div class="arow" style="margin-bottom:8px">
         <button class="btn btn-p" onclick="openEntryModal('co')">+ 직접입력</button>
-        <button class="btn btn-excel">📥 엑셀 불러오기</button>
-        <button class="btn btn-g">📋 폼 다운로드</button>
+        <button class="btn btn-excel" onclick="importExcel('co')">📥 엑셀 불러오기</button>
+        <button class="btn btn-g" onclick="downloadForm('co')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('coBody','cos','rMaster')">− 선택삭제</button>
       </div>
       <div class="tw"><table>
@@ -308,7 +309,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
       </div>
       <div class="arow" style="margin-bottom:8px">
         <button class="btn btn-p" onclick="openEntryModal('prj')">+ 직접입력</button>
-        <button class="btn btn-excel">📥 엑셀 불러오기</button>
+        <button class="btn btn-excel" onclick="importExcel('prj')">📥 엑셀 불러오기</button>
+        <button class="btn btn-g" onclick="downloadForm('prj')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('prjBody','prjs','rMaster')">− 선택삭제</button>
       </div>
       <div class="tw"><table>
@@ -333,7 +335,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
       </div>
       <div class="arow" style="margin-bottom:8px">
         <button class="btn btn-p" onclick="openEntryModal('bgt')">+ 직접입력</button>
-        <button class="btn btn-excel">📥 엑셀 불러오기</button>
+        <button class="btn btn-excel" onclick="importExcel('bgt')">📥 엑셀 불러오기</button>
+        <button class="btn btn-g" onclick="downloadForm('bgt')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('bgtBody','bgtRows','rMaster')">− 선택삭제</button>
         <select id="bgtPrjSel" onchange="rBgtTable()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
           <option value="">전체 프로젝트</option>
@@ -2171,6 +2174,199 @@ function saveEntryModal(){
 }
 
 /* ══════════════════════════════════════════════
+   엑셀 대량업로드 (폼 다운로드 / 불러오기)
+══════════════════════════════════════════════ */
+let xlType=null, xlRows=[];
+
+const XL_DEFS={
+  co:{
+    name:'업체마스터',
+    cols:['사업자번호','업체명','대표자명','업태','종목','본점소재지','담당자명','담당자이메일','최초등록일'],
+    req:['사업자번호','업체명'],
+    example:['(예시)123-45-67890','(예시)한국전자(주)','홍길동','제조업','전자부품','서울 강남구','김담당','kim@example.com','2026-01-01']
+  },
+  prj:{
+    name:'프로젝트마스터',
+    cols:['프로젝트명','사업자번호','유형','시작일','종료일','상태'],
+    req:['프로젝트명'],
+    example:['(예시)A사 ERP 구축','123-45-67890','SI','2026-01-01','2026-12-31','진행중']
+  },
+  bgt:{
+    name:'예산계획',
+    cols:['프로젝트코드','항목명','소속구분','성명','직급','공수','수량','실행단가','마진율','상태'],
+    req:['프로젝트코드','항목명'],
+    example:['(예시)P2026-001-한국전자-SI','개발PM','내부','홍길동','선임',6,1,5830000,18,'확정']
+  }
+};
+
+/* ── 폼 다운로드 ── */
+function downloadForm(t){
+  const d=XL_DEFS[t];if(!d||typeof XLSX==='undefined')return toast('엑셀 라이브러리 로드 실패','err');
+  const note=['※ 첫 행(예시)은 삭제 후 작성하세요. "(예시)"가 포함된 행은 업로드 시 자동 제외됩니다.'];
+  const ws=XLSX.utils.aoa_to_sheet([d.cols, d.example]);
+  ws['!cols']=d.cols.map(c=>({wch:Math.max(c.length*2+4,14)}));
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,d.name);
+  const ws2=XLSX.utils.aoa_to_sheet([note,[''],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
+  XLSX.utils.book_append_sheet(wb,ws2,'작성안내');
+  XLSX.writeFile(wb,`${d.name}_업로드폼.xlsx`);
+  toast('📋 업로드 폼 다운로드 완료');
+}
+
+/* ── 엑셀 불러오기: 파일 선택 ── */
+function importExcel(t){
+  if(typeof XLSX==='undefined')return toast('엑셀 라이브러리 로드 실패','err');
+  xlType=t;
+  const f=document.getElementById('xlFile');
+  f.value='';
+  f.click();
+}
+
+/* ── 셀 값 정규화 (날짜/숫자/문자) ── */
+function xlNorm(v){
+  if(v instanceof Date){
+    const off=new Date(v.getTime()-v.getTimezoneOffset()*60000);
+    return off.toISOString().slice(0,10);
+  }
+  if(typeof v==='number')return v;
+  return String(v??'').trim();
+}
+
+/* ── 파일 파싱 → 검증 → 미리보기 ── */
+function xlParse(input){
+  const file=input.files?.[0];if(!file)return;
+  const d=XL_DEFS[xlType];
+  const reader=new FileReader();
+  reader.onload=e=>{
+    let wb;
+    try{wb=XLSX.read(e.target.result,{type:'array',cellDates:true});}
+    catch(err){return toast('파일을 읽을 수 없습니다: '+err.message,'err');}
+    const ws=wb.Sheets[wb.SheetNames[0]];
+    const raw=XLSX.utils.sheet_to_json(ws,{defval:''});
+    const errors=[];
+    xlRows=[];
+    raw.forEach((r,i)=>{
+      const row={};
+      d.cols.forEach(c=>row[c]=xlNorm(r[c]));
+      // 예시 행 제외
+      if(Object.values(row).some(v=>String(v).includes('(예시)')))return;
+      // 빈 행 제외
+      if(Object.values(row).every(v=>v===''||v===0))return;
+      // 필수값 검증
+      const miss=d.req.filter(k=>!String(row[k]).trim());
+      if(miss.length){errors.push(`${i+2}행: ${miss.join(', ')} 누락`);return;}
+      // 유형별 추가 검증
+      if(xlType==='co'){
+        if(cos.some(c=>c.사업자번호===row.사업자번호)||xlRows.some(x=>x.사업자번호===row.사업자번호)){
+          errors.push(`${i+2}행: 사업자번호 ${row.사업자번호} 중복 — 제외됨`);return;
+        }
+      }
+      if(xlType==='prj'){
+        if(row.유형&&!TYPES.includes(row.유형)){errors.push(`${i+2}행: 유형 "${row.유형}" 은 ${TYPES.join('/')} 중 하나여야 함`);return;}
+      }
+      if(xlType==='bgt'){
+        if(prjs.length&&!prjs.some(p=>p.코드===row.프로젝트코드)){
+          errors.push(`${i+2}행: 프로젝트코드 "${row.프로젝트코드}" 미등록 — 제외됨`);return;
+        }
+      }
+      xlRows.push(row);
+    });
+    // ── 미리보기 모달 ──
+    document.getElementById('xlTitle').innerHTML=`${XL_DEFS[xlType].name} — <span style="color:var(--acc)">엑셀 불러오기</span>`;
+    document.getElementById('xlSummary').innerHTML=
+      `<b style="color:var(--green)">${xlRows.length}건</b> 등록 가능`+
+      (errors.length?` · <b style="color:var(--red)">${errors.length}건</b> 제외`:'')+
+      ` <span style="color:var(--mu)">(파일: ${file.name})</span>`;
+    document.getElementById('xlHead').innerHTML='<tr>'+d.cols.map(c=>`<th class="L" style="font-size:10px">${c}</th>`).join('')+'</tr>';
+    document.getElementById('xlBody').innerHTML=xlRows.slice(0,8).map(r=>
+      '<tr>'+d.cols.map(c=>`<td class="L" style="font-size:10px">${typeof r[c]==='number'?r[c].toLocaleString('ko-KR'):r[c]}</td>`).join('')+'</tr>'
+    ).join('')+(xlRows.length>8?`<tr><td class="L" colspan="${d.cols.length}" style="color:var(--mu);font-size:10px">… 외 ${xlRows.length-8}건</td></tr>`:'');
+    document.getElementById('xlErrors').innerHTML=errors.slice(0,10).map(e=>'⚠ '+e).join('<br>')+(errors.length>10?`<br>… 외 ${errors.length-10}건`:'');
+    document.getElementById('xlConfirmBtn').style.display=xlRows.length?'':'none';
+    document.getElementById('xlOverlay').classList.add('on');
+  };
+  reader.readAsArrayBuffer(file);
+}
+
+function xlClose(){
+  document.getElementById('xlOverlay').classList.remove('on');
+  xlRows=[];
+}
+
+/* ── 확인 → 로컬 반영 + DB 일괄 INSERT ── */
+async function xlConfirm(){
+  const t=xlType, rows=xlRows;
+  if(!rows.length)return xlClose();
+  document.getElementById('xlConfirmBtn').disabled=true;
+
+  if(t==='co'){
+    const startIdx=cos.length;
+    rows.forEach(r=>cos.push({사업자번호:r.사업자번호,업체명:r.업체명,대표자명:r.대표자명,업태:r.업태,
+      종목:r.종목,본점소재지:r.본점소재지,주소:'',담당자명:r.담당자명,담당자이메일:r.담당자이메일,
+      최초등록일:r.최초등록일||today()}));
+    rCoTable();
+    await xlBulkInsert('company_master',
+      rows.map(r=>({biz_no:r.사업자번호,company_name:r.업체명,ceo_name:r.대표자명||null,
+        biz_type_text:r.업태||null,biz_item:r.종목||null,hq_address:r.본점소재지||null,full_address:null,
+        contact_name:r.담당자명||null,contact_email:r.담당자이메일||null,
+        first_reg_date:r.최초등록일||null})),
+      (data)=>data.forEach((d,i)=>{if(cos[startIdx+i])cos[startIdx+i]._id=d.id;}));
+  }
+  else if(t==='prj'){
+    const startIdx=prjs.length;
+    rows.forEach((r,i)=>{
+      const co=cos.find(c=>c.사업자번호===r.사업자번호);
+      const tp=r.유형||'SI';
+      const clean=(co?.업체명||'신규').replace(/\(주\)|\s/g,'').slice(0,8)||'신규';
+      prjs.push({코드:`P${yr}-${String(prjs.length+1).padStart(3,'0')}-${clean}-${tp}`,
+        명:r.프로젝트명,사번:r.사업자번호,업체명:co?.업체명||'',유형:tp,
+        시작:r.시작일||'',종료:r.종료일||'',상태:r.상태||'준비',등록:today()});
+    });
+    rPrjTable();updBgtPrjSel();
+    await xlBulkInsert('project_master',
+      prjs.slice(startIdx).map(p=>{
+        const co=cos.find(c=>c.사업자번호===p.사번);
+        return {project_code:p.코드,project_name:p.명,company_id:co?._id||null,biz_no:p.사번||null,
+          company_name:p.업체명||null,biz_type:p.유형,start_date:p.시작||null,end_date:p.종료||null,status:p.상태};
+      }),
+      (data)=>data.forEach((d,i)=>{if(prjs[startIdx+i])prjs[startIdx+i]._id=d.id;}));
+  }
+  else if(t==='bgt'){
+    const startIdx=bgtRows.length;
+    rows.forEach(r=>{
+      const pj=prjs.find(p=>p.코드===r.프로젝트코드);
+      const unit=Math.round(pn(r.실행단가)*(1+pn(r.마진율)/100));
+      const tot=Math.round(unit*(pn(r.공수)||1)*(pn(r.수량)||1));
+      bgtRows.push({코드:r.프로젝트코드,유형:pj?.유형||'SI',항목:r.항목명,소속:r.소속구분||'내부',
+        성명:r.성명,직급:r.직급,공수:pn(r.공수),수량:pn(r.수량)||1,실행단가:pn(r.실행단가),
+        마진율:pn(r.마진율),계약단가:unit,총계약금액:tot,상태:r.상태||'검토'});
+    });
+    rBgtTable();
+    await xlBulkInsert('budget_plan',
+      bgtRows.slice(startIdx).map(b=>{
+        const pj=prjs.find(p=>p.코드===b.코드);
+        return {project_id:pj?._id||null,project_code:b.코드,biz_type:b.유형,item_name:b.항목,
+          member_type_cat:b.소속,member_name:b.성명||null,grade:b.직급||null,manmonth:b.공수,
+          quantity:b.수량,exec_unit_price:b.실행단가,margin_rate:b.마진율,item_status:b.상태};
+      }),
+      (data)=>data.forEach((d,i)=>{if(bgtRows[startIdx+i])bgtRows[startIdx+i]._id=d.id;}));
+  }
+
+  document.getElementById('xlConfirmBtn').disabled=false;
+  xlClose();
+  toast(`✅ ${rows.length}건 등록 완료`);
+}
+
+/* ── 일괄 INSERT ── */
+async function xlBulkInsert(table,payloads,assign){
+  if(!DB_MODE||!payloads.length)return;
+  payloads.forEach(p=>{Object.keys(p).forEach(k=>{if(p[k]===undefined)delete p[k];});});
+  const {data,error}=await sb.from(table).insert(payloads).select('id');
+  if(error)return dbErr(`bulkInsert(${table})`,error);
+  if(data)assign(data);
+}
+
+/* ══════════════════════════════════════════════
    앱 초기화
 ══════════════════════════════════════════════ */
 async function initApp() {
@@ -2244,6 +2440,25 @@ initApp();
     <div class="mm-ft">
       <button class="mm-btn c" onclick="closeEntryModal()">취소</button>
       <button class="mm-btn s" onclick="saveEntryModal()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
+<!-- ══ 엑셀 대량업로드 확인 모달 ══ -->
+<input type="file" id="xlFile" accept=".xlsx,.xls,.csv" style="display:none" onchange="xlParse(this)">
+<div class="mm-ov" id="xlOverlay" onclick="if(event.target===this)xlClose()">
+  <div class="mm-box" style="max-width:680px">
+    <div class="mm-hd"><h3 id="xlTitle">엑셀 불러오기</h3><button class="mm-x" onclick="xlClose()">✕</button></div>
+    <div style="padding:14px 18px;max-height:62vh;overflow-y:auto">
+      <div id="xlSummary" style="font-size:12px;margin-bottom:10px"></div>
+      <div class="tw" style="border:1px solid var(--br);border-radius:8px;overflow:auto;max-height:240px">
+        <table style="width:100%"><thead id="xlHead"></thead><tbody id="xlBody"></tbody></table>
+      </div>
+      <div id="xlErrors" style="margin-top:8px;font-size:10px;color:#FCA5A5"></div>
+    </div>
+    <div class="mm-ft">
+      <button class="mm-btn c" onclick="xlClose()">취소</button>
+      <button class="mm-btn s" id="xlConfirmBtn" onclick="xlConfirm()">✅ 확인 (DB 저장)</button>
     </div>
   </div>
 </div>

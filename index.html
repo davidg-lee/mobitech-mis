@@ -284,7 +284,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <b>DB_Company_Master</b> — 사업자번호(PK) 기준. 하향/우향 셀 추가 지원. 중복 사업자번호 등록 불가.
       </div>
       <div class="arow" style="margin-bottom:8px">
-        <button class="btn btn-p" onclick="addCo()">+ 직접입력</button>
+        <button class="btn btn-p" onclick="openEntryModal('co')">+ 직접입력</button>
         <button class="btn btn-excel">📥 엑셀 불러오기</button>
         <button class="btn btn-g">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('coBody','cos','rMaster')">− 선택삭제</button>
@@ -307,7 +307,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <b>DB_Project_Master</b> — DB_Company_Master 기반. 프로젝트코드 자동생성: P연도-001-업체명-유형. 사업자번호 선택 시 업체명 자동연동.
       </div>
       <div class="arow" style="margin-bottom:8px">
-        <button class="btn btn-p" onclick="addPrj()">+ 직접입력</button>
+        <button class="btn btn-p" onclick="openEntryModal('prj')">+ 직접입력</button>
         <button class="btn btn-excel">📥 엑셀 불러오기</button>
         <button class="btn btn-d" onclick="delChk('prjBody','prjs','rMaster')">− 선택삭제</button>
       </div>
@@ -332,7 +332,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <b>DB_Budget_Plan</b> — DB_Project_Master 기반. ①매출액 → ⑥매출원가계 자동계산 → ⑦매출총이익 → ⑨영업이익 산출. 인력 항목 입력 시 DB_Member_Master 연동.
       </div>
       <div class="arow" style="margin-bottom:8px">
-        <button class="btn btn-p" onclick="addBgt()">+ 직접입력</button>
+        <button class="btn btn-p" onclick="openEntryModal('bgt')">+ 직접입력</button>
         <button class="btn btn-excel">📥 엑셀 불러오기</button>
         <button class="btn btn-d" onclick="delChk('bgtBody','bgtRows','rMaster')">− 선택삭제</button>
         <select id="bgtPrjSel" onchange="rBgtTable()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
@@ -364,7 +364,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <b>DB_Member_Master</b> — 사번 자동생성: 년도-월-001. 임직원→DB_Salary_Cost 연결. 협력사·프리랜서→DB_Timesheet 연결.
       </div>
       <div class="arow" style="margin-bottom:8px">
-        <button class="btn btn-p" onclick="addMem()">+ 직접입력</button>
+        <button class="btn btn-p" onclick="openEntryModal('mem')">+ 직접입력</button>
         <button class="btn btn-d" onclick="delChk('memBody','mems','rMaster')">− 선택삭제</button>
       </div>
       <div class="tw"><table>
@@ -900,7 +900,7 @@ function rCoTable(){
     <td class="L">${c.업태}</td><td class="L">${c.종목}</td><td class="L M" style="font-size:10px">${c.본점소재지}</td>
     <td class="L">${c.담당자명}</td><td class="L M" style="font-size:10px">${c.담당자이메일}</td>
     <td class="L M" style="font-size:10px">${c.최초등록일}</td>
-    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('co',${i})">수정</button></td>
   </tr>`).join('');
 }
 function rPrjTable(){
@@ -916,7 +916,7 @@ function rPrjTable(){
     <td class="L M" style="font-size:10px">${p.종료}</td>
     <td style="text-align:center"><span class="badge ${p.상태==='진행중'?'bwn':'bok'}">${p.상태}</span></td>
     <td class="L M" style="font-size:10px">${p.등록}</td>
-    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('prj',${i})">수정</button></td>
   </tr>`).join('');
 }
 function updBgtPrjSel(){
@@ -967,7 +967,7 @@ function rMemTable(){
     <td class="L M" style="font-size:10px">${m.연락처}</td>
     <td class="L M" style="font-size:10px">${m.이메일}</td>
     <td style="text-align:center"><span class="badge ${m.상태==='근무중'?'bok':'ber'}">${m.상태}</span></td>
-    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">수정</button></td>
+    <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('mem',${i})">수정</button></td>
   </tr>`).join('');
 }
 function rSalTable(){
@@ -1977,6 +1977,200 @@ function recalcSal(i) {
 }
 
 /* ══════════════════════════════════════════════
+   직접입력/수정 모달 (마스터 변동 관리)
+══════════════════════════════════════════════ */
+let mmType=null, mmIdx=null;
+
+const MM_TITLES={co:'업체 마스터', prj:'프로젝트 마스터', bgt:'예산 계획', mem:'임직원 마스터'};
+
+function mmField(f,val){
+  const req=f.req?'<b>*</b>':'';
+  const wide=f.w?' w':'';
+  if(f.type==='select'){
+    const opts=f.options().map(o=>`<option value="${o.v}" ${String(o.v)===String(val)?'selected':''}>${o.l}</option>`).join('');
+    return `<div class="mm-f${wide}"><label>${f.label}${req}</label><select data-k="${f.k}" ${f.onchange?`onchange="${f.onchange}"`:''}>${opts}</select></div>`;
+  }
+  const ro=f.ro?'readonly':'';
+  const oninput=f.oninput?`oninput="${f.oninput}"`:'';
+  return `<div class="mm-f${wide}"><label>${f.label}${req}</label><input type="${f.type||'text'}" data-k="${f.k}" value="${val??''}" placeholder="${f.ph||''}" ${ro} ${oninput} ${f.step?`step="${f.step}"`:''}></div>`;
+}
+
+function mmDefs(t,row){
+  const isNew=!row;
+  if(t==='co')return[
+    {k:'사업자번호',label:'사업자번호 (PK)',req:1,ph:'000-00-00000'},
+    {k:'업체명',label:'업체명(상호)',req:1},
+    {k:'대표자명',label:'대표자명'},
+    {k:'업태',label:'업태'},
+    {k:'종목',label:'종목'},
+    {k:'본점소재지',label:'본점소재지'},
+    {k:'담당자명',label:'담당자명'},
+    {k:'담당자이메일',label:'담당자이메일',type:'email'},
+    {k:'최초등록일',label:'최초등록일',type:'date'},
+  ];
+  if(t==='prj')return[
+    {k:'코드',label:'프로젝트코드 (자동생성)',ro:1,w:1,ph:'저장 시 자동생성'},
+    {k:'명',label:'프로젝트명',req:1,w:1},
+    {k:'사번',label:'고객사 (사업자번호)',type:'select',onchange:'mmPrjCo(this)',
+      options:()=>[{v:'',l:'— 선택 —'}].concat(cos.map(c=>({v:c.사업자번호,l:`${c.업체명} (${c.사업자번호})`})))},
+    {k:'업체명',label:'업체명 (자동)',ro:1},
+    {k:'유형',label:'사업유형',type:'select',
+      options:()=>TYPES.map(tp=>({v:tp,l:`${tp} — ${TNAME[tp]}`}))},
+    {k:'상태',label:'진행상태',type:'select',
+      options:()=>['준비','진행중','완료'].map(s=>({v:s,l:s}))},
+    {k:'시작',label:'시작일',type:'date'},
+    {k:'종료',label:'종료일',type:'date'},
+  ];
+  if(t==='bgt')return[
+    {k:'코드',label:'프로젝트코드',req:1,type:'select',onchange:'mmBgtPrj(this)',
+      options:()=>[{v:'',l:'— 선택 —'}].concat(prjs.map(p=>({v:p.코드,l:`${p.코드} — ${p.명}`})))},
+    {k:'유형',label:'유형 (자동)',ro:1},
+    {k:'항목',label:'항목명(품명)',req:1},
+    {k:'소속',label:'소속구분',type:'select',options:()=>['내부','외부'].map(s=>({v:s,l:s}))},
+    {k:'성명',label:'성명(업체명)'},
+    {k:'직급',label:'직급/등급'},
+    {k:'공수',label:'공수(M/M)',type:'number',step:'0.1',oninput:'mmBgtCalc()'},
+    {k:'수량',label:'수량',type:'number',oninput:'mmBgtCalc()'},
+    {k:'실행단가',label:'실행단가(원)',type:'number',oninput:'mmBgtCalc()'},
+    {k:'마진율',label:'마진율(%)',type:'number',step:'0.1',oninput:'mmBgtCalc()'},
+    {k:'계약단가',label:'계약단가 (자동계산)',ro:1},
+    {k:'총계약금액',label:'총계약금액 (자동계산)',ro:1},
+    {k:'상태',label:'상태',type:'select',options:()=>['검토','확정'].map(s=>({v:s,l:s}))},
+  ];
+  if(t==='mem')return[
+    {k:'사번',label:'사번 (자동생성)',ro:1},
+    {k:'성명',label:'성명',req:1},
+    {k:'구분',label:'구분',type:'select',options:()=>['임직원','협력사','프리랜서'].map(s=>({v:s,l:s}))},
+    {k:'직급',label:'직급'},
+    {k:'입사',label:'입사일',type:'date'},
+    {k:'퇴사',label:'퇴사일',type:'date'},
+    {k:'연락처',label:'연락처',ph:'010-0000-0000'},
+    {k:'이메일',label:'개인이메일',type:'email'},
+    {k:'상태',label:'상태',type:'select',options:()=>['근무중','휴직','퇴사'].map(s=>({v:s,l:s}))},
+  ];
+  return[];
+}
+
+function mmDefaults(t){
+  const mo=String(new Date().getMonth()+1).padStart(2,'0');
+  if(t==='co')return{최초등록일:today()};
+  if(t==='prj')return{코드:'',유형:'SI',상태:'준비',시작:today(),종료:today()};
+  if(t==='bgt')return{코드:prjs[0]?.코드||'',유형:prjs[0]?.유형||'SI',소속:'내부',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'};
+  if(t==='mem')return{사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,구분:'임직원',입사:today(),상태:'근무중'};
+  return{};
+}
+
+function openEntryModal(t,idx=null){
+  mmType=t; mmIdx=idx;
+  const arr={co:cos,prj:prjs,bgt:bgtRows,mem:mems}[t];
+  const row=idx===null?null:arr[idx];
+  const src=row||mmDefaults(t);
+  document.getElementById('mmTitle').innerHTML=
+    `${MM_TITLES[t]} — <span>${idx===null?'직접입력':'수정'}</span>`;
+  document.getElementById('mmFields').innerHTML=
+    mmDefs(t,row).map(f=>mmField(f,src[f.k])).join('')+
+    (t==='bgt'?'<div class="mm-hint">계약단가 = 실행단가 × (1+마진율%) · 총계약금액 = 계약단가 × 공수 × 수량</div>':'')+
+    (t==='prj'&&idx===null?'<div class="mm-hint">프로젝트코드는 저장 시 "P연도-순번-업체명-유형" 형식으로 자동 생성됩니다.</div>':'');
+  if(t==='bgt')mmBgtCalc();
+  document.getElementById('mmOverlay').classList.add('on');
+  const first=document.querySelector('#mmFields input:not([readonly]),#mmFields select');
+  if(first)setTimeout(()=>first.focus(),50);
+}
+function closeEntryModal(){
+  document.getElementById('mmOverlay').classList.remove('on');
+  mmType=null; mmIdx=null;
+}
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('mmOverlay').classList.contains('on'))closeEntryModal();
+});
+
+function mmVal(k){return document.querySelector(`#mmFields [data-k="${k}"]`)?.value?.trim()??'';}
+function mmSet(k,v){const el=document.querySelector(`#mmFields [data-k="${k}"]`);if(el)el.value=v;}
+
+/* 프로젝트: 사업자번호 선택 → 업체명 자동 */
+function mmPrjCo(sel){
+  const c=cos.find(x=>x.사업자번호===sel.value);
+  mmSet('업체명',c?.업체명||'');
+}
+/* 예산: 프로젝트 선택 → 유형 자동 */
+function mmBgtPrj(sel){
+  const p=prjs.find(x=>x.코드===sel.value);
+  mmSet('유형',p?.유형||'SI');
+}
+/* 예산: 계약단가/총계약금액 실시간 계산 */
+function mmBgtCalc(){
+  const unit=Math.round(pn(mmVal('실행단가'))*(1+pn(mmVal('마진율'))/100));
+  const tot=Math.round(unit*(pn(mmVal('공수'))||1)*(pn(mmVal('수량'))||1));
+  mmSet('계약단가',unit.toLocaleString('ko-KR'));
+  mmSet('총계약금액',tot.toLocaleString('ko-KR'));
+}
+
+function saveEntryModal(){
+  const t=mmType, isNew=mmIdx===null;
+  if(!t)return;
+
+  if(t==='co'){
+    const biz=mmVal('사업자번호'), name=mmVal('업체명');
+    if(!biz||!name)return toast('사업자번호와 업체명은 필수입니다','err');
+    if(cos.some((c,i)=>c.사업자번호===biz&&i!==mmIdx))return toast('이미 등록된 사업자번호입니다','err');
+    const row=isNew?{주소:''}:cos[mmIdx];
+    Object.assign(row,{사업자번호:biz,업체명:name,대표자명:mmVal('대표자명'),업태:mmVal('업태'),
+      종목:mmVal('종목'),본점소재지:mmVal('본점소재지'),담당자명:mmVal('담당자명'),
+      담당자이메일:mmVal('담당자이메일'),최초등록일:mmVal('최초등록일')||today()});
+    if(isNew)cos.push(row);
+    rCoTable();updBgtPrjSel();
+    saveCoRow(isNew?cos.length-1:mmIdx);
+  }
+
+  else if(t==='prj'){
+    const name=mmVal('명');
+    if(!name)return toast('프로젝트명은 필수입니다','err');
+    const biz=mmVal('사번'), co=cos.find(c=>c.사업자번호===biz);
+    let code=mmVal('코드');
+    if(isNew||!code){
+      const clean=(co?.업체명||'신규').replace(/\(주\)|\s/g,'').slice(0,8)||'신규';
+      code=`P${yr}-${String(prjs.length+1).padStart(3,'0')}-${clean}-${mmVal('유형')}`;
+    }
+    const row=isNew?{등록:today()}:prjs[mmIdx];
+    Object.assign(row,{코드:code,명:name,사번:biz,업체명:co?.업체명||'',유형:mmVal('유형'),
+      시작:mmVal('시작'),종료:mmVal('종료'),상태:mmVal('상태')});
+    if(isNew)prjs.push(row);
+    rPrjTable();updBgtPrjSel();
+    savePrjRow(isNew?prjs.length-1:mmIdx);
+  }
+
+  else if(t==='bgt'){
+    const code=mmVal('코드'), item=mmVal('항목');
+    if(!code)return toast('프로젝트코드를 선택하세요','err');
+    if(!item)return toast('항목명은 필수입니다','err');
+    const unit=Math.round(pn(mmVal('실행단가'))*(1+pn(mmVal('마진율'))/100));
+    const tot=Math.round(unit*(pn(mmVal('공수'))||1)*(pn(mmVal('수량'))||1));
+    const row=isNew?{}:bgtRows[mmIdx];
+    Object.assign(row,{코드:code,유형:mmVal('유형'),항목:item,소속:mmVal('소속'),성명:mmVal('성명'),
+      직급:mmVal('직급'),공수:pn(mmVal('공수')),수량:pn(mmVal('수량')),실행단가:pn(mmVal('실행단가')),
+      마진율:pn(mmVal('마진율')),계약단가:unit,총계약금액:tot,상태:mmVal('상태')});
+    if(isNew)bgtRows.push(row);
+    rBgtTable();
+    saveBgtRow(isNew?bgtRows.length-1:mmIdx);
+  }
+
+  else if(t==='mem'){
+    const name=mmVal('성명');
+    if(!name)return toast('성명은 필수입니다','err');
+    const empNo=mmVal('사번');
+    if(mems.some((m,i)=>m.사번===empNo&&i!==mmIdx))return toast('이미 등록된 사번입니다','err');
+    const row=isNew?{}:mems[mmIdx];
+    Object.assign(row,{사번:empNo,성명:name,구분:mmVal('구분'),직급:mmVal('직급'),
+      입사:mmVal('입사'),퇴사:mmVal('퇴사'),연락처:mmVal('연락처'),이메일:mmVal('이메일'),상태:mmVal('상태')});
+    if(isNew)mems.push(row);
+    rMemTable();
+    saveMemRow(isNew?mems.length-1:mmIdx);
+  }
+
+  closeEntryModal();
+}
+
+/* ══════════════════════════════════════════════
    앱 초기화
 ══════════════════════════════════════════════ */
 async function initApp() {
@@ -2015,5 +2209,44 @@ async function initApp() {
 /* ══ INIT ══ */
 initApp();
 </script>
+
+<!-- ══ 직접입력/수정 모달 ══ -->
+<style>
+.mm-ov{display:none;position:fixed;inset:0;background:rgba(4,10,22,0.72);backdrop-filter:blur(3px);z-index:1000;align-items:flex-start;justify-content:center;padding:60px 16px 30px;overflow-y:auto}
+.mm-ov.on{display:flex}
+.mm-box{background:var(--bg2);border:1px solid rgba(0,212,255,0.25);border-radius:12px;width:100%;max-width:560px;box-shadow:0 20px 60px rgba(0,0,0,0.55)}
+.mm-hd{display:flex;align-items:center;justify-content:space-between;padding:13px 18px;border-bottom:1px solid var(--br)}
+.mm-hd h3{font-size:13px;font-weight:900;color:var(--tx)}
+.mm-hd h3 span{color:var(--acc)}
+.mm-x{background:none;border:none;color:var(--mu);font-size:18px;cursor:pointer;line-height:1;padding:2px 6px}
+.mm-x:hover{color:var(--tx)}
+.mm-body{padding:16px 18px;display:grid;grid-template-columns:1fr 1fr;gap:10px 12px;max-height:62vh;overflow-y:auto}
+.mm-f{display:flex;flex-direction:column;gap:4px}
+.mm-f.w{grid-column:1/-1}
+.mm-f label{font-size:10px;font-weight:700;color:var(--mu);letter-spacing:0.03em}
+.mm-f label b{color:var(--red);margin-left:2px}
+.mm-f input,.mm-f select{background:var(--bg4);border:1px solid var(--br2);border-radius:7px;color:var(--tx);padding:8px 10px;font-size:12px;font-family:'Noto Sans KR',sans-serif;outline:none;transition:border-color .15s}
+.mm-f input:focus,.mm-f select:focus{border-color:var(--acc)}
+.mm-f input[readonly]{background:rgba(255,255,255,0.03);color:var(--mu);cursor:default}
+.mm-hint{grid-column:1/-1;font-size:10px;color:var(--hint);padding:6px 10px;background:rgba(255,255,255,0.03);border-radius:6px}
+.mm-ft{display:flex;justify-content:flex-end;gap:8px;padding:12px 18px;border-top:1px solid var(--br)}
+.mm-btn{padding:8px 18px;border-radius:8px;font-size:12px;font-weight:700;cursor:pointer;border:1px solid var(--br2);font-family:'Noto Sans KR',sans-serif}
+.mm-btn.c{background:transparent;color:var(--mu)}
+.mm-btn.c:hover{color:var(--tx)}
+.mm-btn.s{background:linear-gradient(135deg,#00D4FF,#3B82F6);color:#04101f;border:none}
+.mm-btn.s:hover{filter:brightness(1.12)}
+@media(max-width:560px){.mm-body{grid-template-columns:1fr}}
+</style>
+<div class="mm-ov" id="mmOverlay" onclick="if(event.target===this)closeEntryModal()">
+  <div class="mm-box">
+    <div class="mm-hd"><h3 id="mmTitle">직접입력</h3><button class="mm-x" onclick="closeEntryModal()">✕</button></div>
+    <div class="mm-body" id="mmFields"></div>
+    <div class="mm-ft">
+      <button class="mm-btn c" onclick="closeEntryModal()">취소</button>
+      <button class="mm-btn s" onclick="saveEntryModal()">💾 저장</button>
+    </div>
+  </div>
+</div>
+
 </body>
 </html>

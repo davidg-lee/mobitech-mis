@@ -1646,8 +1646,8 @@ async function saveBgtRow(idx) {
   const pj = prjs.find(p => p.코드 === b.코드);
   const payload = {
     project_id:pj?._id||null, project_code:b.코드, biz_type:b.유형,
-    item_name:b.항목, member_type_cat:b.소속, member_name:b.성명,
-    grade:b.직급, manmonth:b.공수, quantity:b.수량,
+    item_name:b.항목, member_type_cat:b.소속, emp_no:b.사번||null,
+    manmonth:b.공수, quantity:b.수량,
     exec_unit_price:b.실행단가, margin_rate:b.마진율, item_status:b.상태
   };
   if (b._id) {
@@ -2054,8 +2054,9 @@ function mmDefs(t,row){
     {k:'유형',label:'유형 (자동)',ro:1},
     {k:'항목',label:'항목명(품명)',req:1},
     {k:'소속',label:'소속구분',type:'select',options:()=>['내부','외부'].map(s=>({v:s,l:s}))},
-    {k:'성명',label:'성명(업체명)'},
-    {k:'직급',label:'직급/등급'},
+    {k:'사번',label:'성명 (사번 선택)',type:'select',onchange:'mmBgtMem(this)',
+      options:()=>[{v:'',l:'— 선택 —'}].concat(mems.map(m=>({v:m.사번,l:`${m.성명}(${m.사번})`})))},
+    {k:'직급',label:'직급/등급 (자동)'},
     {k:'공수',label:'공수(M/M)',type:'number',step:'0.1',oninput:'mmBgtCalc()'},
     {k:'수량',label:'수량',type:'number',oninput:'mmBgtCalc()'},
     {k:'실행단가',label:'실행단가(원)',type:'number',oninput:'mmBgtCalc()'},
@@ -2082,7 +2083,7 @@ function mmDefaults(t){
   const mo=String(new Date().getMonth()+1).padStart(2,'0');
   if(t==='co')return{최초등록일:today()};
   if(t==='prj')return{코드:'',유형:'SI',상태:'준비',시작:today(),종료:today()};
-  if(t==='bgt')return{코드:prjs[0]?.코드||'',유형:prjs[0]?.유형||'SI',소속:'내부',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'};
+  if(t==='bgt')return{코드:prjs[0]?.코드||'',유형:prjs[0]?.유형||'SI',소속:'내부',사번:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'};
   if(t==='mem')return{사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,구분:'임직원',입사:today(),상태:'근무중'};
   return{};
 }
@@ -2099,6 +2100,10 @@ function openEntryModal(t,idx=null){
     (t==='bgt'?'<div class="mm-hint">계약단가 = 실행단가 × (1+마진율%) · 총계약금액 = 계약단가 × 공수 × 수량</div>':'')+
     (t==='prj'&&idx===null?'<div class="mm-hint">프로젝트코드는 저장 시 "유형-연도-일련번호" 형식(예: SI-2026-001)으로 자동 생성됩니다.</div>':'');
   if(t==='bgt')mmBgtCalc();
+  if(t==='bgt'&&row&&!row.사번&&row.성명){
+    const m=mems.find(x=>x.성명===row.성명);
+    if(m)mmSet('사번',m.사번);
+  }
   document.getElementById('mmOverlay').classList.add('on');
   const first=document.querySelector('#mmFields input:not([readonly]),#mmFields select');
   if(first)setTimeout(()=>first.focus(),50);
@@ -2123,6 +2128,11 @@ function mmPrjCo(sel){
 function mmBgtPrj(sel){
   const p=prjs.find(x=>x.코드===sel.value);
   mmSet('유형',p?.유형||'SI');
+}
+/* 예산: 사번 선택 → 직급 자동 */
+function mmBgtMem(sel){
+  const m=mems.find(x=>x.사번===sel.value);
+  if(m)mmSet('직급',m.직급||'');
 }
 /* 예산: 계약단가/총계약금액 실시간 계산 */
 function mmBgtCalc(){
@@ -2169,10 +2179,13 @@ function saveEntryModal(){
     const code=mmVal('코드'), item=mmVal('항목');
     if(!code)return toast('프로젝트코드를 선택하세요','err');
     if(!item)return toast('항목명은 필수입니다','err');
+    const empNo=mmVal('사번');
+    const mem=mems.find(m=>m.사번===empNo);
+    const memName=mem?mem.성명:(isNew?'':(bgtRows[mmIdx]?.성명||''));
     const unit=Math.round(pn(mmVal('실행단가'))*(1+pn(mmVal('마진율'))/100));
     const tot=Math.round(unit*(pn(mmVal('공수'))||1)*(pn(mmVal('수량'))||1));
     const row=isNew?{}:bgtRows[mmIdx];
-    Object.assign(row,{코드:code,유형:mmVal('유형'),항목:item,소속:mmVal('소속'),성명:mmVal('성명'),
+    Object.assign(row,{코드:code,유형:mmVal('유형'),항목:item,소속:mmVal('소속'),사번:empNo,성명:memName,
       직급:mmVal('직급'),공수:pn(mmVal('공수')),수량:pn(mmVal('수량')),실행단가:pn(mmVal('실행단가')),
       마진율:pn(mmVal('마진율')),계약단가:unit,총계약금액:tot,상태:mmVal('상태')});
     if(isNew)bgtRows.push(row);
@@ -2214,7 +2227,7 @@ const XL_DEFS={
   },
   bgt:{
     name:'예산계획',
-    cols:['프로젝트코드','항목명','소속구분','성명','직급','공수','수량','실행단가','마진율','상태'],
+    cols:['프로젝트코드','항목명','소속구분','사번','공수','수량','실행단가','마진율','상태'],
     req:['프로젝트코드','항목명']
   },
   mem:{
@@ -2231,7 +2244,7 @@ function downloadForm(t){
   ws['!cols']=d.cols.map(c=>({wch:Math.max(c.length*2+4,14)}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,d.name);
-  const ws2=XLSX.utils.aoa_to_sheet([['※ 1행(제목줄) 아래부터 데이터를 작성하세요.'],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['임직원 구분: 임직원 / 협력사 / 프리랜서 · 상태: 근무중 / 휴직 / 퇴사 (사번은 자동생성됩니다)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
+  const ws2=XLSX.utils.aoa_to_sheet([['※ 1행(제목줄) 아래부터 데이터를 작성하세요.'],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['임직원 구분: 임직원 / 협력사 / 프리랜서 · 상태: 근무중 / 휴직 / 퇴사 (사번은 자동생성됩니다)'],['예산계획의 사번은 임직원마스터에 등록된 사번을 입력하세요. 성명·직급은 사번으로 자동 조회됩니다.'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
   XLSX.utils.book_append_sheet(wb,ws2,'작성안내');
   XLSX.writeFile(wb,`${d.name}_업로드폼.xlsx`);
   toast('📋 업로드 폼 다운로드 완료');
@@ -2302,6 +2315,9 @@ function xlParse(input){
       if(xlType==='bgt'){
         if(prjs.length&&!prjs.some(p=>p.코드===row.프로젝트코드)){
           errors.push(`${i+2}행: 프로젝트코드 "${row.프로젝트코드}" 미등록 — 제외됨`);return;
+        }
+        if(row.사번&&!mems.some(m=>m.사번===row.사번)){
+          errors.push(`${i+2}행: 사번 "${row.사번}" 임직원마스터에 미등록 — 제외됨`);return;
         }
       }
       if(xlType==='mem'){
@@ -2379,10 +2395,11 @@ async function xlConfirm(){
     const startIdx=bgtRows.length;
     rows.forEach(r=>{
       const pj=prjs.find(p=>p.코드===r.프로젝트코드);
+      const mem=mems.find(m=>m.사번===r.사번);
       const unit=Math.round(pn(r.실행단가)*(1+pn(r.마진율)/100));
       const tot=Math.round(unit*(pn(r.공수)||1)*(pn(r.수량)||1));
       bgtRows.push({코드:r.프로젝트코드,유형:pj?.유형||'SI',항목:r.항목명,소속:r.소속구분||'내부',
-        성명:r.성명,직급:r.직급,공수:pn(r.공수),수량:pn(r.수량)||1,실행단가:pn(r.실행단가),
+        사번:r.사번||'',성명:mem?.성명||'',직급:mem?.직급||'',공수:pn(r.공수),수량:pn(r.수량)||1,실행단가:pn(r.실행단가),
         마진율:pn(r.마진율),계약단가:unit,총계약금액:tot,상태:r.상태||'검토'});
     });
     rBgtTable();
@@ -2390,7 +2407,7 @@ async function xlConfirm(){
       bgtRows.slice(startIdx).map(b=>{
         const pj=prjs.find(p=>p.코드===b.코드);
         return {project_id:pj?._id||null,project_code:b.코드,biz_type:b.유형,item_name:b.항목,
-          member_type_cat:b.소속,member_name:b.성명||null,grade:b.직급||null,manmonth:b.공수,
+          member_type_cat:b.소속,emp_no:b.사번||null,manmonth:b.공수,
           quantity:b.수량,exec_unit_price:b.실행단가,margin_rate:b.마진율,item_status:b.상태};
       }),
       (data)=>data.forEach((d,i)=>{if(bgtRows[startIdx+i])bgtRows[startIdx+i]._id=d.id;}));

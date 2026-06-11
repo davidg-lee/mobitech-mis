@@ -433,6 +433,41 @@ select.ec option{background:var(--bg2);color:var(--tx)}
     ★ 칼럼 편집 → 영업이익·이익률 즉시 재계산 &nbsp;|&nbsp; 🔒 마감완료 시 입력 잠금
   </div>
 
+  <!-- 실적 원장 -->
+  <div class="gc">
+    <div class="gc-hd">
+      <h3>📋 프로젝트별 실적 원장 <span class="gc-sub">— ★ 칼럼 직접 수정 → 손익계산서·대시보드 자동 반영</span></h3>
+      <div id="pfT2" style="display:flex;gap:4px"></div>
+    </div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th class="L" style="width:52px">유형</th><th class="L" style="width:88px">코드</th>
+        <th class="L" style="width:128px">프로젝트명</th>
+        <th class="HL">총매출액 ★</th><th class="HLb">직접인건비 ★</th><th class="HLg">외주비 ★</th>
+        <th class="HL">직접경비 ★</th><th class="HLr">상품원가 ★</th>
+        <th>매출원가계</th><th>매출총이익</th><th class="HL">공통제경비 ★</th>
+        <th>영업이익</th><th>이익률</th><th style="text-align:center;width:55px">마감</th>
+      </tr></thead>
+      <tbody id="pB2"></tbody>
+      <tfoot id="pF2"></tfoot>
+    </table></div>
+  </div>
+
+  <!-- 손익계산서 + 기여도 -->
+  <div class="g2">
+    <div class="gc">
+      <div class="gc-hd"><h3>💹 손익계산서 (법정서식) — 2024년 누계</h3></div>
+      <div style="padding:10px 14px" id="isArea"></div>
+    </div>
+    <div class="gc">
+      <div class="gc-hd"><h3>📊 사업부문별 기여도 분석</h3></div>
+      <div class="leg" style="padding:8px 12px 0" id="contribLeg"></div>
+      <div style="position:relative;width:100%;height:270px;padding:8px 12px">
+        <canvas id="contribC" role="img" aria-label="사업부문별 기여도"></canvas>
+      </div>
+    </div>
+  </div>
+
   <!-- 영업 파이프라인 -->
   <div class="gc">
     <div class="gc-hd">
@@ -477,41 +512,6 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <td id="pipeWt" style="color:var(--amber);font-weight:700">0</td>
         <td colspan="3"></td><td id="pipeInc" class="pos">0</td><td></td>
       </tr></tfoot>
-    </table></div>
-  </div>
-
-  <!-- 손익계산서 + 기여도 -->
-  <div class="g2">
-    <div class="gc">
-      <div class="gc-hd"><h3>💹 손익계산서 (법정서식) — 2024년 누계</h3></div>
-      <div style="padding:10px 14px" id="isArea"></div>
-    </div>
-    <div class="gc">
-      <div class="gc-hd"><h3>📊 사업부문별 기여도 분석</h3></div>
-      <div class="leg" style="padding:8px 12px 0" id="contribLeg"></div>
-      <div style="position:relative;width:100%;height:270px;padding:8px 12px">
-        <canvas id="contribC" role="img" aria-label="사업부문별 기여도"></canvas>
-      </div>
-    </div>
-  </div>
-
-  <!-- 실적 원장 -->
-  <div class="gc">
-    <div class="gc-hd">
-      <h3>📋 프로젝트별 실적 원장 <span class="gc-sub">— ★ 칼럼 직접 수정 → 손익계산서·대시보드 자동 반영</span></h3>
-      <div id="pfT2" style="display:flex;gap:4px"></div>
-    </div>
-    <div class="tw"><table>
-      <thead><tr>
-        <th class="L" style="width:52px">유형</th><th class="L" style="width:88px">코드</th>
-        <th class="L" style="width:128px">프로젝트명</th>
-        <th class="HL">총매출액 ★</th><th class="HLb">직접인건비 ★</th><th class="HLg">외주비 ★</th>
-        <th class="HL">직접경비 ★</th><th class="HLr">상품원가 ★</th>
-        <th>매출원가계</th><th>매출총이익</th><th class="HL">공통제경비 ★</th>
-        <th>영업이익</th><th>이익률</th><th style="text-align:center;width:55px">마감</th>
-      </tr></thead>
-      <tbody id="pB2"></tbody>
-      <tfoot id="pF2"></tfoot>
     </table></div>
   </div>
 
@@ -2054,9 +2054,8 @@ function mmDefs(t,row){
     {k:'유형',label:'유형 (자동)',ro:1},
     {k:'항목',label:'항목명(품명)',req:1},
     {k:'소속',label:'소속구분',type:'select',options:()=>['내부','외부'].map(s=>({v:s,l:s}))},
-    {k:'사번',label:'성명 (사번 선택)',type:'select',onchange:'mmBgtMem(this)',
+    {k:'사번',label:'성명 (사번 선택)',type:'select',
       options:()=>[{v:'',l:'— 선택 —'}].concat(mems.map(m=>({v:m.사번,l:`${m.성명}(${m.사번})`})))},
-    {k:'직급',label:'직급/등급 (자동)'},
     {k:'공수',label:'공수(M/M)',type:'number',step:'0.1',oninput:'mmBgtCalc()'},
     {k:'수량',label:'수량',type:'number',oninput:'mmBgtCalc()'},
     {k:'실행단가',label:'실행단가(원)',type:'number',oninput:'mmBgtCalc()'},
@@ -2129,11 +2128,6 @@ function mmBgtPrj(sel){
   const p=prjs.find(x=>x.코드===sel.value);
   mmSet('유형',p?.유형||'SI');
 }
-/* 예산: 사번 선택 → 직급 자동 */
-function mmBgtMem(sel){
-  const m=mems.find(x=>x.사번===sel.value);
-  if(m)mmSet('직급',m.직급||'');
-}
 /* 예산: 계약단가/총계약금액 실시간 계산 */
 function mmBgtCalc(){
   const unit=Math.round(pn(mmVal('실행단가'))*(1+pn(mmVal('마진율'))/100));
@@ -2182,11 +2176,12 @@ function saveEntryModal(){
     const empNo=mmVal('사번');
     const mem=mems.find(m=>m.사번===empNo);
     const memName=mem?mem.성명:(isNew?'':(bgtRows[mmIdx]?.성명||''));
+    const memGrade=mem?(mem.직급||''):(isNew?'':(bgtRows[mmIdx]?.직급||''));
     const unit=Math.round(pn(mmVal('실행단가'))*(1+pn(mmVal('마진율'))/100));
     const tot=Math.round(unit*(pn(mmVal('공수'))||1)*(pn(mmVal('수량'))||1));
     const row=isNew?{}:bgtRows[mmIdx];
     Object.assign(row,{코드:code,유형:mmVal('유형'),항목:item,소속:mmVal('소속'),사번:empNo,성명:memName,
-      직급:mmVal('직급'),공수:pn(mmVal('공수')),수량:pn(mmVal('수량')),실행단가:pn(mmVal('실행단가')),
+      직급:memGrade,공수:pn(mmVal('공수')),수량:pn(mmVal('수량')),실행단가:pn(mmVal('실행단가')),
       마진율:pn(mmVal('마진율')),계약단가:unit,총계약금액:tot,상태:mmVal('상태')});
     if(isNew)bgtRows.push(row);
     rBgtTable();

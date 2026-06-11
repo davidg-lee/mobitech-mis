@@ -883,7 +883,7 @@ function rPnLTbl(bodyId,footId,tabsId,filt,onFilt){
         <button class="btn ${lk?'btn-p':'btn-d'}" style="font-size:9px;padding:2px 6px" onclick="togP('${p.코드}')">${lk?'🔓':'🔒'}</button>
       </td>
     </tr>`;
-  }).join('');
+  }).join('')||noDataRow();
   const sR=vis.reduce((s,p)=>s+p.매출,0),sD=vis.reduce((s,p)=>s+cP(p).dir,0);
   const sG=vis.reduce((s,p)=>s+cP(p).gross,0),sSGA=vis.reduce((s,p)=>s+p.공통제경비,0);
   const sO=vis.reduce((s,p)=>s+cP(p).op,0),sRt=sR>0?(sO/sR)*100:0;
@@ -918,7 +918,7 @@ function rCoTable(){
     <td class="L">${c.담당자명}</td><td class="L M" style="font-size:10px">${c.담당자이메일}</td>
     <td class="L M" style="font-size:10px">${c.최초등록일}</td>
     <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('co',${i})">수정</button></td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
 }
 function rPrjTable(){
   const b=document.getElementById('prjBody');if(!b)return;
@@ -934,7 +934,7 @@ function rPrjTable(){
     <td style="text-align:center"><span class="badge ${p.상태==='진행중'?'bwn':'bok'}">${p.상태}</span></td>
     <td class="L M" style="font-size:10px">${p.등록}</td>
     <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('prj',${i})">수정</button></td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
 }
 function updBgtPrjSel(){
   const sel=document.getElementById('bgtPrjSel');if(!sel)return;
@@ -967,7 +967,7 @@ function rBgtTable(){
       <td class="acc" style="font-weight:700">${fmt(b.총계약금액)}</td>
       <td style="text-align:center"><span class="badge ${b.상태==='확정'?'bok':'bwn'}">${b.상태}</span></td>
     </tr>`;
-  }).join('');
+  }).join('')||noDataRow();
   document.getElementById('bgtTot').textContent=fmt(vis.reduce((s,b)=>s+b.총계약금액,0));
 }
 function calcBgt(i){const b=bgtRows[i];b.계약단가=Math.round(b.실행단가*(1+b.마진율/100));b.총계약금액=Math.round(b.계약단가*(b.공수||1)*b.수량);}
@@ -985,7 +985,7 @@ function rMemTable(){
     <td class="L M" style="font-size:10px">${m.이메일}</td>
     <td style="text-align:center"><span class="badge ${m.상태==='근무중'?'bok':'ber'}">${m.상태}</span></td>
     <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('mem',${i})">수정</button></td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
 }
 function rSalTable(){
   const b=document.getElementById('salBody');if(!b)return;
@@ -999,7 +999,7 @@ function rSalTable(){
     <td class="acc" style="font-weight:700">${fmt(s.월간총원가)}</td>
     <td class="M">${fmt(s.퇴직충당금)}</td>
     <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px">완료</button></td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
   document.getElementById('salAnn').textContent=fmt(sals.reduce((s,x)=>s+x.연봉,0));
   document.getElementById('salIns').textContent=fmt(sals.reduce((s,x)=>s+x.사대보험,0));
   document.getElementById('salTot').textContent=fmt(sals.reduce((s,x)=>s+x.월간총원가,0));
@@ -1015,7 +1015,7 @@ function rTsTable(){
     return`<tr>
       <td class="L M" style="font-size:10px">${t.년월}</td>
       <td class="L"><select class="ec" style="width:88px" onchange="tsRows[${i}].코드=this.value">
-        ${prjs.map(p=>`<option value="${p.코드}" ${t.코드===p.코드?'selected':''}>${p.코드}</option>`).join('')}
+        ${prjs.map(p=>`<option value="${p.코드}" ${t.코드===p.코드?'selected':''}>${p.코드}</option>`).join('')||noDataRow()}
       </select></td>
       <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${t.사번}</td>
       <td class="L" style="font-weight:700">${t.성명}</td>
@@ -1064,7 +1064,7 @@ function rPipeTable(){
       <td><input class="ec" value="${fmt(p.수주액)}" onfocus="this.value=String(this.value).replace(/,/g,'')"
         onblur="pipeRows[${ri}].수주액=pn(this.value);rPnL();rDash()" onkeydown="if(event.key==='Enter')this.blur()" style="width:90px"></td>
       <td class="L"><select class="ec" style="width:90px" onchange="pipeRows[${ri}].단계=this.value;rPnL();rDash()">
-        ${Object.keys(STAGES).map(s=>`<option value="${s}" ${p.단계===s?'selected':''}>${s}</option>`).join('')}
+        ${Object.keys(STAGES).map(s=>`<option value="${s}" ${p.단계===s?'selected':''}>${s}</option>`).join('')||noDataRow()}
       </select></td>
       <td style="color:${sc[p.단계]||'var(--mu)'};font-weight:700">${STAGES[p.단계]||30}%</td>
       <td style="color:var(--amber);font-weight:700">${fmt(wt)}</td>
@@ -1174,7 +1174,7 @@ function rSalesTable(){
     <td class="L"><span class="badge b${prjs.find(p=>p.코드===r.코드)?.유형||'SI'}">${r.코드}</span></td>
     <td class="L"><span class="badge ${r.수금==='완료'?'bok':'ber'}">${r.수금}</span></td>
     <td class="L M" style="font-size:10px">${r.입금예정}</td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
   const sup=sRows.reduce((s,r)=>s+r.공급가액,0),vat=sRows.reduce((s,r)=>s+r.세액,0);
   document.getElementById('sCnt').textContent=sRows.length;
   document.getElementById('sSup').textContent=fmt(sup);
@@ -1197,7 +1197,7 @@ function rPurTable(){
     <td class="L"><span class="badge bSV" style="font-size:9px">${r.계정}</span></td>
     <td class="L M" style="font-size:10px">${r.코드}</td>
     <td class="L M" style="font-size:10px">${r.배부}</td>
-  </tr>`).join('');
+  </tr>`).join('')||noDataRow();
   const sup=pRows.reduce((s,r)=>s+r.공급가액,0),vat=pRows.reduce((s,r)=>s+r.세액,0),nd=pRows.reduce((s,r)=>s+r.불공제,0);
   document.getElementById('pCnt').textContent=pRows.length;
   document.getElementById('pSup').textContent=fmt(sup);
@@ -1221,7 +1221,7 @@ function rBank(){
     <td class="M">${fmt(r.잔액)}</td>
     <td class="L">${r.거래처}</td>
     <td class="L"><select class="ec" style="width:80px" onchange="bkRows[${i}].분류=this.value">
-      ${['차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'].map(v=>`<option ${r.분류===v?'selected':''}>${v}</option>`).join('')}
+      ${['차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'].map(v=>`<option ${r.분류===v?'selected':''}>${v}</option>`).join('')||noDataRow()}
     </select></td>
     <td class="L"><select class="ec" style="width:90px" onchange="bkRows[${i}].계정=this.value">
       ${ACCTS_BK.map(v=>`<option ${r.계정===v?'selected':''}>${v}</option>`).join('')}
@@ -1258,7 +1258,7 @@ function rCard(){
       onblur="cdRows[${i}].금액=pn(this.value);cdRows[${i}].부가세=Math.round(pn(this.value)/11);rCard()" onkeydown="if(event.key==='Enter')this.blur()" style="width:85px"></td>
     <td class="M" style="font-size:10px">${fmt(r.부가세)}</td>
     <td class="L"><select class="ec" style="width:75px" onchange="cdRows[${i}].카드=this.value">
-      ${CARDS.map(v=>`<option ${r.카드===v?'selected':''}>${v}</option>`).join('')}
+      ${CARDS.map(v=>`<option ${r.카드===v?'selected':''}>${v}</option>`).join('')||noDataRow()}
     </select></td>
     <td class="L"><select class="ec" style="width:88px" onchange="cdRows[${i}].계정=this.value">
       ${ACCTS_CD.map(v=>`<option ${r.계정===v?'selected':''}>${v}</option>`).join('')}
@@ -1391,6 +1391,11 @@ function showDbStatus(connected) {
     el.title = 'SUPABASE_URL/KEY를 설정하면 DB에 영구 저장됩니다';
   }
   document.body.appendChild(el);
+}
+
+/* ── 빈 테이블 안내 행 ── */
+function noDataRow(){
+  return `<tr><td class="L" colspan="99" style="text-align:center;color:var(--hint);padding:16px 0;font-size:11px;font-family:'Noto Sans KR',sans-serif">데이터가 없습니다</td></tr>`;
 }
 
 /* ── 저장 피드백 토스트 ── */

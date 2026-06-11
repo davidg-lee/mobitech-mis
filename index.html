@@ -368,6 +368,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
       </div>
       <div class="arow" style="margin-bottom:8px">
         <button class="btn btn-p" onclick="openEntryModal('mem')">+ 직접입력</button>
+        <button class="btn btn-excel" onclick="importExcel('mem')">📥 엑셀 불러오기</button>
+        <button class="btn btn-g" onclick="downloadForm('mem')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('memBody','mems','rMaster')">− 선택삭제</button>
       </div>
       <div class="tw"><table>
@@ -1090,8 +1092,14 @@ function setSF(s,btn){
 function addPipe(){pipeRows.push({명:'신규 가망',고객사:'',유형:'SI',수주액:0,단계:'첩보',착수:today(),담당:'',마진율:15});rPnL();rDash();}
 function delChkPipe(){
   const cbs=document.querySelectorAll('#pipeBody input[type=checkbox]:checked');
-  Array.from(cbs).map(c=>parseInt(c.dataset.i)).sort((a,b)=>b-a).forEach(i=>pipeRows.splice(i,1));
-  rPnL();rDash();
+  if(!cbs.length){toast('삭제할 항목을 먼저 선택하세요','err');return;}
+  openConfirmModal(`선택한 <b>${cbs.length}건</b>을 삭제하시겠습니까?<br><span class="cf-sub">삭제된 데이터는 복구할 수 없습니다.</span>`,()=>{
+    const cbs2=document.querySelectorAll('#pipeBody input[type=checkbox]:checked');
+    const idxs=Array.from(cbs2).map(c=>parseInt(c.dataset.i)).sort((a,b)=>b-a);
+    idxs.forEach(i=>pipeRows.splice(i,1));
+    rPnL();rDash();
+    if(idxs.length)toast(`🗑 ${idxs.length}건 삭제됨`);
+  });
 }
 function rIS(){
   const tot=pnlData.reduce((s,p)=>s+p.매출,0);
@@ -1953,24 +1961,28 @@ function addCardRow() {
   saveCardRow_db(cdRows.length - 1);
 }
 
-/* ── delChk 오버라이드: DB 삭제 포함 ── */
+/* ── delChk 오버라이드: DB 삭제 포함 + 확인 모달 ── */
 function delChk(tbId, arrName, renderFn) {
-  const arr = eval(arrName);
-  const TABLE_MAP = {
-    coBody:'company_master', prjBody:'project_master',
-    bgtBody:'budget_plan', memBody:'member_master',
-    sTbody:'sales_revenue', pTbody:'purchase_invoice',
-    bkTbody:'bank_transaction', cdTbody:'corporate_card'
-  };
-  const tableName = TABLE_MAP[tbId];
   const cbs = document.querySelectorAll(`#${tbId} input[type=checkbox]:checked`);
-  const idxs = Array.from(cbs).map(c => parseInt(c.dataset.i)).sort((a,b) => b-a);
-  idxs.forEach(i => {
-    if (tableName && arr[i]?._id) dbDelete(tableName, arr[i]._id);
-    arr.splice(i, 1);
+  if (!cbs.length) { toast('삭제할 항목을 먼저 선택하세요', 'err'); return; }
+  openConfirmModal(`선택한 <b>${cbs.length}건</b>을 삭제하시겠습니까?<br><span class="cf-sub">삭제된 데이터는 복구할 수 없습니다.</span>`, () => {
+    const arr = eval(arrName);
+    const TABLE_MAP = {
+      coBody:'company_master', prjBody:'project_master',
+      bgtBody:'budget_plan', memBody:'member_master',
+      sTbody:'sales_revenue', pTbody:'purchase_invoice',
+      bkTbody:'bank_transaction', cdTbody:'corporate_card'
+    };
+    const tableName = TABLE_MAP[tbId];
+    const cbs2 = document.querySelectorAll(`#${tbId} input[type=checkbox]:checked`);
+    const idxs = Array.from(cbs2).map(c => parseInt(c.dataset.i)).sort((a,b) => b-a);
+    idxs.forEach(i => {
+      if (tableName && arr[i]?._id) dbDelete(tableName, arr[i]._id);
+      arr.splice(i, 1);
+    });
+    eval(renderFn + '()');
+    if (idxs.length) toast(`🗑 ${idxs.length}건 삭제됨`);
   });
-  eval(renderFn + '()');
-  if (idxs.length) toast(`🗑 ${idxs.length}건 삭제됨`);
 }
 
 /* ── calcBgt 오버라이드: 저장 포함 ── */
@@ -2204,6 +2216,11 @@ const XL_DEFS={
     name:'예산계획',
     cols:['프로젝트코드','항목명','소속구분','성명','직급','공수','수량','실행단가','마진율','상태'],
     req:['프로젝트코드','항목명']
+  },
+  mem:{
+    name:'임직원마스터',
+    cols:['성명','구분','직급','입사일','퇴사일','연락처','개인이메일','상태'],
+    req:['성명']
   }
 };
 
@@ -2214,7 +2231,7 @@ function downloadForm(t){
   ws['!cols']=d.cols.map(c=>({wch:Math.max(c.length*2+4,14)}));
   const wb=XLSX.utils.book_new();
   XLSX.utils.book_append_sheet(wb,ws,d.name);
-  const ws2=XLSX.utils.aoa_to_sheet([['※ 1행(제목줄) 아래부터 데이터를 작성하세요.'],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
+  const ws2=XLSX.utils.aoa_to_sheet([['※ 1행(제목줄) 아래부터 데이터를 작성하세요.'],['유형 코드: SI(시스템구축) SM(유지보수) SV(컨설팅/서비스) SOL(솔루션판매) CT(기술지원계약) MT(장비/자재공급)'],['임직원 구분: 임직원 / 협력사 / 프리랜서 · 상태: 근무중 / 휴직 / 퇴사 (사번은 자동생성됩니다)'],['날짜는 YYYY-MM-DD 형식으로 입력하세요.']]);
   XLSX.utils.book_append_sheet(wb,ws2,'작성안내');
   XLSX.writeFile(wb,`${d.name}_업로드폼.xlsx`);
   toast('📋 업로드 폼 다운로드 완료');
@@ -2285,6 +2302,14 @@ function xlParse(input){
       if(xlType==='bgt'){
         if(prjs.length&&!prjs.some(p=>p.코드===row.프로젝트코드)){
           errors.push(`${i+2}행: 프로젝트코드 "${row.프로젝트코드}" 미등록 — 제외됨`);return;
+        }
+      }
+      if(xlType==='mem'){
+        const CATS=['임직원','협력사','프리랜서'], STS=['근무중','휴직','퇴사'];
+        if(row.구분&&!CATS.includes(row.구분)){errors.push(`${i+2}행: 구분 "${row.구분}" 은 ${CATS.join('/')} 중 하나여야 함`);return;}
+        if(row.상태&&!STS.includes(row.상태)){errors.push(`${i+2}행: 상태 "${row.상태}" 은 ${STS.join('/')} 중 하나여야 함`);return;}
+        if(mems.some(m=>m.성명===row.성명&&m.연락처===row.연락처&&row.연락처)||xlRows.some(x=>x.성명===row.성명&&x.연락처===row.연락처&&row.연락처)){
+          errors.push(`${i+2}행: ${row.성명}(${row.연락처}) 중복 — 제외됨`);return;
         }
       }
       xlRows.push(row);
@@ -2369,6 +2394,22 @@ async function xlConfirm(){
           quantity:b.수량,exec_unit_price:b.실행단가,margin_rate:b.마진율,item_status:b.상태};
       }),
       (data)=>data.forEach((d,i)=>{if(bgtRows[startIdx+i])bgtRows[startIdx+i]._id=d.id;}));
+  }
+  else if(t==='mem'){
+    const startIdx=mems.length;
+    const mo=String(new Date().getMonth()+1).padStart(2,'0');
+    rows.forEach((r,i)=>{
+      mems.push({사번:`${yr}-${mo}-${String(startIdx+i+1).padStart(3,'0')}`,
+        성명:r.성명,구분:r.구분||'임직원',직급:r.직급||'',
+        입사:r.입사일||today(),퇴사:r.퇴사일||'',연락처:String(r.연락처||''),
+        이메일:r.개인이메일||'',상태:r.상태||'근무중'});
+    });
+    rMemTable();
+    await xlBulkInsert('member_master',
+      mems.slice(startIdx).map(m=>({emp_no:m.사번,full_name:m.성명,member_cat:m.구분,
+        grade:m.직급||null,join_date:m.입사||null,resign_date:m.퇴사||null,
+        phone:m.연락처||null,personal_email:m.이메일||null,emp_status:m.상태})),
+      (data)=>data.forEach((d,i)=>{if(mems[startIdx+i])mems[startIdx+i]._id=d.id;}));
   }
 
   document.getElementById('xlConfirmBtn').disabled=false;
@@ -2483,6 +2524,52 @@ initApp();
     </div>
   </div>
 </div>
+<!-- ══ 삭제 확인 모달 ══ -->
+<style>
+.cf-box{max-width:380px;border-color:rgba(239,68,68,0.35)}
+.cf-hd h3{color:var(--tx)}
+.cf-hd h3 span{color:var(--red)}
+.cf-body{padding:20px 18px;font-size:12.5px;line-height:1.7;color:var(--tx);text-align:center}
+.cf-body b{color:var(--red);font-family:'JetBrains Mono',monospace}
+.cf-sub{display:inline-block;margin-top:4px;font-size:10.5px;color:var(--mu)}
+.cf-ic{width:42px;height:42px;border-radius:50%;margin:0 auto 12px;display:flex;align-items:center;justify-content:center;
+  font-size:20px;background:rgba(239,68,68,0.12);border:1px solid rgba(239,68,68,0.35)}
+.mm-btn.d{background:linear-gradient(135deg,#EF4444,#DC2626);color:#fff;border:none}
+.mm-btn.d:hover{filter:brightness(1.12)}
+</style>
+<div class="mm-ov" id="cfOverlay" onclick="if(event.target===this)closeConfirmModal()">
+  <div class="mm-box cf-box">
+    <div class="mm-hd cf-hd"><h3><span>⚠</span> 삭제 확인</h3><button class="mm-x" onclick="closeConfirmModal()">✕</button></div>
+    <div class="cf-body">
+      <div class="cf-ic">🗑</div>
+      <div id="cfMsg"></div>
+    </div>
+    <div class="mm-ft">
+      <button class="mm-btn c" onclick="closeConfirmModal()">취소</button>
+      <button class="mm-btn d" id="cfOkBtn">삭제</button>
+    </div>
+  </div>
+</div>
+<script>
+let cfCallback=null;
+function openConfirmModal(msgHtml,onConfirm){
+  cfCallback=onConfirm;
+  document.getElementById('cfMsg').innerHTML=msgHtml;
+  document.getElementById('cfOverlay').classList.add('on');
+}
+function closeConfirmModal(){
+  cfCallback=null;
+  document.getElementById('cfOverlay').classList.remove('on');
+}
+document.getElementById('cfOkBtn').addEventListener('click',()=>{
+  const cb=cfCallback;
+  closeConfirmModal();
+  if(typeof cb==='function')cb();
+});
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('cfOverlay').classList.contains('on'))closeConfirmModal();
+});
+</script>
 
 </body>
 </html>

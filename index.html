@@ -1966,10 +1966,44 @@ function addCardRow() {
   saveCardRow_db(cdRows.length - 1);
 }
 
-/* ── delChk 오버라이드: DB 삭제 포함 + 확인 모달 ── */
+/* ── delChk 오버라이드: DB 삭제 포함 + 확인 모달 + 부모-자식 삭제 보호 ── */
+/* 자식 존재 검사: 자식이 있으면 차단 사유 문자열 반환, 없으면 null */
+const CHILD_CHECK = {
+  // company_master(부모) ← project_master(자식) : 프로젝트의 사번 필드 = 고객사 사업자번호
+  coBody: c => prjs.some(p => (c.사업자번호 && p.사번 === c.사업자번호) || (c.업체명 && p.업체명 === c.업체명))
+    ? '하위 프로젝트가 있습니다' : null,
+  // project_master(부모) ← budget_plan(자식)
+  prjBody: p => bgtRows.some(b => b.코드 === p.코드)
+    ? '하위 예산계획이 있습니다' : null,
+  // member_master(부모) ← budget_plan(자식)
+  memBody: m => bgtRows.some(b => b.사번 === m.사번)
+    ? '예산계획에서 사용 중입니다' : null
+};
+const CHILD_NAME_FIELD = { coBody:'업체명', prjBody:'명', memBody:'성명' };
+
 function delChk(tbId, arrName, renderFn) {
   const cbs = document.querySelectorAll(`#${tbId} input[type=checkbox]:checked`);
   if (!cbs.length) { toast('삭제할 항목을 먼저 선택하세요', 'err'); return; }
+
+  // 부모-자식 보호: 선택 항목 중 자식이 있는 행이 하나라도 있으면 전체 차단
+  const checker = CHILD_CHECK[tbId];
+  if (checker) {
+    const arr0 = eval(arrName);
+    const nameF = CHILD_NAME_FIELD[tbId];
+    const blocked = [];
+    cbs.forEach(c => {
+      const row = arr0[parseInt(c.dataset.i)];
+      if (!row) return;
+      const reason = checker(row);
+      if (reason) blocked.push(`'${row[nameF] || '(이름없음)'}' — ${reason}`);
+    });
+    if (blocked.length) {
+      const more = blocked.length > 3 ? ` 외 ${blocked.length - 3}건` : '';
+      toast(`삭제 불가: ${blocked.slice(0, 3).join(', ')}${more}. 하위 데이터를 먼저 삭제하세요`, 'err');
+      return;
+    }
+  }
+
   openConfirmModal(`선택한 <b>${cbs.length}건</b>을 삭제하시겠습니까?<br><span class="cf-sub">삭제된 데이터는 복구할 수 없습니다.</span>`, () => {
     const arr = eval(arrName);
     const TABLE_MAP = {

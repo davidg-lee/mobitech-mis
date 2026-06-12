@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8"/>
 <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-<title>(주)모비텍 중앙 경영관리 시스템 Final</title>
+<title>(주)모비텍 중앙 경영관리 시스템</title>
 <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+KR:wght@400;500;700;900&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet"/>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
@@ -18,7 +18,7 @@
   --card:rgba(17,32,64,0.92);
 }
 *{box-sizing:border-box;margin:0;padding:0}
-body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;
+body{font-family:'Noto Sans KR',sans-serif;background:var(--bg);color:var(--tx);min-height:100vh;overflow-x:hidden;
   background-image:radial-gradient(ellipse at 8% 12%,rgba(0,212,255,0.05) 0%,transparent 45%),
   radial-gradient(ellipse at 92% 88%,rgba(59,130,246,0.05) 0%,transparent 45%),
   repeating-linear-gradient(0deg,transparent,transparent 60px,rgba(255,255,255,.008) 60px,rgba(255,255,255,.008) 61px),
@@ -32,7 +32,8 @@ header{background:rgba(11,22,40,0.98);border-bottom:1px solid rgba(0,212,255,0.1
 .brand{font-size:13px;font-weight:900;letter-spacing:-0.02em;white-space:nowrap}
 .brand span{color:var(--acc)}
 .brand-sub{font-size:9px;color:var(--mu);margin-top:1px;letter-spacing:0.05em}
-nav{display:flex;align-items:stretch;margin-left:16px;height:100%;overflow-x:auto}
+nav{display:flex;align-items:stretch;margin-left:16px;height:100%;overflow-x:auto;scrollbar-width:none;-ms-overflow-style:none}
+nav::-webkit-scrollbar{display:none}
 .nb{height:100%;padding:0 13px;font-size:11px;font-weight:700;background:transparent;
   border:none;border-bottom:2px solid transparent;color:var(--mu);cursor:pointer;white-space:nowrap;
   font-family:'Noto Sans KR',sans-serif;transition:color .15s,border-color .15s}
@@ -194,8 +195,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
 <header>
   <div class="logo">⬡</div>
   <div>
-    <div class="brand"><span>(주)모비텍</span> 중앙 경영관리 시스템 <span style="font-size:10px;color:var(--mu);font-weight:400">Final</span></div>
-    <div class="brand-sub">국세청 증빙기준 · 6대 사업유형별 원가 자동계산 · 2024 회계연도</div>
+    <div class="brand"><span>(주)모비텍</span> 중앙 경영관리 시스템</div>
+    <div class="brand-sub">국세청 증빙기준 · 6대 사업유형별 원가 자동계산<br>2024 회계연도</div>
   </div>
   <nav>
     <button class="nb on" data-menu="dash"   onclick="gp('dash',this)">📊 경영 대시보드</button>

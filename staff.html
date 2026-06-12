@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>직원관리 — 모비텍 경영관리</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<style>
+:root{--bg:#060B16;--bg2:#0B1424;--card:#0D1830;--br:rgba(255,255,255,0.09);--tx:#E6EEF8;--mu:#7C8DB0;--acc:#00D4FF;--red:#EF4444;--grn:#34D399}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Noto Sans KR','Segoe UI',sans-serif;font-size:12px;padding:18px}
+h2{font-size:15px;margin:0 0 4px}.sub{font-size:10.5px;color:var(--mu);margin-bottom:14px}
+.gc{background:var(--card);border:1px solid var(--br);border-radius:10px;padding:14px;margin-bottom:12px}
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--br);padding:6px 8px;text-align:left}
+td{padding:7px 8px;border-bottom:1px solid var(--br);font-size:11.5px}
+tr:hover td{background:rgba(0,212,255,0.04)}
+.mono{font-family:'JetBrains Mono',monospace}
+.btn{border:1px solid var(--br);background:var(--bg2);color:var(--tx);border-radius:6px;padding:4px 10px;font-size:10.5px;cursor:pointer;font-family:inherit}
+.btn:hover{border-color:var(--acc)}
+.btn-p{background:linear-gradient(135deg,#00D4FF,#0091EA);color:#04121F;border:none;font-weight:700}
+.btn-d{color:var(--red);border-color:rgba(239,68,68,.4)}
+.frm{display:grid;grid-template-columns:repeat(6,1fr) auto;gap:8px;align-items:end}
+.fld label{display:block;font-size:9px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;margin-bottom:4px}
+.fld input,.fld select{width:100%;background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:7px 8px;color:var(--tx);font-size:11.5px;font-family:inherit;outline:none}
+.fld input:focus,.fld select:focus{border-color:var(--acc)}
+.fld input:disabled{opacity:.5}
+.badge{display:inline-block;padding:1px 7px;border-radius:10px;font-size:9.5px;font-weight:700}
+.bA{background:rgba(0,212,255,.15);color:var(--acc)}.bM{background:rgba(52,211,153,.15);color:var(--grn)}.bV{background:rgba(124,141,176,.2);color:var(--mu)}
+.bOff{background:rgba(239,68,68,.15);color:var(--red)}
+#msg{min-height:16px;font-size:11px;margin-top:8px}
+.empty{text-align:center;color:var(--mu);padding:18px 0}
+/* 목록 내부 스크롤 + 헤더 고정 */
+.list-wrap{max-height:380px;overflow-y:auto}
+.list-wrap thead th{position:sticky;top:0;background:var(--card);z-index:1}
+.list-wrap::-webkit-scrollbar{width:8px}
+.list-wrap::-webkit-scrollbar-thumb{background:rgba(0,212,255,0.25);border-radius:4px}
+.list-wrap::-webkit-scrollbar-track{background:transparent}
+/* 필터바 */
+.filter-bar{display:flex;align-items:center;gap:8px;padding:10px 12px;border-bottom:1px solid var(--br)}
+.filter-bar input{flex:0 0 240px;background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:7px 10px;color:var(--tx);font-size:11.5px;font-family:inherit;outline:none}
+.filter-bar input:focus{border-color:var(--acc)}
+.filter-cnt{font-size:10px;color:var(--mu)}
+</style>
+</head>
+<body>
+<h2>👥 직원관리</h2>
+<div class="sub">관리자 계정 생성 · 수정 · 삭제 (admin_member)</div>
+
+<div class="gc">
+  <div class="frm">
+    <div class="fld"><label>아이디</label><input id="fId" placeholder="admin_id"></div>
+    <div class="fld"><label>이름</label><input id="fName" placeholder="이름"></div>
+    <div class="fld"><label>전화번호</label><input id="fPhone" placeholder="010-0000-0000"></div>
+    <div class="fld"><label>역할</label><select id="fRole"></select></div>
+    <div class="fld"><label>비밀번호</label><input id="fPw" type="password" placeholder="신규 필수 / 수정 시 선택"></div>
+    <div class="fld"><label>사용여부</label><select id="fUse"><option value="Y">사용</option><option value="N">중지</option></select></div>
+    <div style="display:flex;gap:6px">
+      <button class="btn btn-p" id="btnSave" onclick="save()">+ 등록</button>
+      <button class="btn" id="btnCancel" onclick="resetForm()" style="display:none">취소</button>
+    </div>
+  </div>
+  <div id="msg"></div>
+</div>
+
+<div class="gc" style="padding:0">
+  <div class="filter-bar">
+    🔍 <input id="fSearch" placeholder="직원명 / 전화번호 검색" oninput="render()">
+    <span class="filter-cnt" id="fCnt"></span>
+  </div>
+  <div class="list-wrap">
+  <table>
+    <thead><tr><th>아이디</th><th>이름</th><th>전화번호</th><th>역할</th><th>사용</th><th>생성일</th><th style="width:110px">관리</th></tr></thead>
+    <tbody id="list"><tr><td colspan="7" class="empty">불러오는 중...</td></tr></tbody>
+  </table>
+  </div>
+</div>
+
+<script>
+/* ── 접근 제어: 로그인 + ADMIN 역할 필수 ── */
+let AUTH=null;
+try{AUTH=JSON.parse(sessionStorage.getItem('mbAuth'));}catch(e){}
+if(!AUTH){alert('로그인이 필요합니다');window.close();location.replace('login.html');}
+else if(AUTH.role_id!=='ADMIN'){alert('시스템 관리자만 사용할 수 있습니다');window.close();}
+
+const sb=sbConfigOk()?supabase.createClient(SUPABASE_URL,SUPABASE_ANON):null;
+let editing=null, roles=[], _rows=[];
+
+async function load(){
+  const tb=document.getElementById('list');
+  if(!sb){tb.innerHTML='<tr><td colspan="7" class="empty">Supabase 미설정 — 로컬 모드에서는 사용할 수 없습니다</td></tr>';return;}
+  const [mq,rq]=await Promise.all([
+    sb.from('admin_member').select('admin_id,admin_name,admin_phone,role_id,use_yn,created_at').order('created_at'),
+    sb.from('role').select('role_id,role_name').order('role_id')
+  ]);
+  if(mq.error){tb.innerHTML='<tr><td colspan="7" class="empty">오류: '+mq.error.message+'</td></tr>';return;}
+  roles=rq.data||[];
+  document.getElementById('fRole').innerHTML=roles.map(r=>`<option value="${r.role_id}">${r.role_name} (${r.role_id})</option>`).join('');
+  _rows=mq.data||[];
+  render();
+}
+
+function render(){
+  const q=(document.getElementById('fSearch').value||'').trim().toLowerCase();
+  const rows=q?_rows.filter(m=>
+    (m.admin_name||'').toLowerCase().includes(q)||
+    (m.admin_phone||'').replace(/-/g,'').includes(q.replace(/-/g,''))
+  ):_rows;
+  document.getElementById('fCnt').textContent=q?`${rows.length} / ${_rows.length}건`:`${_rows.length}건`;
+  document.getElementById('list').innerHTML=rows.map(m=>{
+    const rb=m.role_id==='ADMIN'?'bA':m.role_id==='MANAGER'?'bM':'bV';
+    return `<tr>
+      <td class="mono">${m.admin_id}</td>
+      <td>${m.admin_name}</td>
+      <td class="mono" style="font-size:10.5px">${m.admin_phone||'-'}</td>
+      <td><span class="badge ${rb}">${m.role_id}</span></td>
+      <td>${m.use_yn==='Y'?'사용':'<span class="badge bOff">중지</span>'}</td>
+      <td class="mono" style="font-size:10px;color:var(--mu)">${(m.created_at||'').slice(0,10)}</td>
+      <td><button class="btn" onclick="edit('${m.admin_id}')">수정</button>
+      <button class="btn btn-d" onclick="del('${m.admin_id}')">삭제</button></td>
+    </tr>`;
+  }).join('')||`<tr><td colspan="7" class="empty">${q?'검색 결과가 없습니다':'데이터가 없습니다'}</td></tr>`;
+}
+
+function edit(id){
+  const m=_rows.find(x=>x.admin_id===id);if(!m)return;
+  editing=id;
+  document.getElementById('fId').value=m.admin_id;
+  document.getElementById('fId').disabled=true;
+  document.getElementById('fName').value=m.admin_name;
+  document.getElementById('fPhone').value=m.admin_phone||'';
+  document.getElementById('fRole').value=m.role_id;
+  document.getElementById('fUse').value=m.use_yn;
+  document.getElementById('fPw').value='';
+  document.getElementById('btnSave').textContent='💾 수정 저장';
+  document.getElementById('btnCancel').style.display='';
+  msg('');
+}
+
+function resetForm(){
+  editing=null;
+  ['fId','fName','fPhone','fPw'].forEach(i=>document.getElementById(i).value='');
+  document.getElementById('fId').disabled=false;
+  document.getElementById('fUse').value='Y';
+  document.getElementById('btnSave').textContent='+ 등록';
+  document.getElementById('btnCancel').style.display='none';
+  msg('');
+}
+
+async function save(){
+  const id=document.getElementById('fId').value.trim();
+  const name=document.getElementById('fName').value.trim();
+  const phone=document.getElementById('fPhone').value.trim();
+  const role=document.getElementById('fRole').value;
+  const pw=document.getElementById('fPw').value;
+  const use=document.getElementById('fUse').value;
+  if(!id||!name)return msg('아이디와 이름을 입력하세요',1);
+  if(!editing&&pw.length<4)return msg('신규 등록 시 비밀번호(4자 이상)는 필수입니다',1);
+  if(pw&&pw.length<4)return msg('비밀번호는 4자 이상이어야 합니다',1);
+  let error;
+  if(editing){
+    const upd={admin_name:name,admin_phone:phone||null,role_id:role,use_yn:use};
+    if(pw)upd.admin_pw=pw; // 평문 → DB 트리거가 자동 해시
+    ({error}=await sb.from('admin_member').update(upd).eq('admin_id',editing));
+  }else{
+    const {data:dup}=await sb.from('admin_member').select('admin_id').eq('admin_id',id).maybeSingle();
+    if(dup)return msg('이미 존재하는 아이디입니다',1);
+    ({error}=await sb.from('admin_member').insert({admin_id:id,admin_pw:pw,admin_name:name,admin_phone:phone||null,role_id:role,use_yn:use}));
+  }
+  if(error)return msg('오류: '+error.message,1);
+  msg(editing?'수정되었습니다':'등록되었습니다');
+  resetForm();load();
+}
+
+async function del(id){
+  if(id===AUTH.admin_id)return msg('본인 계정은 삭제할 수 없습니다',1);
+  if(!confirm(id+' 계정을 삭제하시겠습니까?'))return;
+  const {error}=await sb.from('admin_member').delete().eq('admin_id',id);
+  if(error)return msg('오류: '+error.message,1);
+  msg('삭제되었습니다');load();
+}
+
+function msg(t,isErr){const m=document.getElementById('msg');m.textContent=t;m.style.color=isErr?'var(--red)':'var(--grn)';}
+load();
+</script>
+</body>
+</html>

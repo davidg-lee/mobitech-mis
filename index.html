@@ -2823,8 +2823,12 @@ function openStaffWindow(){
   if(!DB_MODE||!sb){toast('로컬 모드에서는 사용할 수 없습니다','err');return;}
   const w=window.open('','staffMgmt','width=860,height=640');
   if(!w){toast('팝업이 차단되었습니다. 팝업 허용 후 다시 시도하세요','err');return;}
+  w._sb=sb;                 // let 변수는 window 에 안 붙으므로 직접 전달
+  w._me=AUTH.admin_id;      // 본인 계정 삭제 방지용
+  w.document.open();
   w.document.write(buildStaffPage());
   w.document.close();
+  w.focus();
 }
 
 function buildStaffPage(){
@@ -2881,7 +2885,9 @@ tr:hover td{background:rgba(0,212,255,0.04)}
 </div>
 
 <script>
-const sb=window.opener.sb;
+(function(){
+const sb=window._sb;
+if(!sb){document.getElementById('list').innerHTML='<tr><td colspan="6" class="empty">DB 연결을 찾을 수 없습니다. 창을 닫고 다시 열어주세요.</td></tr>';return;}
 let editing=null, roles=[];
 
 async function load(){
@@ -2958,7 +2964,7 @@ async function save(){
 }
 
 async function del(id){
-  if(id===window.opener.AUTH.admin_id)return msg('본인 계정은 삭제할 수 없습니다',1);
+  if(id===window._me)return msg('본인 계정은 삭제할 수 없습니다',1);
   if(!confirm(id+' 계정을 삭제하시겠습니까?'))return;
   const {error}=await sb.from('admin_member').delete().eq('admin_id',id);
   if(error)return msg('오류: '+error.message,1);
@@ -2966,7 +2972,11 @@ async function del(id){
 }
 
 function msg(t,isErr){const m=document.getElementById('msg');m.textContent=t;m.style.color=isErr?'var(--red)':'var(--grn)';}
+
+// onclick 속성에서 호출할 수 있게 전역 노출
+window.edit=edit;window.del=del;window.save=save;window.resetForm=resetForm;
 load();
+})();
 <\/script>
 </body></html>`;
 }

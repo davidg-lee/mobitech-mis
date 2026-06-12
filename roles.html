@@ -1,0 +1,172 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<title>권한관리 — 모비텍 경영관리</title>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="js/config.js"></script>
+<style>
+:root{--bg:#060B16;--bg2:#0B1424;--card:#0D1830;--br:rgba(255,255,255,0.09);--tx:#E6EEF8;--mu:#7C8DB0;--acc:#00D4FF;--red:#EF4444;--grn:#34D399}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--tx);font-family:'Noto Sans KR','Segoe UI',sans-serif;font-size:12px;padding:18px}
+h2{font-size:15px;margin:0 0 4px}.sub{font-size:10.5px;color:var(--mu);margin-bottom:14px}
+.wrap{display:grid;grid-template-columns:260px 1fr;gap:12px;align-items:start}
+.gc{background:var(--card);border:1px solid var(--br);border-radius:10px;overflow:hidden}
+.gc-hd{padding:10px 13px;border-bottom:1px solid var(--br);font-size:11px;font-weight:800;letter-spacing:.04em}
+.btn{border:1px solid var(--br);background:var(--bg2);color:var(--tx);border-radius:6px;padding:4px 10px;font-size:10.5px;cursor:pointer;font-family:inherit}
+.btn:hover{border-color:var(--acc)}
+.btn-p{background:linear-gradient(135deg,#00D4FF,#0091EA);color:#04121F;border:none;font-weight:700}
+.btn-d{color:var(--red);border-color:rgba(239,68,68,.4)}
+/* 왼쪽: 역할 목록 */
+.role-item{display:flex;align-items:center;justify-content:space-between;gap:6px;padding:10px 13px;cursor:pointer;border-bottom:1px solid var(--br)}
+.role-item:hover{background:rgba(0,212,255,0.05)}
+.role-item.on{background:rgba(0,212,255,0.12);border-left:3px solid var(--acc);padding-left:10px}
+.ri-id{font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--acc)}
+.ri-name{font-weight:700}
+.role-add{padding:10px 13px;display:grid;grid-template-columns:1fr 1fr auto;gap:6px}
+.role-add input{background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:6px 8px;color:var(--tx);font-size:11px;font-family:inherit;outline:none}
+.role-add input:focus{border-color:var(--acc)}
+/* 오른쪽: 메뉴 권한 */
+table{width:100%;border-collapse:collapse}
+th{font-size:9.5px;color:var(--mu);text-transform:uppercase;letter-spacing:.06em;border-bottom:1px solid var(--br);padding:8px;text-align:left}
+th.c,td.c{text-align:center}
+td{padding:9px 8px;border-bottom:1px solid var(--br);font-size:11.5px}
+tr:hover td{background:rgba(0,212,255,0.04)}
+input[type=checkbox]{accent-color:var(--acc);width:14px;height:14px;cursor:pointer}
+.ft{display:flex;align-items:center;justify-content:space-between;padding:10px 13px}
+#msg{font-size:11px}
+.empty{text-align:center;color:var(--mu);padding:24px 0}
+.mono{font-family:'JetBrains Mono',monospace}
+</style>
+</head>
+<body>
+<h2>🛡 권한관리</h2>
+<div class="sub">역할(role) · 메뉴(menu) · 역할별 메뉴 권한(role_menu) 설정 — 변경 사항은 사용자의 다음 로그인부터 적용됩니다</div>
+
+<div class="wrap">
+  <!-- 왼쪽: 역할 목록 -->
+  <div class="gc">
+    <div class="gc-hd">역할 (ROLE)</div>
+    <div id="roleList"><div class="empty">불러오는 중...</div></div>
+    <div class="role-add">
+      <input id="nRoleId" placeholder="ROLE_ID" style="text-transform:uppercase">
+      <input id="nRoleName" placeholder="역할명">
+      <button class="btn btn-p" onclick="addRole()">+</button>
+    </div>
+  </div>
+
+  <!-- 오른쪽: 선택 역할의 메뉴 권한 -->
+  <div class="gc">
+    <div class="gc-hd" id="rmTitle">메뉴 권한 — 왼쪽에서 역할을 선택하세요</div>
+    <table>
+      <thead><tr><th>메뉴ID</th><th>메뉴명</th><th class="c" style="width:90px">접근(조회)</th><th class="c" style="width:110px">등록/수정/삭제</th></tr></thead>
+      <tbody id="rmBody"><tr><td colspan="4" class="empty">역할을 선택하면 메뉴 권한이 표시됩니다</td></tr></tbody>
+    </table>
+    <div class="ft">
+      <div id="msg"></div>
+      <button class="btn btn-p" id="btnSave" onclick="saveRm()" style="display:none">💾 권한 저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+/* ── 접근 제어: 로그인 + ADMIN 역할 필수 ── */
+let AUTH=null;
+try{AUTH=JSON.parse(sessionStorage.getItem('mbAuth'));}catch(e){}
+if(!AUTH){alert('로그인이 필요합니다');window.close();location.replace('login.html');}
+else if(AUTH.role_id!=='ADMIN'){alert('시스템 관리자만 사용할 수 있습니다');window.close();}
+
+const sb=sbConfigOk()?supabase.createClient(SUPABASE_URL,SUPABASE_ANON):null;
+let rolesArr=[], menusArr=[], curRole=null, rmMap={};
+
+async function loadAll(){
+  if(!sb){document.getElementById('roleList').innerHTML='<div class="empty">Supabase 미설정 — 로컬 모드에서는 사용할 수 없습니다</div>';return;}
+  const [rq,mq]=await Promise.all([
+    sb.from('role').select('role_id,role_name').order('role_id'),
+    sb.from('menu').select('menu_id,menu_name,sort_no').order('sort_no')
+  ]);
+  if(rq.error||mq.error){
+    document.getElementById('roleList').innerHTML='<div class="empty">오류: '+(rq.error||mq.error).message+'</div>';return;
+  }
+  rolesArr=rq.data||[];menusArr=mq.data||[];
+  renderRoles();
+  if(curRole&&!rolesArr.some(r=>r.role_id===curRole))curRole=null;
+  if(curRole)selectRole(curRole);
+}
+
+function renderRoles(){
+  document.getElementById('roleList').innerHTML=rolesArr.map(r=>
+    `<div class="role-item${curRole===r.role_id?' on':''}" onclick="selectRole('${r.role_id}')">
+      <div><div class="ri-name">${r.role_name}</div><div class="ri-id">${r.role_id}</div></div>
+      <button class="btn btn-d" onclick="event.stopPropagation();delRole('${r.role_id}')">삭제</button>
+    </div>`
+  ).join('')||'<div class="empty">역할이 없습니다</div>';
+}
+
+async function selectRole(rid){
+  curRole=rid;
+  renderRoles();
+  const r=rolesArr.find(x=>x.role_id===rid);
+  document.getElementById('rmTitle').textContent='메뉴 권한 — '+(r?`${r.role_name} (${rid})`:rid);
+  const {data,error}=await sb.from('role_menu').select('menu_id,add_yn').eq('role_id',rid);
+  if(error){msg('오류: '+error.message,1);return;}
+  rmMap={};(data||[]).forEach(x=>rmMap[x.menu_id]=x.add_yn);
+  document.getElementById('rmBody').innerHTML=menusArr.map(m=>{
+    const has=m.menu_id in rmMap, wy=rmMap[m.menu_id]==='Y';
+    return `<tr>
+      <td class="mono" style="font-size:10px;color:var(--acc)">${m.menu_id}</td>
+      <td>${m.menu_name}</td>
+      <td class="c"><input type="checkbox" id="acc_${m.menu_id}" ${has?'checked':''} onchange="if(!this.checked)document.getElementById('add_${m.menu_id}').checked=false"></td>
+      <td class="c"><input type="checkbox" id="add_${m.menu_id}" ${wy?'checked':''} onchange="if(this.checked)document.getElementById('acc_${m.menu_id}').checked=true"></td>
+    </tr>`;
+  }).join('');
+  document.getElementById('btnSave').style.display='';
+  msg('');
+}
+
+async function saveRm(){
+  if(!curRole)return;
+  const rows=menusArr
+    .filter(m=>document.getElementById('acc_'+m.menu_id).checked)
+    .map(m=>({role_id:curRole,menu_id:m.menu_id,
+      add_yn:document.getElementById('add_'+m.menu_id).checked?'Y':'N'}));
+  // 기존 권한 전체 삭제 후 재등록 (단순·확실)
+  const d=await sb.from('role_menu').delete().eq('role_id',curRole);
+  if(d.error)return msg('오류: '+d.error.message,1);
+  if(rows.length){
+    const i=await sb.from('role_menu').insert(rows);
+    if(i.error)return msg('오류: '+i.error.message,1);
+  }
+  msg('저장되었습니다 — 다음 로그인부터 적용됩니다');
+}
+
+async function addRole(){
+  const id=document.getElementById('nRoleId').value.trim().toUpperCase();
+  const name=document.getElementById('nRoleName').value.trim();
+  if(!id||!name)return msg('역할 ID와 역할명을 입력하세요',1);
+  if(rolesArr.some(r=>r.role_id===id))return msg('이미 존재하는 역할 ID입니다',1);
+  const {error}=await sb.from('role').insert({role_id:id,role_name:name});
+  if(error)return msg('오류: '+error.message,1);
+  document.getElementById('nRoleId').value='';document.getElementById('nRoleName').value='';
+  msg('역할이 추가되었습니다');
+  curRole=id;loadAll();
+}
+
+async function delRole(rid){
+  if(rid==='ADMIN')return msg('ADMIN 역할은 삭제할 수 없습니다',1);
+  if(!confirm(rid+' 역할을 삭제하시겠습니까?\n해당 역할의 메뉴 권한도 함께 삭제됩니다.'))return;
+  const {error}=await sb.from('role').delete().eq('role_id',rid);
+  if(error)return msg('오류: '+error.message+' (해당 역할을 사용 중인 계정이 있으면 삭제할 수 없습니다)',1);
+  if(curRole===rid){curRole=null;
+    document.getElementById('rmTitle').textContent='메뉴 권한 — 왼쪽에서 역할을 선택하세요';
+    document.getElementById('rmBody').innerHTML='<tr><td colspan="4" class="empty">역할을 선택하면 메뉴 권한이 표시됩니다</td></tr>';
+    document.getElementById('btnSave').style.display='none';
+  }
+  msg('삭제되었습니다');loadAll();
+}
+
+function msg(t,isErr){const m=document.getElementById('msg');m.textContent=t;m.style.color=isErr?'var(--red)':'var(--grn)';}
+loadAll();
+</script>
+</body>
+</html>

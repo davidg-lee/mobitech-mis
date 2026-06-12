@@ -2675,6 +2675,15 @@ document.addEventListener('keydown',e=>{
 ══════════════════════════════════════════════ */
 window.AUTH=null;
 
+/* 새로고침 깜빡임 방지: 세션이 있으면 로그인 화면을 즉시 숨김
+   (실제 권한 적용은 initApp 완료 후 authInit 에서 수행) */
+(function(){
+  try{
+    if(sessionStorage.getItem('mbAuth'))
+      document.getElementById('loginOv').classList.add('off');
+  }catch(e){}
+})();
+
 function authInit(){
   // 로컬 샘플 모드: DB가 없어 로그인 검증 불가 → 전체 권한으로 통과
   if(!DB_MODE||!sb){
@@ -2687,8 +2696,9 @@ function authInit(){
   try{
     const saved=sessionStorage.getItem('mbAuth');
     if(saved){applyAuth(JSON.parse(saved));return;}
-  }catch(e){}
-  // 로그인 대기
+  }catch(e){sessionStorage.removeItem('mbAuth');}
+  // 로그인 대기 (세션 없음/손상 → 로그인 화면 표시)
+  document.getElementById('loginOv').classList.remove('off');
   document.getElementById('lgId').focus();
 }
 

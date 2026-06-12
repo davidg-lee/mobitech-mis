@@ -198,14 +198,17 @@ select.ec option{background:var(--bg2);color:var(--tx)}
     <div class="brand-sub">국세청 증빙기준 · 6대 사업유형별 원가 자동계산 · 2024 회계연도</div>
   </div>
   <nav>
-    <button class="nb on" onclick="gp('dash',this)">📊 경영 대시보드</button>
-    <button class="nb"    onclick="gp('master',this)">🗂 마스터 변동 관리</button>
-    <button class="nb"    onclick="gp('pnl',this)">💹 손익 / 포캐스팅</button>
-    <button class="nb"    onclick="gp('tax',this)">📄 매출·매입 세금계산서</button>
-    <button class="nb"    onclick="gp('bank',this)">🏦 은행 거래 내역</button>
-    <button class="nb"    onclick="gp('card',this)">💳 법인카드 청구</button>
+    <button class="nb on" data-menu="dash"   onclick="gp('dash',this)">📊 경영 대시보드</button>
+    <button class="nb"    data-menu="master" onclick="gp('master',this)">🗂 마스터 변동 관리</button>
+    <button class="nb"    data-menu="pnl"    onclick="gp('pnl',this)">💹 손익 / 포캐스팅</button>
+    <button class="nb"    data-menu="tax"    onclick="gp('tax',this)">📄 매출·매입 세금계산서</button>
+    <button class="nb"    data-menu="bank"   onclick="gp('bank',this)">🏦 은행 거래 내역</button>
+    <button class="nb"    data-menu="card"   onclick="gp('card',this)">💳 법인카드 청구</button>
   </nav>
   <div class="hdr-right">
+    <div class="hs" id="hsUser" style="display:none"><div class="hs-l" id="hUserRole">-</div><div class="hs-v" id="hUserName" style="font-size:11px">-</div></div>
+    <button class="btn" id="btnLogout" onclick="authLogout()" style="display:none;font-size:10px;padding:3px 8px">로그아웃</button>
+    <div class="hdr-divider"></div>
     <div class="hs"><div class="hs-l">영업이익</div><div class="hs-v pos" id="hP">-</div></div>
     <div class="hdr-divider"></div>
     <div class="hs"><div class="hs-l">이익률</div><div class="hs-v" id="hR">-</div></div>
@@ -750,6 +753,7 @@ let pf1='ALL',pf2='ALL',stageFilt='ALL';
 
 /* ── PAGE NAV ── */
 function gp(id,btn){
+  if(window.AUTH&&!AUTH.menuSet.has(id)){toast('접근 권한이 없는 메뉴입니다','err');return;}
   document.querySelectorAll('.pg').forEach(p=>p.classList.remove('on'));
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
@@ -2480,7 +2484,7 @@ async function initApp() {
 }
 
 /* ══ INIT ══ */
-initApp();
+initApp().finally(()=>window.authInit?.());
 </script>
 
 <!-- ══ 직접입력/수정 모달 ══ -->
@@ -2586,6 +2590,134 @@ document.getElementById('cfOkBtn').addEventListener('click',()=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('cfOverlay').classList.contains('on'))closeConfirmModal();
 });
+</script>
+<!-- ══ 로그인 페이지 ══ -->
+<style>
+#loginOv{position:fixed;inset:0;background:var(--bg,#060B16);z-index:3000;display:flex;align-items:center;justify-content:center;flex-direction:column}
+#loginOv.off{display:none}
+.lg-box{width:100%;max-width:360px;background:var(--bg2);border:1px solid rgba(0,212,255,0.25);border-radius:14px;
+  padding:34px 30px 28px;box-shadow:0 20px 70px rgba(0,0,0,0.6)}
+.lg-logo{display:flex;align-items:center;gap:10px;margin-bottom:6px}
+.lg-logo .logo{font-size:26px}
+.lg-title{font-size:15px;font-weight:800;letter-spacing:-0.02em}
+.lg-sub{font-size:10.5px;color:var(--mu);margin-bottom:22px}
+.lg-field{margin-bottom:12px}
+.lg-field label{display:block;font-size:10px;font-weight:700;color:var(--mu);letter-spacing:.08em;margin-bottom:5px;text-transform:uppercase}
+.lg-field input{width:100%;box-sizing:border-box;background:var(--bg);border:1px solid rgba(255,255,255,0.12);border-radius:8px;
+  padding:10px 12px;color:var(--tx);font-size:13px;outline:none;font-family:inherit}
+.lg-field input:focus{border-color:var(--acc,#00D4FF);box-shadow:0 0 0 2px rgba(0,212,255,0.15)}
+.lg-btn{width:100%;margin-top:8px;padding:11px;border:none;border-radius:8px;cursor:pointer;
+  background:linear-gradient(135deg,#00D4FF,#0091EA);color:#04121F;font-size:13px;font-weight:800;font-family:inherit}
+.lg-btn:hover{filter:brightness(1.12)}
+.lg-btn:disabled{opacity:.5;cursor:wait}
+.lg-err{min-height:16px;margin-top:10px;font-size:11px;color:var(--red,#EF4444);text-align:center}
+.lg-foot{margin-top:18px;font-size:9.5px;color:var(--mu);text-align:center;letter-spacing:.03em}
+/* 쓰기권한(add_yn='N') 페이지: 등록/엑셀/삭제 버튼 숨김 */
+.no-edit .btn-p,.no-edit .btn-excel,.no-edit .btn-g,.no-edit .btn-d{display:none!important}
+</style>
+<div id="loginOv">
+  <div class="lg-box">
+    <div class="lg-logo"><div class="logo">⬡</div><div class="lg-title">(주)모비텍 중앙 경영관리 시스템</div></div>
+    <div class="lg-sub">관리자 계정으로 로그인하세요</div>
+    <div class="lg-field"><label>아이디</label><input id="lgId" autocomplete="username" placeholder="admin_id"></div>
+    <div class="lg-field"><label>비밀번호</label><input id="lgPw" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="lg-btn" id="lgBtn" onclick="doLogin()">로그인</button>
+    <div class="lg-err" id="lgErr"></div>
+    <div class="lg-foot">MOBITECH MANAGEMENT SYSTEM · AUTHORIZED ACCESS ONLY</div>
+  </div>
+</div>
+<script>
+/* ══════════════════════════════════════════════
+   인증 / 권한 제어
+   AUTH = {admin_id, admin_name, role_id, menus:[{menu_id,menu_name,add_yn}], menuSet:Set}
+══════════════════════════════════════════════ */
+window.AUTH=null;
+
+function authInit(){
+  // 로컬 샘플 모드: DB가 없어 로그인 검증 불가 → 전체 권한으로 통과
+  if(!DB_MODE||!sb){
+    applyAuth({admin_id:'local',admin_name:'로컬모드',role_id:'ADMIN',
+      menus:['dash','master','pnl','tax','bank','card'].map(m=>({menu_id:m,add_yn:'Y'}))});
+    toast('로컬 샘플 모드 — 로그인 생략','err');
+    return;
+  }
+  // 세션 복원 (브라우저 탭 유지 동안)
+  try{
+    const saved=sessionStorage.getItem('mbAuth');
+    if(saved){applyAuth(JSON.parse(saved));return;}
+  }catch(e){}
+  // 로그인 대기
+  document.getElementById('lgId').focus();
+}
+
+async function doLogin(){
+  const id=document.getElementById('lgId').value.trim();
+  const pw=document.getElementById('lgPw').value;
+  const err=document.getElementById('lgErr');
+  const btn=document.getElementById('lgBtn');
+  if(!id||!pw){err.textContent='아이디와 비밀번호를 입력하세요';return;}
+  btn.disabled=true;err.textContent='';
+  try{
+    const {data,error}=await sb.rpc('admin_login',{p_id:id,p_pw:pw});
+    if(error)throw error;
+    if(!data){err.textContent='아이디 또는 비밀번호가 올바르지 않습니다';btn.disabled=false;return;}
+    sessionStorage.setItem('mbAuth',JSON.stringify(data));
+    applyAuth(data);
+  }catch(e){
+    err.textContent='로그인 처리 중 오류: '+e.message;btn.disabled=false;
+  }
+}
+
+/* 로그인 성공 → 메뉴 노출/쓰기권한 적용 */
+function applyAuth(data){
+  data.menuSet=new Set((data.menus||[]).map(m=>m.menu_id));
+  window.AUTH=data;
+
+  // 1) 메뉴 버튼 노출 제어
+  document.querySelectorAll('.nb[data-menu]').forEach(b=>{
+    b.style.display=data.menuSet.has(b.dataset.menu)?'':'none';
+  });
+
+  // 2) 쓰기 권한(add_yn) 적용: 'N'이면 해당 페이지의 등록/엑셀/삭제 버튼 숨김
+  (data.menus||[]).forEach(m=>{
+    const pg=document.getElementById('pg-'+m.menu_id);
+    if(pg)pg.classList.toggle('no-edit',m.add_yn!=='Y');
+  });
+
+  // 3) 첫 허용 메뉴로 이동 (현재 페이지가 권한 밖이면)
+  const first=(data.menus||[])[0]?.menu_id;
+  const curOn=document.querySelector('.pg.on');
+  const curId=curOn?curOn.id.replace('pg-',''):null;
+  if(first&&(!curId||!data.menuSet.has(curId))){
+    const btn=document.querySelector(`.nb[data-menu="${first}"]`);
+    gp(first,btn);
+  }else if(curId){
+    const btn=document.querySelector(`.nb[data-menu="${curId}"]`);
+    document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
+    if(btn)btn.classList.add('on');
+  }
+
+  // 4) 헤더 사용자 정보 + 로그아웃
+  if(data.admin_id!=='local'){
+    document.getElementById('hsUser').style.display='';
+    document.getElementById('hUserName').textContent=data.admin_name;
+    document.getElementById('hUserRole').textContent=data.role_id;
+    document.getElementById('btnLogout').style.display='';
+  }
+
+  // 5) 로그인 화면 닫기
+  document.getElementById('loginOv').classList.add('off');
+}
+
+function authLogout(){
+  sessionStorage.removeItem('mbAuth');
+  location.reload();
+}
+
+/* Enter 키로 로그인 */
+['lgId','lgPw'].forEach(i=>document.getElementById(i).addEventListener('keydown',e=>{
+  if(e.key==='Enter')doLogin();
+}));
 </script>
 
 </body>

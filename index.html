@@ -210,6 +210,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
     <button class="nb"    data-menu="tax"    onclick="gp('tax',this)">📄 매출·매입 세금계산서</button>
     <button class="nb"    data-menu="bank"   onclick="gp('bank',this)">🏦 은행 거래 내역</button>
     <button class="nb"    data-menu="card"   onclick="gp('card',this)">💳 법인카드 청구</button>
+    <button class="nb"    data-menu="nts"    onclick="gp('nts',this)">🧾 국세청 증빙자료</button>
   </nav>
   <div class="hdr-right">
     <div class="hs"><div class="hs-l">영업이익</div><div class="hs-v pos" id="hP">-</div></div>
@@ -708,6 +709,54 @@ select.ec option{background:var(--bg2);color:var(--tx)}
   </div>
 </div>
 
+<!-- ══════════════════════════════════════════
+     PAGE 7: 국세청 증빙자료
+══════════════════════════════════════════ -->
+<div id="pg-nts" class="pg">
+  <div class="gc" style="margin-bottom:11px">
+    <div class="gc-hd">
+      <h3>🧾 국세청 증빙자료 — 프로젝트별 투입인력 현황표</h3>
+      <div class="arow">
+        <select id="ntsYear" onchange="rNTS()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 연도</option>
+        </select>
+        <select id="ntsPrj" onchange="rNTS()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 프로젝트</option>
+        </select>
+        <select id="ntsCo" onchange="rNTS()" style="background:var(--bg3);border:1px solid var(--br);color:var(--tx);padding:4px 8px;border-radius:6px;font-size:11px;font-family:'Noto Sans KR',sans-serif">
+          <option value="">전체 업체</option>
+        </select>
+        <button class="btn btn-excel" onclick="expNTS()">📊 엑셀 내보내기</button>
+        <button class="btn btn-g" onclick="window.print()">🖨 인쇄</button>
+      </div>
+    </div>
+    <div class="notice" style="margin:0;border-radius:0;border-left:none;border-right:none;border-top:none">
+      <b>제출 기준:</b> 원가계산 증빙 — 인건비(직접) 항목의 국세청 제출용 투입인력 현황표. 반영(Y) 설정된 M/M만 집계됩니다.
+      &nbsp;|&nbsp; 데이터 입력: <b>마스터 변동 관리 → ④ 임직원 마스터 → DB_Timesheet</b>
+    </div>
+  </div>
+  <div id="ntsReport"></div>
+  <div class="gc" style="margin-top:11px" id="ntsSummaryCard" style="display:none">
+    <div class="gc-hd"><h3>📋 프로젝트별 원가 요약</h3></div>
+    <div class="tw"><table>
+      <thead><tr>
+        <th class="L HL">프로젝트코드</th><th class="L HL">프로젝트명</th>
+        <th class="L">사업유형</th><th class="L HL">고객사(갑)</th>
+        <th class="L">사업자번호</th><th class="L">계약기간</th>
+        <th class="HL">투입인원</th><th class="HL">총 M/M</th>
+        <th class="HL">총 인건비원가</th>
+      </tr></thead>
+      <tbody id="ntsSummBody"></tbody>
+      <tfoot><tr>
+        <td class="L" colspan="6">합계</td>
+        <td id="ntsSumPpl" class="acc"></td>
+        <td id="ntsSumMM" class="acc"></td>
+        <td id="ntsSumCost" class="pos" style="font-weight:700"></td>
+      </tr></tfoot>
+    </table></div>
+  </div>
+</div>
+
 <!-- ══ SCRIPT ══ -->
 <script>
 const fmt=n=>Math.round(n).toLocaleString('ko-KR');
@@ -776,7 +825,7 @@ function gp(id,btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   if(btn)btn.classList.add('on');
-  ({dash:rDash,master:rMaster,pnl:rPnL,tax:rTax,bank:rBank,card:rCard})[id]?.();
+  ({dash:rDash,master:rMaster,pnl:rPnL,tax:rTax,bank:rBank,card:rCard,nts:rNTS})[id]?.();
 }
 function showTab(id,btn){
   const p=document.getElementById(id);if(!p)return;
@@ -2507,6 +2556,250 @@ async function initApp() {
     showDbStatus(false);
     rDash();
   }
+}
+
+/* ══ 국세청 증빙자료 ══ */
+function rNTS(){
+  /* 필터 드롭다운 갱신 */
+  const yrSel=document.getElementById('ntsYear');
+  if(yrSel){
+    const curYr=yrSel.value;
+    const yrs=[...new Set(tsRows.map(t=>t.년월?.slice(0,4)).filter(Boolean))].sort((a,b)=>b-a);
+    yrSel.innerHTML='<option value="">전체 연도</option>'+yrs.map(y=>`<option value="${y}" ${y===curYr?'selected':''}>${y}년</option>`).join('');
+  }
+  const prjSel=document.getElementById('ntsPrj');
+  if(prjSel){
+    const cur=prjSel.value;
+    prjSel.innerHTML='<option value="">전체 프로젝트</option>'+prjs.map(p=>`<option value="${p.코드}" ${p.코드===cur?'selected':''}>${p.코드} — ${p.명}</option>`).join('');
+    prjSel.value=cur;
+  }
+  const coSel=document.getElementById('ntsCo');
+  if(coSel){
+    const cur=coSel.value;
+    coSel.innerHTML='<option value="">전체 업체</option>'+cos.map(c=>`<option value="${c.사업자번호}" ${c.사업자번호===cur?'selected':''}>${c.업체명}</option>`).join('');
+    coSel.value=cur;
+  }
+
+  const yr=document.getElementById('ntsYear')?.value||'';
+  const prjF=document.getElementById('ntsPrj')?.value||'';
+  const coF=document.getElementById('ntsCo')?.value||'';
+
+  /* 반영=Y 인 타임시트만 */
+  let filtTs=tsRows.filter(t=>t.반영==='Y');
+  if(yr) filtTs=filtTs.filter(t=>t.년월?.startsWith(yr));
+  if(prjF) filtTs=filtTs.filter(t=>t.코드===prjF);
+  if(coF){
+    const coProjs=new Set(prjs.filter(p=>p.사번===coF).map(p=>p.코드));
+    filtTs=filtTs.filter(t=>coProjs.has(t.코드));
+  }
+
+  const report=document.getElementById('ntsReport');
+  const summCard=document.getElementById('ntsSummaryCard');
+  if(!report)return;
+
+  if(!filtTs.length){
+    report.innerHTML=`<div class="notice" style="margin-bottom:10px">
+      투입인력 데이터가 없습니다.
+      <b>마스터 변동 관리 → ④ 임직원 마스터 → DB_Timesheet</b>에서 인력 투입 내역을 입력하고 <b>원가반영=Y</b>로 설정하세요.
+    </div>`;
+    if(summCard)summCard.style.display='none';
+    return;
+  }
+
+  /* 프로젝트별 그룹 */
+  const byPrj={};
+  filtTs.forEach(t=>{if(!byPrj[t.코드])byPrj[t.코드]=[];byPrj[t.코드].push(t);});
+
+  report.innerHTML=Object.keys(byPrj).map(code=>{
+    const prj=prjs.find(p=>p.코드===code);
+    const co=prj?cos.find(c=>c.사업자번호===prj.사번):null;
+    const rows=byPrj[code];
+    const totMM=rows.reduce((s,t)=>s+t.공수,0);
+    const totCost=rows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+    return`<div class="gc" style="margin-bottom:12px">
+      <div class="gc-hd" style="background:rgba(0,212,255,0.05)">
+        <h3>
+          <span class="badge b${prj?.유형||'SI'}">${prj?.유형||'?'}</span>
+          <span style="font-family:'JetBrains Mono',monospace;font-size:10px;color:var(--mu)">${code}</span>
+          <span style="margin-left:4px">${prj?.명||'(프로젝트명 없음)'}</span>
+        </h3>
+        <div style="font-size:10px;color:var(--mu);display:flex;gap:12px;flex-wrap:wrap">
+          <span>🏢 <b style="color:var(--tx)">${co?.업체명||prj?.업체명||'-'}</b>${co?` (${co.사업자번호})`:''}</span>
+          <span>📅 ${prj?.시작||'-'} ~ ${prj?.종료||'-'}</span>
+          <span>총 M/M <b style="color:var(--acc)">${totMM.toFixed(2)}</b></span>
+          <span>총 원가 <b style="color:var(--green)">₩${fmt(totCost)}</b></span>
+        </div>
+      </div>
+      <div class="tw"><table>
+        <thead><tr>
+          <th class="L">구분</th><th class="L HL">성명</th><th class="L">직급/등급</th>
+          <th class="L">기준년월</th><th class="L">투입시작</th><th class="L">투입종료</th>
+          <th class="HL">M/M</th><th class="HL">월간원가단가</th><th class="HL">계산원가</th>
+        </tr></thead>
+        <tbody>${rows.map(t=>{
+          const mem=mems.find(m=>m.사번===t.사번);
+          const sal=sals.find(s=>s.사번===t.사번);
+          const cost=sal?Math.round(t.공수*sal.월간총원가):0;
+          const catCls=mem?.구분==='임직원'?'bSI':mem?.구분==='협력사'?'bSM':'bSV';
+          return`<tr>
+            <td class="L"><span class="badge ${catCls}">${mem?.구분||'-'}</span></td>
+            <td class="L" style="font-weight:700">${t.성명}</td>
+            <td class="L">${mem?.직급||'-'}</td>
+            <td class="L M" style="font-size:10px">${t.년월}</td>
+            <td class="L M" style="font-size:10px">${t.시작||'-'}</td>
+            <td class="L M" style="font-size:10px">${t.종료||'-'}</td>
+            <td class="acc" style="font-weight:700">${t.공수.toFixed(2)}</td>
+            <td>${sal?fmt(sal.월간총원가):'-'}</td>
+            <td class="pos" style="font-weight:700">${fmt(cost)}</td>
+          </tr>`;
+        }).join('')}</tbody>
+        <tfoot><tr>
+          <td class="L" colspan="6">소계 (${rows.length}건 / 인원 ${new Set(rows.map(t=>t.사번)).size}명)</td>
+          <td class="acc" style="font-weight:700">${totMM.toFixed(2)}</td><td></td>
+          <td class="pos" style="font-weight:700">${fmt(totCost)}</td>
+        </tr></tfoot>
+      </table></div>
+    </div>`;
+  }).join('');
+
+  /* 요약 테이블 */
+  const sumKeys=Object.keys(byPrj);
+  if(summCard){summCard.style.display='';}
+  const sb2=document.getElementById('ntsSummBody');
+  if(sb2)sb2.innerHTML=sumKeys.map(code=>{
+    const prj=prjs.find(p=>p.코드===code);
+    const co=prj?cos.find(c=>c.사업자번호===prj.사번):null;
+    const rows=byPrj[code];
+    const uniq=new Set(rows.map(t=>t.사번)).size;
+    const totMM=rows.reduce((s,t)=>s+t.공수,0);
+    const totCost=rows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+    return`<tr>
+      <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${code}</td>
+      <td class="L" style="font-weight:700">${prj?.명||'-'}</td>
+      <td class="L"><span class="badge b${prj?.유형||'SI'}">${prj?.유형||'?'}</span></td>
+      <td class="L">${co?.업체명||prj?.업체명||'-'}</td>
+      <td class="L M" style="font-size:10px">${co?.사업자번호||prj?.사번||'-'}</td>
+      <td class="L M" style="font-size:10px">${prj?.시작||'-'} ~ ${prj?.종료||'-'}</td>
+      <td class="acc" style="font-weight:700">${uniq}</td>
+      <td class="acc" style="font-weight:700">${totMM.toFixed(2)}</td>
+      <td class="pos" style="font-weight:700">${fmt(totCost)}</td>
+    </tr>`;
+  }).join('');
+
+  const grandPpl=sumKeys.reduce((s,c)=>s+new Set(byPrj[c].map(t=>t.사번)).size,0);
+  const grandMM=filtTs.reduce((s,t)=>s+t.공수,0);
+  const grandCost=filtTs.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+  const se=id=>document.getElementById(id);
+  if(se('ntsSumPpl'))se('ntsSumPpl').textContent=grandPpl;
+  if(se('ntsSumMM'))se('ntsSumMM').textContent=grandMM.toFixed(2);
+  if(se('ntsSumCost'))se('ntsSumCost').textContent='₩'+fmt(grandCost);
+}
+
+function expNTS(){
+  if(typeof XLSX==='undefined')return toast('엑셀 라이브러리 로드 실패','err');
+  const yr=document.getElementById('ntsYear')?.value||'';
+  const prjF=document.getElementById('ntsPrj')?.value||'';
+  const coF=document.getElementById('ntsCo')?.value||'';
+
+  let filtTs=tsRows.filter(t=>t.반영==='Y');
+  if(yr)filtTs=filtTs.filter(t=>t.년월?.startsWith(yr));
+  if(prjF)filtTs=filtTs.filter(t=>t.코드===prjF);
+  if(coF){const cp=new Set(prjs.filter(p=>p.사번===coF).map(p=>p.코드));filtTs=filtTs.filter(t=>cp.has(t.코드));}
+
+  if(!filtTs.length)return toast('내보낼 데이터가 없습니다','err');
+
+  const wb=XLSX.utils.book_new();
+
+  /* Sheet 1: 투입인력 현황표 */
+  const byPrj={};
+  filtTs.forEach(t=>{if(!byPrj[t.코드])byPrj[t.코드]=[];byPrj[t.코드].push(t);});
+
+  const rows1=[
+    ['(주)모비텍 — 프로젝트별 투입인력 현황표 (국세청 증빙용)'],
+    [`출력일: ${today()}  ${yr?'기준연도: '+yr+'년':'전체기간'}  ${prjF?'프로젝트: '+prjF:'전체프로젝트'}`],
+    [],
+    ['프로젝트코드','프로젝트명','사업유형','고객사(갑)','고객사 사업자번호','계약기간','구분','성명','직급/등급','기준년월','투입시작일','투입종료일','M/M','월간원가단가(원)','계산원가(원)']
+  ];
+
+  Object.keys(byPrj).forEach(code=>{
+    const prj=prjs.find(p=>p.코드===code);
+    const co=prj?cos.find(c=>c.사업자번호===prj.사번):null;
+    const rows=byPrj[code];
+    rows.forEach(t=>{
+      const mem=mems.find(m=>m.사번===t.사번);
+      const sal=sals.find(s=>s.사번===t.사번);
+      const cost=sal?Math.round(t.공수*sal.월간총원가):0;
+      rows1.push([code,prj?.명||'',prj?.유형||'',co?.업체명||prj?.업체명||'',co?.사업자번호||prj?.사번||'',
+        `${prj?.시작||''}~${prj?.종료||''}`,mem?.구분||'',t.성명,mem?.직급||'',
+        t.년월,t.시작||'',t.종료||'',t.공수,sal?.월간총원가||0,cost]);
+    });
+    const totMM=rows.reduce((s,t)=>s+t.공수,0);
+    const totCost=rows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+    rows1.push(['','','','','','','★ 소계','','','','','',totMM,'',totCost]);
+    rows1.push([]);
+  });
+
+  const gMM=filtTs.reduce((s,t)=>s+t.공수,0);
+  const gCost=filtTs.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+  rows1.push(['★ 합계','','','','','','','','','','','',gMM,'',gCost]);
+
+  const ws1=XLSX.utils.aoa_to_sheet(rows1);
+  ws1['!cols']=[12,22,8,18,15,22,8,10,10,10,12,12,8,16,16].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws1,'투입인력현황표');
+
+  /* Sheet 2: 프로젝트 요약 */
+  const rows2=[
+    ['프로젝트별 원가 요약'],
+    [`출력일: ${today()}`],
+    [],
+    ['프로젝트코드','프로젝트명','사업유형','고객사(갑)','사업자번호','계약시작','계약종료','투입인원(명)','총 M/M','총 인건비원가(원)']
+  ];
+  Object.keys(byPrj).forEach(code=>{
+    const prj=prjs.find(p=>p.코드===code);
+    const co=prj?cos.find(c=>c.사업자번호===prj.사번):null;
+    const rows=byPrj[code];
+    const uniq=new Set(rows.map(t=>t.사번)).size;
+    const totMM=rows.reduce((s,t)=>s+t.공수,0);
+    const totCost=rows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+    rows2.push([code,prj?.명||'',prj?.유형||'',co?.업체명||prj?.업체명||'',co?.사업자번호||prj?.사번||'',prj?.시작||'',prj?.종료||'',uniq,totMM,totCost]);
+  });
+  const gPpl=Object.keys(byPrj).reduce((s,c)=>s+new Set(byPrj[c].map(t=>t.사번)).size,0);
+  rows2.push(['합계','','','','','','',gPpl,gMM,gCost]);
+
+  const ws2=XLSX.utils.aoa_to_sheet(rows2);
+  ws2['!cols']=[12,22,8,18,15,12,12,10,8,16].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws2,'프로젝트요약');
+
+  /* Sheet 3: 업체(갑) 별 거래 현황 */
+  const byCo={};
+  filtTs.forEach(t=>{
+    const prj=prjs.find(p=>p.코드===t.코드);
+    const key=prj?.사번||'미상';
+    if(!byCo[key])byCo[key]=[];
+    byCo[key].push(t);
+  });
+  const rows3=[
+    ['업체(갑)별 거래 현황'],
+    [`출력일: ${today()}`],
+    [],
+    ['사업자번호','업체명(상호)','대표자','업태','종목','프로젝트수','총 M/M','총 원가(원)']
+  ];
+  Object.keys(byCo).forEach(bizNo=>{
+    const co=cos.find(c=>c.사업자번호===bizNo);
+    const rows=byCo[bizNo];
+    const prjCnt=new Set(rows.map(t=>t.코드)).size;
+    const totMM=rows.reduce((s,t)=>s+t.공수,0);
+    const totCost=rows.reduce((s,t)=>{const sal=sals.find(sa=>sa.사번===t.사번);return s+(sal?Math.round(t.공수*sal.월간총원가):0);},0);
+    rows3.push([bizNo,co?.업체명||'-',co?.대표자명||'-',co?.업태||'-',co?.종목||'-',prjCnt,totMM,totCost]);
+  });
+
+  const ws3=XLSX.utils.aoa_to_sheet(rows3);
+  ws3['!cols']=[15,20,12,14,14,10,8,16].map(w=>({wch:w}));
+  XLSX.utils.book_append_sheet(wb,ws3,'업체별거래현황');
+
+  const fname=`모비텍_국세청증빙_투입인력현황_${yr||'전체'}_${today()}.xlsx`;
+  XLSX.writeFile(wb,fname);
+  toast('📊 국세청 증빙자료 엑셀 내보내기 완료');
 }
 
 /* ══ INIT ══ */

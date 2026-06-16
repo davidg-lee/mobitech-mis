@@ -210,7 +210,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
     <button class="nb"    data-menu="tax"    onclick="gp('tax',this)">📄 매출·매입 세금계산서</button>
     <button class="nb"    data-menu="bank"   onclick="gp('bank',this)">🏦 은행 거래 내역</button>
     <button class="nb"    data-menu="card"   onclick="gp('card',this)">💳 법인카드 청구</button>
-    <button class="nb"    data-menu="nts"    onclick="gp('nts',this)">🧾 국세청 증빙자료</button>
+    <button class="nb"    data-menu="prove"    onclick="gp('prove',this)">🧾 국세청 증빙자료</button>
   </nav>
   <div class="hdr-right">
     <div class="hs"><div class="hs-l">영업이익</div><div class="hs-v pos" id="hP">-</div></div>
@@ -712,7 +712,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
 <!-- ══════════════════════════════════════════
      PAGE 7: 국세청 증빙자료
 ══════════════════════════════════════════ -->
-<div id="pg-nts" class="pg">
+<div id="pg-prove" class="pg">
   <div class="gc" style="margin-bottom:11px">
     <div class="gc-hd">
       <h3>🧾 국세청 증빙자료 — 프로젝트별 투입인력 현황표</h3>
@@ -825,7 +825,7 @@ function gp(id,btn){
   document.querySelectorAll('.nb').forEach(b=>b.classList.remove('on'));
   document.getElementById('pg-'+id).classList.add('on');
   if(btn)btn.classList.add('on');
-  ({dash:rDash,master:rMaster,pnl:rPnL,tax:rTax,bank:rBank,card:rCard,nts:rNTS})[id]?.();
+  ({dash:rDash,master:rMaster,pnl:rPnL,tax:rTax,bank:rBank,card:rCard,prove:rNTS})[id]?.();
 }
 function showTab(id,btn){
   const p=document.getElementById(id);if(!p)return;
@@ -2972,7 +2972,7 @@ function applyAuth(data){
   data.menuSet=new Set((data.menus||[]).map(m=>m.menu_id));
   window.AUTH=data;
 
-  // 1) 메뉴 버튼 노출 제어
+  // 1) 메뉴 버튼 노출 제어 — DB role_menu 권한 기준
   document.querySelectorAll('.nb[data-menu]').forEach(b=>{
     b.style.display=data.menuSet.has(b.dataset.menu)?'':'none';
   });

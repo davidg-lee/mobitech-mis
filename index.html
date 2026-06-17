@@ -3038,6 +3038,10 @@ async function savePcModal(){
     ?document.getElementById('pcMemSel')?.value
     :mems[pcCtx.idx]?.사번;
   if(!prjCode||!empNo)return pcMsg('프로젝트와 직원을 모두 선택하세요',1);
+  // 년월 중복 체크
+  const yms=pcRows.map(r=>r.년월).filter(Boolean);
+  if(new Set(yms).size!==yms.length)return pcMsg('같은 년월이 중복되었습니다',1);
+
   const {error:de}=await sb.from('project_cost').delete()
     .eq('project_code',prjCode).eq('emp_no',empNo);
   if(de)return pcMsg('오류: '+de.message,1);

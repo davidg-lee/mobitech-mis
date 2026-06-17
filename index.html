@@ -344,6 +344,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
           <th class="L">사업유형(6종)</th>
           <th class="L">시작일</th><th class="L">종료일</th>
           <th style="text-align:center">진행상태</th>
+          <th class="R">총수주액(원)</th>
           <th class="L">등록일시</th><th style="text-align:center">완료</th>
         </tr></thead>
         <tbody id="prjBody"></tbody>
@@ -1003,6 +1004,7 @@ function rPrjTable(){
     <td class="L M" style="font-size:10px">${p.시작}</td>
     <td class="L M" style="font-size:10px">${p.종료}</td>
     <td style="text-align:center"><span class="badge ${p.상태==='진행중'?'bwn':'bok'}">${p.상태}</span></td>
+    <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${p.수주액?'₩'+fmt(p.수주액):'-'}</td>
     <td class="L M" style="font-size:10px">${p.등록}</td>
     <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openEntryModal('prj',${i})">수정</button></td>
   </tr>`).join('')||noDataRow();
@@ -1107,7 +1109,7 @@ function rTsTable(){
 
 /* ── ADD FUNCS (Master) ── */
 function addCo(){cos.push({사업자번호:'',업체명:'신규업체',대표자명:'',업태:'',종목:'',본점소재지:'',주소:'',담당자명:'',담당자이메일:'',최초등록일:today()});rCoTable();}
-function addPrj(){const tp='SI';prjs.push({코드:genPrjCode(tp),명:'신규 프로젝트',사번:'',업체명:'',유형:tp,시작:today(),종료:today(),상태:'준비',등록:today()});rPrjTable();}
+function addPrj(){const tp='SI';prjs.push({코드:genPrjCode(tp),명:'신규 프로젝트',사번:'',업체명:'',유형:tp,시작:today(),종료:today(),상태:'준비',수주액:0,등록:today()});rPrjTable();}
 function addBgt(){bgtRows.push({코드:prjs[0]?.코드||'',유형:'SI',항목:'',소속:'내부',성명:'',직급:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'});rBgtTable();}
 function addMem(){const mo=String(new Date().getMonth()+1).padStart(2,'0');mems.push({사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,성명:'신규',구분:'임직원',직급:'',입사:today(),퇴사:'',연락처:'',이메일:'',상태:'근무중'});rMemTable();}
 function addSal(){sals.push({년월:'2024-11',사번:'',성명:'',연봉:0,사대보험:0,월간총원가:0,퇴직충당금:0});rSalTable();}
@@ -1504,7 +1506,8 @@ async function loadPrjs() {
   prjs = data.map(p => ({
     코드:p.project_code, 명:p.project_name, 사번:p.biz_no||'',
     업체명:p.company_name||'', 유형:p.biz_type, 시작:p.start_date||'',
-    종료:p.end_date||'', 상태:p.status, 등록:p.reg_datetime?.slice(0,10)||today(), _id:p.id
+    종료:p.end_date||'', 상태:p.status, 수주액:p.order_amount||0,
+    등록:p.reg_datetime?.slice(0,10)||today(), _id:p.id
   }));
 }
 async function loadMems() {
@@ -1680,7 +1683,8 @@ async function savePrjRow(idx) {
   const payload = {
     project_code:p.코드, project_name:p.명, company_id:co?._id||null,
     biz_no:p.사번, company_name:p.업체명, biz_type:p.유형,
-    start_date:p.시작||null, end_date:p.종료||null, status:p.상태
+    start_date:p.시작||null, end_date:p.종료||null, status:p.상태,
+    order_amount:p.수주액||null
   };
   if (p._id) {
     const { error } = await sb.from('project_master').update(payload).eq('id', p._id);
@@ -2129,12 +2133,15 @@ function mmDefs(t,row){
     {k:'사번',label:'고객사 (사업자번호)',type:'select',onchange:'mmPrjCo(this)',
       options:()=>[{v:'',l:'— 선택 —'}].concat(cos.map(c=>({v:c.사업자번호,l:`${c.업체명} (${c.사업자번호})`})))},
     {k:'업체명',label:'업체명 (자동)',ro:1},
-    {k:'유형',label:'사업유형',type:'select',
-      options:()=>TYPES.map(tp=>({v:tp,l:`${tp} — ${TNAME[tp]}`}))},
+    ...(isNew
+      ? [{k:'유형',label:'사업유형',type:'select',
+          options:()=>TYPES.map(tp=>({v:tp,l:`${tp} — ${TNAME[tp]}`}))}]
+      : [{k:'유형',label:'사업유형 (수정 불가)',ro:1}]),
     {k:'상태',label:'진행상태',type:'select',
       options:()=>['준비','진행중','완료'].map(s=>({v:s,l:s}))},
     {k:'시작',label:'시작일',type:'date'},
     {k:'종료',label:'종료일',type:'date'},
+    {k:'수주액',label:'총수주액(원)',type:'number'},
   ];
   if(t==='bgt')return[
     {k:'코드',label:'프로젝트코드',req:1,type:'select',onchange:'mmBgtPrj(this)',
@@ -2169,7 +2176,7 @@ function mmDefs(t,row){
 function mmDefaults(t){
   const mo=String(new Date().getMonth()+1).padStart(2,'0');
   if(t==='co')return{최초등록일:today()};
-  if(t==='prj')return{코드:'',유형:'SI',상태:'준비',시작:today(),종료:today()};
+  if(t==='prj')return{코드:'',유형:'SI',상태:'준비',시작:today(),종료:today(),수주액:0};
   if(t==='bgt')return{코드:prjs[0]?.코드||'',유형:prjs[0]?.유형||'SI',소속:'내부',사번:'',공수:1,수량:1,실행단가:0,마진율:15,계약단가:0,총계약금액:0,상태:'검토'};
   if(t==='mem')return{사번:`${yr}-${mo}-${String(mems.length+1).padStart(3,'0')}`,구분:'임직원',입사:today(),상태:'근무중'};
   return{};

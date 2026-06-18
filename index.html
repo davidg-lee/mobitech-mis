@@ -791,8 +791,8 @@ function genPrjCode(tp){
   return pre+String(max+1).padStart(3,'0');
 }
 const TC={SI:'#3B82F6',SM:'#10B981',SV:'#F59E0B',SOL:'#EF4444',CT:'#8B5CF6',MT:'#14B8A6'};
-const TYPES=['SI','SM','SV','SOL','CT','MT'];
-const TNAME={SI:'시스템구축',SM:'유지보수',SV:'컨설팅/서비스',SOL:'솔루션판매',CT:'기술지원계약',MT:'장비/자재공급'};
+let TYPES=['SI','SM','SV','SOL','CT','MT'];
+let TNAME={SI:'시스템구축',SM:'유지보수',SV:'컨설팅/서비스',SOL:'솔루션판매',CT:'기술지원계약',MT:'장비/자재공급'};
 const STAGES={첩보:10,정보:30,입찰참여:30,기존고객입찰:70,계약협의:80,사업연장:90};
 const ACCTS_PUR=['외주비','인프라비','상품매입가','장비원가','클라우드이용료','SW라이선스','기타직접원가'];
 const ACCTS_BK=['단기차입금','장기차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'];
@@ -1583,9 +1583,20 @@ function dbErr(label, err) {
 /* ══════════════════════════════════════════════
    LOAD FUNCTIONS — Supabase → 로컬 변수
 ══════════════════════════════════════════════ */
+async function loadCodeMaster() {
+  const { data, error } = await sb.from('code_master').select('*').order('order');
+  if (error) { console.warn('code_master load error', error); return; }
+  const bizTypes = (data || []).filter(r => r.code_div === 'BIZ_TYPE');
+  if (bizTypes.length) {
+    TYPES = bizTypes.map(r => r.code);
+    TNAME = Object.fromEntries(bizTypes.map(r => [r.code, r.code_name]));
+  }
+}
+
 async function dbLoad() {
   if (!DB_MODE) return;
   try {
+    await loadCodeMaster();
     await Promise.all([
       loadCos(), loadPrjs(), loadMems(),
       loadSals(), loadPnLDB(), loadPipeDB(),

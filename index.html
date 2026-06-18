@@ -3078,7 +3078,8 @@ function openPcModal(type,idx){
     :`<label>직원 선택</label><select id="pcMemSel" style="${PC_SEL_STYLE}" onchange="loadPcRows()">
         <option value="">— 선택 —</option>
         ${mems.map(x=>`<option value="${x.사번}">${x.성명} (${x.사번})</option>`).join('')}
-      </select>`;
+      </select>
+      <button class="btn btn-p" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="openEntryModal('mem')">+ 투입직원등록</button>`;
   pcRows=[];
   renderPcBody();
   pcMsg('');

@@ -1584,7 +1584,7 @@ function dbErr(label, err) {
    LOAD FUNCTIONS — Supabase → 로컬 변수
 ══════════════════════════════════════════════ */
 async function loadCodeMaster() {
-  const { data, error } = await sb.from('code_master').select('*').order('order');
+  const { data, error } = await sb.from('code_master').select('*').order('order_num');
   if (error) { console.warn('code_master load error', error); return; }
   const bizTypes = (data || []).filter(r => r.code_div === 'BIZ_TYPE');
   if (bizTypes.length) {

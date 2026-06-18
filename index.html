@@ -2397,6 +2397,16 @@ function saveEntryModal(){
     if(isNew)mems.push(row);
     rMemTable();
     saveMemRow(isNew?mems.length-1:mmIdx);
+    // 투입원가 모달이 열려있으면 직원 셀렉트 갱신 후 방금 등록한 직원 선택
+    if(document.getElementById('pcOverlay')?.classList.contains('on')&&pcCtx.type==='prj'){
+      const sel=document.getElementById('pcMemSel');
+      if(sel){
+        sel.innerHTML='<option value="">— 선택 —</option>'+
+          mems.map(x=>`<option value="${x.사번}">${x.성명} (${x.사번})</option>`).join('');
+        if(isNew)sel.value=empNo;
+        loadPcRows();
+      }
+    }
   }
 
   closeEntryModal();

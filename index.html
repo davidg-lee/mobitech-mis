@@ -2968,7 +2968,7 @@ initApp().finally(()=>window.authInit?.());
 .mm-btn.s:hover{filter:brightness(1.12)}
 @media(max-width:560px){.mm-body{grid-template-columns:1fr}}
 </style>
-<div class="mm-ov" id="mmOverlay" onclick="if(event.target===this)closeEntryModal()">
+<div class="mm-ov" id="mmOverlay" style="z-index:1100" onclick="if(event.target===this)closeEntryModal()">
   <div class="mm-box">
     <div class="mm-hd"><h3 id="mmTitle">직접입력</h3><button class="mm-x" onclick="closeEntryModal()">✕</button></div>
     <div class="mm-body" id="mmFields"></div>

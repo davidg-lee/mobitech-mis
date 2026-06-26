@@ -1087,11 +1087,10 @@ function updPcFilters(){
   const ymSel =document.getElementById('pcFltYm');
   if(!prjSel||!memSel||!ymSel)return;
   const curPrj=prjSel.value, curMem=memSel.value, curYm=ymSel.value;
-  const codes=[...new Set(allPcRows.map(r=>r.프로젝트코드))].sort();
   const empNos=[...new Set(allPcRows.map(r=>r.사번))].sort();
   const yms=[...new Set(allPcRows.map(r=>r.년월))].sort();
   prjSel.innerHTML='<option value="">전체 프로젝트</option>'+
-    codes.map(c=>{const p=prjs.find(x=>x.코드===c);return`<option value="${c}"${c===curPrj?' selected':''}>${c}${p?' — '+p.명:''}</option>`;}).join('');
+    prjs.map(p=>`<option value="${p.코드}"${p.코드===curPrj?' selected':''}>${p.코드} — ${p.명}</option>`).join('');
   memSel.innerHTML='<option value="">전체 직원</option>'+
     empNos.map(e=>{const m=mems.find(x=>x.사번===e);return`<option value="${e}"${e===curMem?' selected':''}>${m?m.성명+' ('+e+')':e}</option>`;}).join('');
   ymSel.innerHTML='<option value="">전체 년월</option>'+
@@ -1126,7 +1125,7 @@ function rPcTable(){
       <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입금?'₩'+fmt(r.실투입금):'-'}</td>
       <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModalByRow('${r.프로젝트코드}','${r.사번}')">수정</button></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>';
+  }).join('')||(prjF?'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>':'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">프로젝트를 선택하세요</td></tr>');
   // 합계
   const sum=(k)=>vis.reduce((s,r)=>s+r[k],0);
   const se=id=>document.getElementById(id);

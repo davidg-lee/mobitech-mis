@@ -994,7 +994,7 @@ function updP(code,f,v){const p=pnlData.find(x=>x.코드===code);if(p&&p.마감!
 function togP(code){const p=pnlData.find(x=>x.코드===code);if(p){p.마감=p.마감==='최종마감'?'진행중':'최종마감';rDash();rPnL();}}
 
 /* ══ MASTER ══ */
-function rMaster(){rCoTable();rPrjTable();rMemTable();rSalTable();rTsTable();loadPcAll();}
+function rMaster(){rCoTable();rPrjTable();rMemTable();rSalTable();rTsTable();initPcTab();}
 function rCoTable(){
   const b=document.getElementById('coBody');if(!b)return;
   b.innerHTML=cos.map((c,i)=>`<tr>
@@ -1081,32 +1081,62 @@ async function loadPcAll(){
   rPcTable();
 }
 
-function updPcFilters(){
+function initPcTab(){
   const prjSel=document.getElementById('pcFltPrj');
-  const memSel=document.getElementById('pcFltMem');
-  const ymSel =document.getElementById('pcFltYm');
-  if(!prjSel||!memSel||!ymSel)return;
-  const curPrj=prjSel.value, curMem=memSel.value, curYm=ymSel.value;
-  const empNos=[...new Set(allPcRows.map(r=>r.사번))].sort();
-  const yms=[...new Set(allPcRows.map(r=>r.년월))].sort();
+  if(!prjSel)return;
   prjSel.innerHTML='<option value="">전체 프로젝트</option>'+
-    prjs.map(p=>`<option value="${p.코드}"${p.코드===curPrj?' selected':''}>${p.코드} — ${p.명}</option>`).join('');
-  memSel.innerHTML='<option value="">전체 직원</option>'+
-    empNos.map(e=>{const m=mems.find(x=>x.사번===e);return`<option value="${e}"${e===curMem?' selected':''}>${m?m.성명+' ('+e+')':e}</option>`;}).join('');
-  ymSel.innerHTML='<option value="">전체 년월</option>'+
-    yms.map(y=>`<option value="${y}"${y===curYm?' selected':''}>${y}</option>`).join('');
+    prjs.map(p=>`<option value="${p.코드}">${p.코드} — ${p.명}</option>`).join('');
+  // 직원·년월 셀렉트 초기화
+  const memSel=document.getElementById('pcFltMem');
+  const ymSel=document.getElementById('pcFltYm');
+  if(memSel)memSel.innerHTML='<option value="">전체 직원</option>';
+  if(ymSel)ymSel.innerHTML='<option value="">전체 년월</option>';
+  allPcRows=[];
+  rPcTable();
 }
 
-function rPcTable(){
+async function rPcTable(){
   const prjF=document.getElementById('pcFltPrj')?.value||'';
   const memF=document.getElementById('pcFltMem')?.value||'';
   const ymF =document.getElementById('pcFltYm')?.value||'';
   const body=document.getElementById('pcAllBody');if(!body)return;
-  const vis=allPcRows.filter(r=>
-    (!prjF||r.프로젝트코드===prjF)&&
-    (!memF||r.사번===memF)&&
-    (!ymF||r.년월===ymF)
-  );
+
+  if(!prjF){
+    body.innerHTML='<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">프로젝트를 선택하세요</td></tr>';
+    ['pcTotPlan','pcTotActMm','pcTotSales','pcTotCost'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='-';});
+    return;
+  }
+
+  // 프로젝트 선택 시 해당 프로젝트 데이터만 DB에서 조회
+  if(DB_MODE){
+    const {data,error}=await sb.from('project_cost').select('*').eq('project_code',prjF).order('ref_yearmonth');
+    if(error){console.warn('project_cost load error',error);}
+    else{
+      allPcRows=(data||[]).map(r=>({
+        _id:r.id, 프로젝트코드:r.project_code||'', 사번:r.emp_no||'',
+        업무:r.task||'', 등급:r.grade||'', 년월:(r.ref_yearmonth||'').slice(0,7),
+        계획:r.plan_mm||0, 실투입:r.actual_mm||0, 매출액:r.sales_amount||0, 실투입금:r.actual_cost||0
+      }));
+    }
+  }
+
+  // 직원·년월 필터 갱신
+  const memSel=document.getElementById('pcFltMem');
+  const ymSel=document.getElementById('pcFltYm');
+  if(memSel){
+    const curMem=memSel.value;
+    const empNos=[...new Set(allPcRows.map(r=>r.사번))].sort();
+    memSel.innerHTML='<option value="">전체 직원</option>'+
+      empNos.map(e=>{const m=mems.find(x=>x.사번===e);return`<option value="${e}"${e===curMem?' selected':''}>${m?m.성명+' ('+e+')':e}</option>`;}).join('');
+  }
+  if(ymSel){
+    const curYm=ymSel.value;
+    const yms=[...new Set(allPcRows.map(r=>r.년월))].sort();
+    ymSel.innerHTML='<option value="">전체 년월</option>'+
+      yms.map(y=>`<option value="${y}"${y===curYm?' selected':''}>${y}</option>`).join('');
+  }
+
+  const vis=allPcRows.filter(r=>(!memF||r.사번===memF)&&(!ymF||r.년월===ymF));
   body.innerHTML=vis.map(r=>{
     const p=prjs.find(x=>x.코드===r.프로젝트코드);
     const m=mems.find(x=>x.사번===r.사번);
@@ -1125,8 +1155,7 @@ function rPcTable(){
       <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입금?'₩'+fmt(r.실투입금):'-'}</td>
       <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModalByRow('${r.프로젝트코드}','${r.사번}')">수정</button></td>
     </tr>`;
-  }).join('')||(prjF?'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>':'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">프로젝트를 선택하세요</td></tr>');
-  // 합계
+  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>';
   const sum=(k)=>vis.reduce((s,r)=>s+r[k],0);
   const se=id=>document.getElementById(id);
   se('pcTotPlan').textContent=sum('계획').toFixed(2);
@@ -3182,7 +3211,7 @@ async function savePcModal(){
     if(ie)return pcMsg('오류: '+ie.message,1);
   }
   pcMsg('저장되었습니다 ✓');
-  await loadPcAll();
+  await rPcTable();
   setTimeout(closePcModal,900);
 }
 

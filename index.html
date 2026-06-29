@@ -1165,9 +1165,19 @@ async function rPcTable(){
   // SI 요약 섹션 렌더링
   const summEl=document.getElementById('pcSummary');
   if(summEl){
-    if(group==='SI'){
+    if(group==='SI'||group==='SM'){
       const 수주액=selPrj?.수주액||0;
-      const 매출원가계=allPcRows.reduce((s,r)=>s+(+r.매입금||0),0);
+      let 매출액,직접인건비,외주비,직접경비,상품원가;
+      if(group==='SI'){
+        매출액=수주액; 직접인건비=0; 외주비=0; 직접경비=0; 상품원가=0;
+      } else { /* SM */
+        매출액=allPcRows.reduce((s,r)=>s+(+r.매출액||0),0);
+        직접인건비=0;
+        외주비=allPcRows.reduce((s,r)=>s+(+r.매입금||0),0);
+        직접경비=allPcRows.reduce((s,r)=>s+(+r.직접경비||0),0);
+        상품원가=0;
+      }
+      const 매출원가계=직접인건비+외주비+직접경비+상품원가;
       const 매출총이익=수주액-매출원가계;
       const 공통제경비=Math.round(수주액*0.15);
       const 영업이익=매출총이익-공통제경비;
@@ -1179,11 +1189,11 @@ async function rPcTable(){
       summEl.style.display='';
       summEl.innerHTML=`<div style="display:flex;background:var(--card);border:1px solid var(--br);border-radius:8px;overflow:hidden;font-size:11px">
         ${SL('총수주액',수주액)}
-        ${SL('매출액',수주액)}
-        ${SL('직접인건비',0)}
-        ${SL('외주비',0)}
-        ${SL('직접경비',0)}
-        ${SL('상품원가',0)}
+        ${SL('매출액',매출액)}
+        ${SL('직접인건비',직접인건비)}
+        ${SL('외주비',외주비)}
+        ${SL('직접경비',직접경비)}
+        ${SL('상품원가',상품원가)}
         ${SL('매출원가계',매출원가계,'#60A5FA')}
         ${SL('매출총이익',매출총이익,매출총이익>=0?'#34D399':'#EF4444')}
         ${SL('공통제경비(15%)',공통제경비)}

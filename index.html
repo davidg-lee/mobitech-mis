@@ -404,6 +404,9 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <button class="btn btn-excel" onclick="importExcel('mem')">📥 엑셀 불러오기</button>
         <button class="btn btn-g" onclick="downloadForm('mem')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('memBody','mems','rMaster')">− 선택삭제</button>
+        <span style="flex:1"></span>
+        <button class="btn" style="border-color:rgba(0,212,255,0.4)" onclick="openSolProdModal()">📦 솔루션제품관리</button>
+        <button class="btn" style="border-color:rgba(0,212,255,0.4)" onclick="openPartnerModal()">🤝 협력업체관리</button>
       </div>
       <div class="tw"><table>
         <thead><tr>
@@ -1630,7 +1633,8 @@ async function dbLoad() {
     await Promise.all([
       loadCos(), loadPrjs(), loadMems(),
       loadSals(), loadPnLDB(), loadPipeDB(),
-      loadSalesDB(), loadPurDB(), loadBankDB(), loadCardDB()
+      loadSalesDB(), loadPurDB(), loadBankDB(), loadCardDB(),
+      loadSolProducts(), loadPartnerCompanies()
     ]);
 
   } catch(e) { dbErr('dbLoad', e); }
@@ -3070,17 +3074,8 @@ initApp().finally(()=>window.authInit?.());
     </div>
     <div class="pc-wrap">
       <table>
-        <thead><tr>
-          <th style="width:110px">년월</th>
-          <th style="width:90px">업무</th>
-          <th style="width:80px">등급</th>
-          <th style="width:72px;text-align:right">계획(M/M)</th>
-          <th style="width:72px;text-align:right">실투입(M/M)</th>
-          <th style="width:100px;text-align:right">매출금액(원)</th>
-          <th style="width:100px;text-align:right">실투입금액(원)</th>
-          <th style="width:32px"></th>
-        </tr></thead>
-        <tbody id="pcBody"><tr><td colspan="8" style="text-align:center;padding:20px;color:var(--mu)">위에서 프로젝트/직원을 선택하세요</td></tr></tbody>
+        <thead><tr id="pcThead"></tr></thead>
+        <tbody id="pcBody"><tr><td colspan="5" style="text-align:center;padding:20px;color:var(--mu)">위에서 프로젝트/직원을 선택하세요</td></tr></tbody>
       </table>
       <button class="btn pc-add" onclick="addPcRow()">+ 행 추가</button>
     </div>
@@ -3089,6 +3084,76 @@ initApp().finally(()=>window.authInit?.());
       <button class="mm-btn c" onclick="closePcModal()">취소</button>
       <button class="mm-btn s" onclick="savePcModal()">💾 저장</button>
     </div>
+  </div>
+</div>
+
+<!-- ══ 솔루션제품 관리 모달 ══ -->
+<div class="mm-ov" id="solProdOverlay" onclick="if(event.target===this)closeSolProdModal()">
+  <div class="mm-box" style="max-width:560px">
+    <div class="mm-hd"><h3>📦 솔루션제품 관리</h3><button class="mm-x" onclick="closeSolProdModal()">✕</button></div>
+    <!-- 입력 폼 -->
+    <div style="padding:12px 16px;border-bottom:1px solid var(--br);display:flex;gap:8px;align-items:flex-end">
+      <input type="hidden" id="spEditId">
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">제품명 <span style="color:var(--red)">*</span></div>
+        <input id="spName" class="pc-inp" placeholder="제품명" style="width:100%">
+      </div>
+      <div style="flex:2">
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">제품설명</div>
+        <input id="spDesc" class="pc-inp" placeholder="설명 (선택)" style="width:100%">
+      </div>
+      <button class="btn btn-p" style="white-space:nowrap" onclick="saveSolProd()">💾 저장</button>
+      <button class="btn" onclick="clearSolProdForm()">취소</button>
+    </div>
+    <!-- 목록 -->
+    <div style="max-height:400px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px">
+        <thead><tr>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br);width:50px">ID</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br)">제품명</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br)">설명</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br);width:60px">등록일</th>
+          <th style="width:80px;border-bottom:1px solid var(--br)"></th>
+        </tr></thead>
+        <tbody id="spBody"></tbody>
+      </table>
+    </div>
+    <div class="mm-ft"><div id="spMsg" style="font-size:11px"></div></div>
+  </div>
+</div>
+
+<!-- ══ 협력업체 관리 모달 ══ -->
+<div class="mm-ov" id="partnerOverlay" onclick="if(event.target===this)closePartnerModal()">
+  <div class="mm-box" style="max-width:560px">
+    <div class="mm-hd"><h3>🤝 협력업체 관리</h3><button class="mm-x" onclick="closePartnerModal()">✕</button></div>
+    <!-- 입력 폼 -->
+    <div style="padding:12px 16px;border-bottom:1px solid var(--br);display:flex;gap:8px;align-items:flex-end">
+      <input type="hidden" id="ptEditId">
+      <div style="flex:1">
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">업체명 <span style="color:var(--red)">*</span></div>
+        <input id="ptName" class="pc-inp" placeholder="업체명" style="width:100%">
+      </div>
+      <div style="flex:2">
+        <div style="font-size:10px;color:var(--mu);margin-bottom:3px">설명</div>
+        <input id="ptDesc" class="pc-inp" placeholder="설명 (선택)" style="width:100%">
+      </div>
+      <button class="btn btn-p" style="white-space:nowrap" onclick="savePartner()">💾 저장</button>
+      <button class="btn" onclick="clearPartnerForm()">취소</button>
+    </div>
+    <!-- 목록 -->
+    <div style="max-height:400px;overflow-y:auto">
+      <table style="width:100%;border-collapse:collapse;font-size:11.5px">
+        <thead><tr>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br);width:50px">ID</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br)">업체명</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br)">설명</th>
+          <th style="padding:7px 10px;text-align:left;font-size:9.5px;color:var(--mu);border-bottom:1px solid var(--br);width:60px">등록일</th>
+          <th style="width:80px;border-bottom:1px solid var(--br)"></th>
+        </tr></thead>
+        <tbody id="ptBody"></tbody>
+      </table>
+    </div>
+    <div class="mm-ft"><div id="ptMsg" style="font-size:11px"></div></div>
   </div>
 </div>
 
@@ -3111,14 +3176,138 @@ initApp().finally(()=>window.authInit?.());
 ══════════════════════════════════════════ */
 const PC_GRADES=['초급','중급','고급','특급'];
 const PC_SEL_STYLE='background:var(--bg);border:1px solid var(--br);border-radius:6px;padding:5px 8px;color:var(--tx);font-size:11.5px;font-family:inherit;outline:none;min-width:220px';
+let solProducts=[], partnerCompanies=[];
+
+async function loadSolProducts(){
+  if(!DB_MODE)return;
+  const {data}=await sb.from('sol_product').select('*').order('product_id');
+  solProducts=data||[];
+}
+async function loadPartnerCompanies(){
+  if(!DB_MODE)return;
+  const {data}=await sb.from('partner_company').select('*').order('partner_id');
+  partnerCompanies=data||[];
+}
+
+/* 사업유형 → 입력 그룹 매핑
+   SI  : 시스템구축
+   SM  : 유지보수 / SV(컨설팅) / CT(기술지원)
+   SOL : 솔루션판매
+   MT  : 장비/자재공급 */
+function getBizGroup(t){
+  if(t==='SI') return 'SI';
+  if(['SM','SV','CT'].includes(t)) return 'SM';
+  if(t==='SOL') return 'SOL';
+  return 'MT';
+}
+
+function pcColDefs(group){
+  /* ── 옵션 생성 헬퍼 ── */
+  const gOpts=v=>PC_GRADES.map(g=>`<option${v===g?' selected':''}>${g}</option>`).join('');
+  const mOpts=v=>'<option value="">— 선택 —</option>'+mems.map(m=>`<option value="${m.사번}"${v===m.사번?' selected':''}>${m.성명}</option>`).join('');
+  const prdOpts=v=>'<option value="">— 선택 —</option>'+solProducts.map(p=>`<option value="${p.product_id}"${String(v)===String(p.product_id)?' selected':''}>${p.product_name}</option>`).join('');
+  const ptOpts=v=>'<option value="">— 선택 —</option>'+partnerCompanies.map(p=>`<option value="${p.partner_id}"${String(v)===String(p.partner_id)?' selected':''}>${p.partner_name}</option>`).join('');
+  /* ── 셀 생성 헬퍼 ── */
+  const tx=(f,r,i,ph='')=>`<input class="pc-inp md" value="${esc(r[f])}" onchange="pcRows[${i}]['${f}']=this.value" placeholder="${ph}">`;
+  const nm=(f,r,i,cls='sm',step='')=>`<input type="number" class="pc-inp ${cls}" value="${r[f]??''}" onchange="pcRows[${i}]['${f}']=+this.value" style="text-align:right"${step?' step="'+step+'"':''}>`;
+  const dt=(f,r,i)=>`<input type="date" class="pc-inp md" value="${r[f]??''}" onchange="pcRows[${i}]['${f}']=this.value">`;
+  const sl=(f,r,i,opts)=>`<select class="pc-inp" onchange="pcRows[${i}]['${f}']=this.value">${opts(r[f])}</select>`;
+
+  if(group==='SI') return [
+    {th:'업무',         td:(r,i)=>tx('task',r,i,'업무명')},
+    {th:'담당자',       td:(r,i)=>sl('emp_no',r,i,mOpts)},
+    {th:'등급',         td:(r,i)=>sl('grade',r,i,gOpts)},
+    {th:'시작일',       td:(r,i)=>dt('start_date',r,i)},
+    {th:'종료일',       td:(r,i)=>dt('end_date',r,i)},
+    {th:'계약공수',     td:(r,i)=>nm('plan_mm',r,i,'sm','0.1')},
+    {th:'실적공수',     td:(r,i)=>nm('actual_mm',r,i,'sm','0.1')},
+    {th:'계획금액(원)', td:(r,i)=>nm('sales_amount',r,i,'md')},
+    {th:'투입금액(원)', td:(r,i)=>nm('purchase_amount',r,i,'md')},
+  ];
+  if(group==='SM') return [
+    {th:'담당자',               td:(r,i)=>sl('emp_no',r,i,mOpts)},
+    {th:'등급',                 td:(r,i)=>sl('grade',r,i,gOpts)},
+    {th:'시작일',               td:(r,i)=>dt('start_date',r,i)},
+    {th:'종료일',               td:(r,i)=>dt('end_date',r,i)},
+    {th:'계약공수',             td:(r,i)=>nm('plan_mm',r,i,'sm','0.1')},
+    {th:'실적공수',             td:(r,i)=>nm('actual_mm',r,i,'sm','0.1')},
+    {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
+    {th:'매출금액(원)',         td:(r,i)=>nm('sales_amount',r,i,'md')},
+    {th:'매출입금일자',         td:(r,i)=>dt('sales_receipt_date',r,i)},
+    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
+    {th:'매입금액(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
+    {th:'매입지급일자',         td:(r,i)=>dt('purchase_pay_date',r,i)},
+    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
+    {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
+  ];
+  if(group==='SOL') return [
+    {th:'수량',                 td:(r,i)=>nm('actual_mm',r,i,'sm')},
+    {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
+    {th:'매출단가(원)',         td:(r,i)=>nm('sales_amount',r,i,'md')},
+    {th:'매출입금일자',         td:(r,i)=>dt('sales_receipt_date',r,i)},
+    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
+    {th:'매입단가(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
+    {th:'매입지급일자',         td:(r,i)=>dt('purchase_pay_date',r,i)},
+    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
+    {th:'매출제품',             td:(r,i)=>sl('sales_product_id',r,i,prdOpts)},
+    {th:'매입업체',             td:(r,i)=>sl('purchase_partner_id',r,i,ptOpts)},
+    {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
+  ];
+  /* MT */
+  return [
+    {th:'내용',                 td:(r,i)=>tx('task',r,i,'내용')},
+    {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
+    {th:'매출금액(원)',         td:(r,i)=>nm('sales_amount',r,i,'md')},
+    {th:'매출입금일자',         td:(r,i)=>dt('sales_receipt_date',r,i)},
+    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
+    {th:'매입금액(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
+    {th:'매입지급일자',         td:(r,i)=>dt('purchase_pay_date',r,i)},
+    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
+    {th:'매입업체',             td:(r,i)=>sl('purchase_partner_id',r,i,ptOpts)},
+    {th:'매출업체',             td:(r,i)=>sl('sales_partner_id',r,i,ptOpts)},
+    {th:'매입내용',             td:(r,i)=>tx('purchase_content',r,i)},
+    {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
+  ];
+}
+
+function esc(v){return String(v??'').replace(/"/g,'&quot;');}
+
+function getPcBizType(){
+  if(pcCtx.type==='prj') return prjs[pcCtx.idx]?.유형||'';
+  const code=document.getElementById('pcPrjSel')?.value;
+  return code?(prjs.find(p=>p.코드===code)?.유형||''):'';
+}
+
+function renderPcHead(cols){
+  const tr=document.getElementById('pcThead');
+  if(!tr)return;
+  tr.innerHTML=cols.map(c=>`<th>${c.th}</th>`).join('')+'<th style="width:28px"></th>';
+}
+
+function renderPcBody(){
+  const bizType=getPcBizType();
+  const group=bizType?getBizGroup(bizType):'SI';
+  const cols=pcColDefs(group);
+  renderPcHead(cols);
+  const nc=cols.length+1;
+  const b=document.getElementById('pcBody');
+  if(!pcRows.length){
+    b.innerHTML=`<tr><td colspan="${nc}" style="text-align:center;padding:20px;color:var(--mu)">데이터 없음 — 행 추가 버튼을 클릭하세요</td></tr>`;
+    return;
+  }
+  b.innerHTML=pcRows.map((r,i)=>
+    `<tr>${cols.map(c=>`<td>${c.td(r,i)}</td>`).join('')}<td><button onclick="pcRows.splice(${i},1);renderPcBody()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px">✕</button></td></tr>`
+  ).join('');
+}
 
 function openPcModal(type,idx){
   pcCtx={type,idx};
   const isMem=type==='mem';
   const m=isMem?mems[idx]:null;
   const p=isMem?null:prjs[idx];
+  const badge=p?`<span style="font-size:10px;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(0,212,255,0.15);color:var(--acc)">${p.유형}</span>`:'';
   document.getElementById('pcTitle').innerHTML=
-    `투입원가 관리 — <span style="color:var(--acc)">${isMem?m.성명+' ('+m.사번+')':p.명}</span>`;
+    `투입원가 관리 — <span style="color:var(--acc)">${isMem?m.성명+' ('+m.사번+')':p.명}</span>${badge}`;
   document.getElementById('pcFixedLabel').innerHTML=
     `<span>${isMem?'직원':'프로젝트'}</span>${isMem?m.성명:p.명}`;
   document.getElementById('pcSelWrap').innerHTML=isMem
@@ -3145,44 +3334,45 @@ async function loadPcRows(){
   const empNo=pcCtx.type==='prj'
     ?document.getElementById('pcMemSel')?.value
     :mems[pcCtx.idx]?.사번;
-  if(!prjCode||!empNo){pcRows=[];renderPcBody();return;}
-  const {data,error}=await sb.from('project_cost')
-    .select('*').eq('project_code',prjCode).eq('emp_no',empNo)
-    .order('ref_yearmonth');
+  if(!prjCode){pcRows=[];renderPcBody();return;}
+
+  let q=sb.from('project_cost').select('*').eq('project_code',prjCode);
+  if(empNo) q=q.eq('emp_no',empNo);
+  const {data,error}=await q.order('start_date',{nullsFirst:false});
   if(error){pcMsg('불러오기 오류: '+error.message,1);return;}
   pcRows=(data||[]).map(r=>({
-    _id:r.id, 년월:(r.ref_yearmonth||'').slice(0,7),
-    업무:r.task||'', 등급:r.grade||'고급',
-    계획:r.plan_mm||0, 실투입:r.actual_mm||0,
-    매출액:r.sales_amount||0, 실투입금:r.actual_cost||0
+    _id:r.id,
+    task:r.task||'', emp_no:r.emp_no||'', grade:r.grade||'고급',
+    start_date:r.start_date||'', end_date:r.end_date||'',
+    plan_mm:r.plan_mm??'', actual_mm:r.actual_mm??'',
+    sales_invoice_date:r.sales_invoice_date||'',
+    sales_amount:r.sales_amount??'',
+    sales_receipt_date:r.sales_receipt_date||'',
+    purchase_invoice_date:r.purchase_invoice_date||'',
+    purchase_amount:r.purchase_amount??'',
+    purchase_pay_date:r.purchase_pay_date||'',
+    direct_expense:r.direct_expense??'', remark:r.remark||'',
+    sales_product_id:r.sales_product_id??'',
+    purchase_partner_id:r.purchase_partner_id??'',
+    sales_partner_id:r.sales_partner_id??'',
+    purchase_content:r.purchase_content||''
   }));
   renderPcBody();
 }
 
-function renderPcBody(){
-  const b=document.getElementById('pcBody');
-  if(!pcRows.length){
-    b.innerHTML='<tr><td colspan="8" style="text-align:center;padding:20px;color:var(--mu)">데이터 없음 — 행 추가 버튼을 클릭하세요</td></tr>';
-    return;
-  }
-  b.innerHTML=pcRows.map((r,i)=>`<tr>
-    <td><input type="month" class="pc-inp md" value="${r.년월}" onchange="pcRows[${i}].년월=this.value"></td>
-    <td><input class="pc-inp md" value="${r.업무}" onchange="pcRows[${i}].업무=this.value" placeholder="업무명"></td>
-    <td><select class="pc-inp" onchange="pcRows[${i}].등급=this.value">
-      ${PC_GRADES.map(g=>`<option${r.등급===g?' selected':''}>${g}</option>`).join('')}
-    </select></td>
-    <td><input type="number" class="pc-inp sm" step="0.1" min="0" value="${r.계획}" onchange="pcRows[${i}].계획=+this.value" style="text-align:right"></td>
-    <td><input type="number" class="pc-inp sm" step="0.1" min="0" value="${r.실투입}" onchange="pcRows[${i}].실투입=+this.value" style="text-align:right"></td>
-    <td><input type="number" class="pc-inp md" min="0" value="${r.매출액}" onchange="pcRows[${i}].매출액=+this.value" style="text-align:right"></td>
-    <td><input type="number" class="pc-inp md" min="0" value="${r.실투입금}" onchange="pcRows[${i}].실투입금=+this.value" style="text-align:right"></td>
-    <td><button onclick="pcRows.splice(${i},1);renderPcBody()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px">✕</button></td>
-  </tr>`).join('');
-}
-
 function addPcRow(){
-  pcRows.push({년월:today().slice(0,7),업무:'',등급:'고급',계획:1,실투입:1,매출액:0,실투입금:0});
+  pcRows.push({
+    task:'', emp_no:'', grade:'고급',
+    start_date:'', end_date:'',
+    plan_mm:'', actual_mm:'',
+    sales_invoice_date:'', sales_amount:'', sales_receipt_date:'',
+    purchase_invoice_date:'', purchase_amount:'', purchase_pay_date:'',
+    direct_expense:'', remark:'',
+    sales_product_id:'', purchase_partner_id:'',
+    sales_partner_id:'', purchase_content:''
+  });
   renderPcBody();
-  document.getElementById('pcBody').lastElementChild?.querySelector('input')?.focus();
+  document.getElementById('pcBody').lastElementChild?.querySelector('input,select')?.focus();
 }
 
 async function savePcModal(){
@@ -3190,25 +3380,46 @@ async function savePcModal(){
   const prjCode=pcCtx.type==='mem'
     ?document.getElementById('pcPrjSel')?.value
     :prjs[pcCtx.idx]?.코드;
-  const empNo=pcCtx.type==='prj'
-    ?document.getElementById('pcMemSel')?.value
-    :mems[pcCtx.idx]?.사번;
-  if(!prjCode||!empNo)return pcMsg('프로젝트와 직원을 모두 선택하세요',1);
-  // 년월 중복 체크
-  const yms=pcRows.map(r=>r.년월).filter(Boolean);
-  if(new Set(yms).size!==yms.length)return pcMsg('같은 년월이 중복되었습니다',1);
+  const empNoFixed=pcCtx.type==='prj'
+    ?document.getElementById('pcMemSel')?.value||null
+    :mems[pcCtx.idx]?.사번||null;
+  if(!prjCode)return pcMsg('프로젝트를 선택하세요',1);
 
-  const {error:de}=await sb.from('project_cost').delete()
-    .eq('project_code',prjCode).eq('emp_no',empNo);
+  /* 사업유형별로 emp_no 필수 여부 판단 */
+  const bizType=getPcBizType();
+  const group=getBizGroup(bizType||'SI');
+  const needEmp=['SI','SM'].includes(group);
+
+  /* 삭제 조건 */
+  let delQ=sb.from('project_cost').delete().eq('project_code',prjCode);
+  if(empNoFixed) delQ=delQ.eq('emp_no',empNoFixed);
+  const {error:de}=await delQ;
   if(de)return pcMsg('오류: '+de.message,1);
+
   if(pcRows.length){
-    const rows=pcRows.map(r=>({
-      project_code:prjCode, emp_no:empNo,
-      task:r.업무||null, grade:r.등급,
-      ref_yearmonth:r.년월?r.년월+'-01':null,
-      plan_mm:r.계획, actual_mm:r.실투입,
-      sales_amount:r.매출액, actual_cost:r.실투입금
-    }));
+    const rows=pcRows.map(r=>{
+      const empNo=needEmp?(r.emp_no||empNoFixed||null):null;
+      return {
+        project_code:prjCode,
+        emp_no:empNo,
+        task:r.task||null, grade:r.grade||null,
+        start_date:r.start_date||null, end_date:r.end_date||null,
+        plan_mm:r.plan_mm===''?null:+r.plan_mm,
+        actual_mm:r.actual_mm===''?null:+r.actual_mm,
+        sales_invoice_date:r.sales_invoice_date||null,
+        sales_amount:r.sales_amount===''?null:+r.sales_amount,
+        sales_receipt_date:r.sales_receipt_date||null,
+        purchase_invoice_date:r.purchase_invoice_date||null,
+        purchase_amount:r.purchase_amount===''?null:+r.purchase_amount,
+        purchase_pay_date:r.purchase_pay_date||null,
+        direct_expense:r.direct_expense===''?null:+r.direct_expense,
+        remark:r.remark||null,
+        sales_product_id:r.sales_product_id||null,
+        purchase_partner_id:r.purchase_partner_id||null,
+        sales_partner_id:r.sales_partner_id||null,
+        purchase_content:r.purchase_content||null,
+      };
+    });
     const {error:ie}=await sb.from('project_cost').insert(rows);
     if(ie)return pcMsg('오류: '+ie.message,1);
   }
@@ -3250,6 +3461,179 @@ document.getElementById('cfOkBtn').addEventListener('click',()=>{
 document.addEventListener('keydown',e=>{
   if(e.key==='Escape'&&document.getElementById('cfOverlay').classList.contains('on'))closeConfirmModal();
 });
+</script>
+
+<script>
+/* ══════════════════════════════════════════
+   솔루션제품(sol_product) 관리
+══════════════════════════════════════════ */
+function spMsg(t,isErr){const m=document.getElementById('spMsg');if(!m)return;m.textContent=t;m.style.color=isErr?'var(--red)':'var(--grn)';}
+
+async function openSolProdModal(){
+  document.getElementById('solProdOverlay').classList.add('on');
+  clearSolProdForm();
+  await renderSpList();
+}
+function closeSolProdModal(){
+  document.getElementById('solProdOverlay').classList.remove('on');
+}
+function clearSolProdForm(){
+  document.getElementById('spEditId').value='';
+  document.getElementById('spName').value='';
+  document.getElementById('spDesc').value='';
+  spMsg('');
+}
+
+async function renderSpList(){
+  const b=document.getElementById('spBody');
+  if(!DB_MODE){b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--mu)">DB 미연결</td></tr>';return;}
+  const {data,error}=await sb.from('sol_product').select('*').order('product_id');
+  if(error){spMsg('불러오기 오류: '+error.message,1);return;}
+  solProducts=data||[];
+  if(!solProducts.length){
+    b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--mu)">등록된 제품이 없습니다</td></tr>';
+    return;
+  }
+  b.innerHTML=solProducts.map(p=>`<tr style="border-bottom:1px solid var(--br)">
+    <td style="padding:7px 10px;color:var(--mu);font-size:10px">${p.product_id}</td>
+    <td style="padding:7px 10px;font-weight:600">${escHtml(p.product_name)}</td>
+    <td style="padding:7px 10px;color:var(--mu)">${escHtml(p.product_desc||'')}</td>
+    <td style="padding:7px 10px;color:var(--mu);font-size:10px">${(p.created_at||'').slice(0,10)}</td>
+    <td style="padding:4px 6px;text-align:right">
+      <button class="btn" style="font-size:9px;padding:2px 7px;margin-right:3px" onclick="editSolProd(${p.product_id},'${escQ(p.product_name)}','${escQ(p.product_desc||'')}')">수정</button>
+      <button class="btn btn-d" style="font-size:9px;padding:2px 7px" onclick="delSolProd(${p.product_id},'${escQ(p.product_name)}')">삭제</button>
+    </td>
+  </tr>`).join('');
+}
+
+function editSolProd(id,name,desc){
+  document.getElementById('spEditId').value=id;
+  document.getElementById('spName').value=name;
+  document.getElementById('spDesc').value=desc;
+  document.getElementById('spName').focus();
+  spMsg('수정 모드 — 변경 후 저장을 클릭하세요');
+}
+
+async function saveSolProd(){
+  if(!DB_MODE)return;
+  const name=document.getElementById('spName').value.trim();
+  if(!name)return spMsg('제품명을 입력하세요',1);
+  const desc=document.getElementById('spDesc').value.trim()||null;
+  const editId=document.getElementById('spEditId').value;
+  if(editId){
+    const {error}=await sb.from('sol_product').update({product_name:name,product_desc:desc}).eq('product_id',+editId);
+    if(error)return spMsg('오류: '+error.message,1);
+    spMsg('수정되었습니다 ✓');
+  } else {
+    const {error}=await sb.from('sol_product').insert({product_name:name,product_desc:desc});
+    if(error)return spMsg('오류: '+error.message,1);
+    spMsg('등록되었습니다 ✓');
+  }
+  clearSolProdForm();
+  await renderSpList();
+  /* pcModal 드롭다운 갱신용 */
+  await loadSolProducts();
+}
+
+async function delSolProd(id,name){
+  if(!confirm(`'${name}' 제품을 삭제하시겠습니까?`))return;
+  const {error}=await sb.from('sol_product').delete().eq('product_id',id);
+  if(error)return spMsg('오류: '+error.message,1);
+  spMsg('삭제되었습니다');
+  await renderSpList();
+  await loadSolProducts();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('solProdOverlay').classList.contains('on'))closeSolProdModal();
+});
+
+/* ══════════════════════════════════════════
+   협력업체(partner_company) 관리
+══════════════════════════════════════════ */
+function ptMsg(t,isErr){const m=document.getElementById('ptMsg');if(!m)return;m.textContent=t;m.style.color=isErr?'var(--red)':'var(--grn)';}
+
+async function openPartnerModal(){
+  document.getElementById('partnerOverlay').classList.add('on');
+  clearPartnerForm();
+  await renderPtList();
+}
+function closePartnerModal(){
+  document.getElementById('partnerOverlay').classList.remove('on');
+}
+function clearPartnerForm(){
+  document.getElementById('ptEditId').value='';
+  document.getElementById('ptName').value='';
+  document.getElementById('ptDesc').value='';
+  ptMsg('');
+}
+
+async function renderPtList(){
+  const b=document.getElementById('ptBody');
+  if(!DB_MODE){b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--mu)">DB 미연결</td></tr>';return;}
+  const {data,error}=await sb.from('partner_company').select('*').order('partner_id');
+  if(error){ptMsg('불러오기 오류: '+error.message,1);return;}
+  partnerCompanies=data||[];
+  if(!partnerCompanies.length){
+    b.innerHTML='<tr><td colspan="5" style="text-align:center;padding:16px;color:var(--mu)">등록된 업체가 없습니다</td></tr>';
+    return;
+  }
+  b.innerHTML=partnerCompanies.map(p=>`<tr style="border-bottom:1px solid var(--br)">
+    <td style="padding:7px 10px;color:var(--mu);font-size:10px">${p.partner_id}</td>
+    <td style="padding:7px 10px;font-weight:600">${escHtml(p.partner_name)}</td>
+    <td style="padding:7px 10px;color:var(--mu)">${escHtml(p.description||'')}</td>
+    <td style="padding:7px 10px;color:var(--mu);font-size:10px">${(p.created_at||'').slice(0,10)}</td>
+    <td style="padding:4px 6px;text-align:right">
+      <button class="btn" style="font-size:9px;padding:2px 7px;margin-right:3px" onclick="editPartner(${p.partner_id},'${escQ(p.partner_name)}','${escQ(p.description||'')}')">수정</button>
+      <button class="btn btn-d" style="font-size:9px;padding:2px 7px" onclick="delPartner(${p.partner_id},'${escQ(p.partner_name)}')">삭제</button>
+    </td>
+  </tr>`).join('');
+}
+
+function editPartner(id,name,desc){
+  document.getElementById('ptEditId').value=id;
+  document.getElementById('ptName').value=name;
+  document.getElementById('ptDesc').value=desc;
+  document.getElementById('ptName').focus();
+  ptMsg('수정 모드 — 변경 후 저장을 클릭하세요');
+}
+
+async function savePartner(){
+  if(!DB_MODE)return;
+  const name=document.getElementById('ptName').value.trim();
+  if(!name)return ptMsg('업체명을 입력하세요',1);
+  const desc=document.getElementById('ptDesc').value.trim()||null;
+  const editId=document.getElementById('ptEditId').value;
+  if(editId){
+    const {error}=await sb.from('partner_company').update({partner_name:name,description:desc}).eq('partner_id',+editId);
+    if(error)return ptMsg('오류: '+error.message,1);
+    ptMsg('수정되었습니다 ✓');
+  } else {
+    const {error}=await sb.from('partner_company').insert({partner_name:name,description:desc});
+    if(error)return ptMsg('오류: '+error.message,1);
+    ptMsg('등록되었습니다 ✓');
+  }
+  clearPartnerForm();
+  await renderPtList();
+  await loadPartnerCompanies();
+}
+
+async function delPartner(id,name){
+  if(!confirm(`'${name}' 업체를 삭제하시겠습니까?`))return;
+  const {error}=await sb.from('partner_company').delete().eq('partner_id',id);
+  if(error)return ptMsg('오류: '+error.message,1);
+  ptMsg('삭제되었습니다');
+  await renderPtList();
+  await loadPartnerCompanies();
+}
+
+document.addEventListener('keydown',e=>{
+  if(e.key==='Escape'&&document.getElementById('partnerOverlay').classList.contains('on'))closePartnerModal();
+});
+
+/* XSS 방지 헬퍼 */
+function escHtml(s){return String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/"/g,'&quot;');}
+function escQ(s){return String(s).replace(/'/g,"\\'");}
 </script>
 <!-- ══ 인증 관련 스타일 ══ -->
 <style>

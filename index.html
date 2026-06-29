@@ -3195,9 +3195,9 @@ async function loadPartnerCompanies(){
    MT  : 장비/자재공급 */
 function getBizGroup(t){
   if(t==='SI') return 'SI';
-  if(['SM','SV','CT'].includes(t)) return 'SM';
+  if(['SM','SV','CT','CSV'].includes(t)) return 'SM';
   if(t==='SOL') return 'SOL';
-  return 'MT';
+  return 'MT'; /* SOL/M, MT 등 */
 }
 
 function pcColDefs(group){

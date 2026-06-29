@@ -1664,9 +1664,10 @@ async function dbLoad() {
     await Promise.all([
       loadCos(), loadPrjs(), loadMems(),
       loadSals(), loadPnLDB(), loadPipeDB(),
-      loadSalesDB(), loadPurDB(), loadBankDB(), loadCardDB(),
-      loadSolProducts(), loadPartnerCompanies()
+      loadSalesDB(), loadPurDB(), loadBankDB(), loadCardDB()
     ]);
+    // 보조 데이터 — 실패해도 메인 로드에 영향 없게 별도 처리
+    await Promise.allSettled([loadSolProducts(), loadPartnerCompanies()]);
 
   } catch(e) { dbErr('dbLoad', e); }
 }

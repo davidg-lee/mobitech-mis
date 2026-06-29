@@ -367,6 +367,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         </select>
         <button id="pcRegBtn" class="btn btn-p" style="display:none;font-size:11px" onclick="openPcModalFromBgt()">+ 등록</button>
       </div>
+      <div id="pcSummary" style="display:none;margin-bottom:8px;overflow-x:auto"></div>
       <div class="tw"><table>
         <thead><tr id="pcAllThead"></tr></thead>
         <tbody id="pcAllBody"></tbody>
@@ -1159,6 +1160,39 @@ async function rPcTable(){
   } else { /* MT / SOL/M */
     headers=['회차','매출업체명','매출내용','매출계산서발행일','매출금액(vat포함)','입금일자','매입업체명','매입내용','매입계산서발행일','지급금액(vat포함)','지급일자','직접경비','비고','수정'];
     rowFn=(r,seq)=>`${D(seq,'R')}${D(ptName(r.매출업체id))}${D(r.업무)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(ptName(r.매입업체id))}${D(r.매입내용)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(r.비고)}`;
+  }
+
+  // SI 요약 섹션 렌더링
+  const summEl=document.getElementById('pcSummary');
+  if(summEl){
+    if(group==='SI'){
+      const 수주액=selPrj?.수주액||0;
+      const 매출원가계=allPcRows.reduce((s,r)=>s+(+r.매입금||0),0);
+      const 매출총이익=수주액-매출원가계;
+      const 공통제경비=Math.round(수주액*0.15);
+      const 영업이익=매출총이익-공통제경비;
+      const NF=v=>`<span style="font-family:'JetBrains Mono',monospace">₩${fmt(v)}</span>`;
+      const SL=(label,val,highlight='')=>`<div style="display:flex;flex-direction:column;gap:2px;padding:8px 14px;border-right:1px solid var(--br);min-width:110px">
+        <span style="font-size:9.5px;color:var(--mu)">${label}</span>
+        <span style="font-size:11px;font-weight:700;color:${highlight||'var(--tx)'}">${NF(val)}</span>
+      </div>`;
+      summEl.style.display='';
+      summEl.innerHTML=`<div style="display:flex;background:var(--card);border:1px solid var(--br);border-radius:8px;overflow:hidden;font-size:11px">
+        ${SL('총수주액',수주액)}
+        ${SL('매출액',수주액)}
+        ${SL('직접인건비',0)}
+        ${SL('외주비',0)}
+        ${SL('직접경비',0)}
+        ${SL('상품원가',0)}
+        ${SL('매출원가계',매출원가계,'#60A5FA')}
+        ${SL('매출총이익',매출총이익,매출총이익>=0?'#34D399':'#EF4444')}
+        ${SL('공통제경비(15%)',공통제경비)}
+        ${SL('영업이익',영업이익,영업이익>=0?'#34D399':'#EF4444')}
+      </div>`;
+    } else {
+      summEl.style.display='none';
+      summEl.innerHTML='';
+    }
   }
 
   // 헤더 렌더링

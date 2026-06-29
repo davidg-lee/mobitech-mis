@@ -3282,31 +3282,31 @@ function pcColDefs(group){
     {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
   ];
   if(group==='SOL') return [
+    {th:'제품명',               td:(r,i)=>sl('sales_product_id',r,i,prdOpts)},
     {th:'수량',                 td:(r,i)=>nm('actual_mm',r,i,'sm')},
-    {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
     {th:'매출단가(원)',         td:(r,i)=>nm('sales_amount',r,i,'md')},
-    {th:'매출입금일자',         td:(r,i)=>dt('sales_receipt_date',r,i)},
-    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
-    {th:'매입단가(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
-    {th:'매입지급일자',         td:(r,i)=>dt('purchase_pay_date',r,i)},
-    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
-    {th:'매출제품',             td:(r,i)=>sl('sales_product_id',r,i,prdOpts)},
+    {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
+    {th:'입금일자',             td:(r,i)=>dt('sales_receipt_date',r,i)},
     {th:'매입업체',             td:(r,i)=>sl('purchase_partner_id',r,i,ptOpts)},
+    {th:'매입단가(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
+    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
+    {th:'지급일자',             td:(r,i)=>dt('purchase_pay_date',r,i)},
+    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
     {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
   ];
-  /* MT */
+  /* MT / SOL/M */
   return [
-    {th:'내용',                 td:(r,i)=>tx('task',r,i,'내용')},
+    {th:'매출업체명',           td:(r,i)=>sl('sales_partner_id',r,i,ptOpts)},
+    {th:'매출내용',             td:(r,i)=>tx('task',r,i,'매출내용')},
     {th:'매출계산서발행일',     td:(r,i)=>dt('sales_invoice_date',r,i)},
-    {th:'매출금액(원)',         td:(r,i)=>nm('sales_amount',r,i,'md')},
-    {th:'매출입금일자',         td:(r,i)=>dt('sales_receipt_date',r,i)},
-    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
-    {th:'매입금액(원)',         td:(r,i)=>nm('purchase_amount',r,i,'md')},
-    {th:'매입지급일자',         td:(r,i)=>dt('purchase_pay_date',r,i)},
-    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
-    {th:'매입업체',             td:(r,i)=>sl('purchase_partner_id',r,i,ptOpts)},
-    {th:'매출업체',             td:(r,i)=>sl('sales_partner_id',r,i,ptOpts)},
+    {th:'매출금액(vat포함)',    td:(r,i)=>nm('sales_amount',r,i,'md')},
+    {th:'입금일자',             td:(r,i)=>dt('sales_receipt_date',r,i)},
+    {th:'매입업체명',           td:(r,i)=>sl('purchase_partner_id',r,i,ptOpts)},
     {th:'매입내용',             td:(r,i)=>tx('purchase_content',r,i)},
+    {th:'매입계산서발행일',     td:(r,i)=>dt('purchase_invoice_date',r,i)},
+    {th:'지급금액(vat포함)',    td:(r,i)=>nm('purchase_amount',r,i,'md')},
+    {th:'지급일자',             td:(r,i)=>dt('purchase_pay_date',r,i)},
+    {th:'직접경비(원)',         td:(r,i)=>nm('direct_expense',r,i,'md')},
     {th:'비고',                 td:(r,i)=>tx('remark',r,i)},
   ];
 }

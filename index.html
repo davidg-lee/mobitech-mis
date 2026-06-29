@@ -368,30 +368,9 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <button id="pcRegBtn" class="btn btn-p" style="display:none;font-size:11px" onclick="openPcModalFromBgt()">+ 등록</button>
       </div>
       <div class="tw"><table>
-        <thead><tr>
-          <th class="L">프로젝트코드</th>
-          <th class="L HL">프로젝트명</th>
-          <th class="L HL">직원명</th>
-          <th class="L">사번</th>
-          <th class="L">업무</th>
-          <th class="L">등급</th>
-          <th class="L">시작일</th>
-          <th class="L">종료일</th>
-          <th class="R">계획(M/M)</th>
-          <th class="R">실투입(M/M)</th>
-          <th class="R">매출금액(원)</th>
-          <th class="R">매입금액(원)</th>
-          <th style="text-align:center">수정</th>
-        </tr></thead>
+        <thead><tr id="pcAllThead"></tr></thead>
         <tbody id="pcAllBody"></tbody>
-        <tfoot><tr>
-          <td colspan="8" class="L" style="font-size:10px;color:var(--mu)">합계</td>
-          <td class="R" id="pcTotPlan">-</td>
-          <td class="R" id="pcTotActMm">-</td>
-          <td class="R" id="pcTotSales">-</td>
-          <td class="R" id="pcTotCost">-</td>
-          <td></td>
-        </tr></tfoot>
+        <tfoot><tr id="pcAllFoot"></tr></tfoot>
       </table></div>
     </div>
 
@@ -1123,55 +1102,91 @@ async function rPcTable(){
         _id:r.id, 프로젝트코드:r.project_code||'', 사번:r.emp_no||'',
         업무:r.task||'', 등급:r.grade||'',
         시작일:r.start_date||'', 종료일:r.end_date||'',
-        계획:r.plan_mm||0, 실투입:r.actual_mm||0,
-        매출액:r.sales_amount||0, 매입금:r.purchase_amount||0
+        계획:r.plan_mm??0, 실투입:r.actual_mm??0,
+        매출계산서발행일:r.sales_invoice_date||'',
+        매출액:r.sales_amount??0,
+        매출입금일자:r.sales_receipt_date||'',
+        매입계산서발행일:r.purchase_invoice_date||'',
+        매입금:r.purchase_amount??0,
+        매입지급일자:r.purchase_pay_date||'',
+        직접경비:r.direct_expense??0,
+        비고:r.remark||'',
+        매출제품id:r.sales_product_id??'',
+        매입업체id:r.purchase_partner_id??'',
+        매출업체id:r.sales_partner_id??'',
+        매입내용:r.purchase_content||''
       }));
     }
   }
 
-  // 직원·년월 필터 갱신
+  // 직원 필터 갱신
   const memSel=document.getElementById('pcFltMem');
-  const ymSel=document.getElementById('pcFltYm');
   if(memSel){
     const curMem=memSel.value;
     const empNos=[...new Set(allPcRows.map(r=>r.사번).filter(Boolean))].sort();
     memSel.innerHTML='<option value="">전체 직원</option>'+
       empNos.map(e=>{const m=mems.find(x=>x.사번===e);return`<option value="${e}"${e===curMem?' selected':''}>${m?m.성명+' ('+e+')':e}</option>`;}).join('');
   }
-  if(ymSel){
-    const curYm=ymSel.value;
-    const yms=[...new Set(allPcRows.map(r=>r.시작일?.slice(0,7)).filter(Boolean))].sort();
-    ymSel.innerHTML='<option value="">전체 시작년월</option>'+
-      yms.map(y=>`<option value="${y}"${y===curYm?' selected':''}>${y}</option>`).join('');
+
+  // 사업유형별 그리드 컬럼 정의
+  const selPrj=prjs.find(x=>x.코드===prjF);
+  const bizType=selPrj?.유형||'';
+  const group=bizType?getBizGroup(bizType):'SI';
+  const pi=prjs.indexOf(selPrj);
+
+  const D=(v,cls='L')=>`<td class="${cls}" style="font-size:10px">${v||'-'}</td>`;
+  const N=(v,cls='R')=>`<td class="${cls}" style="font-family:'JetBrains Mono',monospace;font-size:10px">${v?'₩'+fmt(v):'-'}</td>`;
+  const MM=(v)=>`<td class="R" style="font-family:'JetBrains Mono',monospace;font-size:10px">${v||v===0?v:'-'}</td>`;
+  const GD=(v)=>`<td class="L">${v?`<span class="badge bwn">${v}</span>`:'-'}</td>`;
+  const prdName=(id)=>solProducts.find(p=>String(p.product_id)===String(id))?.product_name||id||'-';
+  const ptName=(id)=>partnerCompanies.find(p=>String(p.partner_id)===String(id))?.partner_name||id||'-';
+
+  // 공통 앞 컬럼 정의
+  const memCell=(r)=>{const m=mems.find(x=>x.사번===r.사번);const mi=mems.indexOf(m);
+    return`<td class="L" style="font-weight:700">${m?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('mem',${mi})">${m.성명}</a>`:r.사번||'-'}</td>`;};
+
+  let headers=[], rowFn;
+  const prjCells=(r)=>`<td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${r.프로젝트코드}</td>
+    <td class="L"><a class="tlink" href="#" onclick="event.preventDefault();openPcModal('prj',${pi})">${selPrj?.명||r.프로젝트코드}</a></td>`;
+
+  if(group==='SI'){
+    headers=['프로젝트코드','프로젝트명','직원명','사번','업무','등급','시작일','종료일','계획(M/M)','실적(M/M)','계획금액(원)','투입금액(원)','수정'];
+    rowFn=r=>`${prjCells(r)}${memCell(r)}${D(r.사번)}${D(r.업무)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${N(r.매출액)}${N(r.매입금)}`;
+  } else if(group==='SM'){
+    headers=['프로젝트코드','프로젝트명','직원명','사번','등급','시작일','종료일','계약(M/M)','실적(M/M)','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','비고','수정'];
+    rowFn=r=>`${prjCells(r)}${memCell(r)}${D(r.사번)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(r.비고)}`;
+  } else if(group==='SOL'){
+    headers=['프로젝트코드','프로젝트명','수량','매출계산서발행일','매출단가(원)','매출입금일자','매입계산서발행일','매입단가(원)','매입지급일자','직접경비(원)','매출제품','매입업체','비고','수정'];
+    rowFn=r=>`${prjCells(r)}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(prdName(r.매출제품id))}${D(ptName(r.매입업체id))}${D(r.비고)}`;
+  } else { /* MT */
+    headers=['프로젝트코드','프로젝트명','내용','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','매입업체','매출업체','매입내용','비고','수정'];
+    rowFn=r=>`${prjCells(r)}${D(r.업무)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(ptName(r.매입업체id))}${D(ptName(r.매출업체id))}${D(r.매입내용)}${D(r.비고)}`;
   }
 
-  const vis=allPcRows.filter(r=>(!memF||r.사번===memF)&&(!ymF||r.시작일?.slice(0,7)===ymF));
-  body.innerHTML=vis.map(r=>{
-    const p=prjs.find(x=>x.코드===r.프로젝트코드);
-    const m=mems.find(x=>x.사번===r.사번);
-    const pi=prjs.indexOf(p), mi=mems.indexOf(m);
-    return`<tr>
-      <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${r.프로젝트코드}</td>
-      <td class="L">${pi>=0?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('prj',${pi})">${p.명}</a>`:r.프로젝트코드}</td>
-      <td class="L" style="font-weight:700">${m?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('mem',${mi})">${m.성명}</a>`:r.사번||'-'}</td>
-      <td class="L M" style="font-size:10px">${r.사번||'-'}</td>
-      <td class="L">${r.업무||'-'}</td>
-      <td class="L">${r.등급?`<span class="badge bwn">${r.등급}</span>`:'-'}</td>
-      <td class="L M" style="font-size:10px">${r.시작일||'-'}</td>
-      <td class="L M" style="font-size:10px">${r.종료일||'-'}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.계획||'-'}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입||'-'}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.매출액?'₩'+fmt(r.매출액):'-'}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.매입금?'₩'+fmt(r.매입금):'-'}</td>
-      <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi>=0?pi:0})">수정</button></td>
-    </tr>`;
-  }).join('')||'<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>';
-  const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
-  const se=id=>document.getElementById(id);
-  se('pcTotPlan').textContent=sum('계획').toFixed(2);
-  se('pcTotActMm').textContent=sum('실투입').toFixed(2);
-  se('pcTotSales').textContent='₩'+fmt(sum('매출액'));
-  se('pcTotCost').textContent='₩'+fmt(sum('매입금'));
+  // 헤더 렌더링
+  const thead=document.getElementById('pcAllThead');
+  if(thead) thead.innerHTML=headers.map((h,i)=>`<th class="${i<2?'L HL':i===headers.length-1?'':'L'}"${i===headers.length-1?' style="text-align:center"':''}>${h}</th>`).join('');
+
+  const vis=allPcRows.filter(r=>(!memF||r.사번===memF));
+  const nc=headers.length;
+  body.innerHTML=vis.map(r=>`<tr>${rowFn(r)}<td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi})">수정</button></td></tr>`).join('')
+    ||`<tr><td colspan="${nc}" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>`;
+
+  // tfoot 렌더링
+  const tfoot=document.getElementById('pcAllFoot');
+  if(tfoot){
+    const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
+    let footCells='<td colspan="2" class="L" style="font-size:10px;color:var(--mu)">합계</td>';
+    if(group==='SI')
+      footCells+=`<td colspan="6"></td><td class="R" style="font-size:10px">${sum('계획').toFixed(2)}</td><td class="R" style="font-size:10px">${sum('실투입').toFixed(2)}</td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td>`;
+    else if(group==='SM')
+      footCells+=`<td colspan="6"></td><td class="R" style="font-size:10px">${sum('계획').toFixed(2)}</td><td class="R" style="font-size:10px">${sum('실투입').toFixed(2)}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td>`;
+    else if(group==='SOL')
+      footCells+=`<td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td><td></td><td></td>`;
+    else
+      footCells+=`<td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td><td></td><td></td><td></td>`;
+    tfoot.innerHTML=footCells;
+  }
 }
 
 function openPcModalFromBgt(){

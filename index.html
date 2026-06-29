@@ -773,8 +773,8 @@ function genPrjCode(tp){
   return pre+String(max+1).padStart(3,'0');
 }
 const TC={SI:'#3B82F6',SM:'#10B981',SV:'#F59E0B',SOL:'#EF4444',CT:'#8B5CF6',MT:'#14B8A6'};
-let TYPES=['SI','SM','SV','SOL','CT','MT'];
-let TNAME={SI:'시스템구축',SM:'유지보수',SV:'컨설팅/서비스',SOL:'솔루션판매',CT:'기술지원계약',MT:'장비/자재공급'};
+let TYPES=['SI','SM','CSV','SOL','SOL/M'];
+let TNAME={SI:'시스템구축',SM:'유지보수',CSV:'컨설팅/서비스',SOL:'솔루션판매','SOL/M':'솔루션유지보수'};
 const STAGES={첩보:10,정보:30,입찰참여:30,기존고객입찰:70,계약협의:80,사업연장:90};
 const ACCTS_PUR=['외주비','인프라비','상품매입가','장비원가','클라우드이용료','SW라이선스','기타직접원가'];
 const ACCTS_BK=['단기차입금','장기차입금','차입금상환','급여이체','체크카드','거래처지급','기타출금','기타입금'];
@@ -1641,7 +1641,7 @@ function toast(msg, type = 'ok') {
 /* ── DB 오류 핸들러 ── */
 function dbErr(label, err) {
   console.error(`[DB] ${label}:`, err?.message || err);
-  toast(`저장 실패(${label}): ${err?.message?.slice(0,40) || '알 수 없는 오류'}`, 'err');
+  toast(`저장 실패(${label}): ${err?.message?.slice(0,80) || '알 수 없는 오류'}`, 'err');
 }
 
 /* ══════════════════════════════════════════════
@@ -2431,13 +2431,15 @@ function saveEntryModal(){
   else if(t==='prj'){
     const name=mmVal('명');
     if(!name)return toast('프로젝트명은 필수입니다','err');
+    const bizTp=mmVal('유형');
+    if(!bizTp)return toast('사업유형을 선택하세요','err');
     const biz=mmVal('사번'), co=cos.find(c=>c.사업자번호===biz);
     let code=mmVal('코드');
     if(isNew||!code){
       code=genPrjCode(mmVal('유형'));
     }
     const row=isNew?{등록:today()}:prjs[mmIdx];
-    Object.assign(row,{코드:code,명:name,사번:biz,업체명:co?.업체명||'',유형:mmVal('유형'),
+    Object.assign(row,{코드:code,명:name,사번:biz,업체명:co?.업체명||'',유형:bizTp,
       시작:mmVal('시작'),종료:mmVal('종료'),상태:mmVal('상태')});
     if(isNew)prjs.push(row);
     rPrjTable();updBgtPrjSel();

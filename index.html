@@ -1146,45 +1146,50 @@ async function rPcTable(){
     return`<td class="L" style="font-weight:700">${m?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('mem',${mi})">${m.성명}</a>`:r.사번||'-'}</td>`;};
 
   let headers=[], rowFn;
-  const prjCells=(r)=>`<td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${r.프로젝트코드}</td>
-    <td class="L"><a class="tlink" href="#" onclick="event.preventDefault();openPcModal('prj',${pi})">${selPrj?.명||r.프로젝트코드}</a></td>`;
 
   if(group==='SI'){
-    headers=['프로젝트코드','프로젝트명','직원명','사번','업무','등급','시작일','종료일','계획(M/M)','실적(M/M)','계획금액(원)','투입금액(원)','수정'];
-    rowFn=r=>`${prjCells(r)}${memCell(r)}${D(r.사번)}${D(r.업무)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${N(r.매출액)}${N(r.매입금)}`;
+    headers=['직원명','사번','업무','등급','시작일','종료일','계획(M/M)','실적(M/M)','계획금액(원)','투입금액(원)','수정'];
+    rowFn=(r,seq)=>`${memCell(r)}${D(r.사번)}${D(r.업무)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${N(r.매출액)}${N(r.매입금)}`;
   } else if(group==='SM'){
-    headers=['프로젝트코드','프로젝트명','직원명','사번','등급','시작일','종료일','계약(M/M)','실적(M/M)','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','비고','수정'];
-    rowFn=r=>`${prjCells(r)}${memCell(r)}${D(r.사번)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(r.비고)}`;
+    headers=['회차','직원명','사번','등급','시작일','종료일','계약(M/M)','실적(M/M)','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','비고','수정'];
+    rowFn=(r,seq)=>`${D(seq,'R')}${memCell(r)}${D(r.사번)}${GD(r.등급)}${D(r.시작일)}${D(r.종료일)}${MM(r.계획)}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(r.비고)}`;
   } else if(group==='SOL'){
-    headers=['프로젝트코드','프로젝트명','수량','매출계산서발행일','매출단가(원)','매출입금일자','매입계산서발행일','매입단가(원)','매입지급일자','직접경비(원)','매출제품','매입업체','비고','수정'];
-    rowFn=r=>`${prjCells(r)}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(prdName(r.매출제품id))}${D(ptName(r.매입업체id))}${D(r.비고)}`;
+    headers=['회차','수량','매출계산서발행일','매출단가(원)','매출입금일자','매입계산서발행일','매입단가(원)','매입지급일자','직접경비(원)','매출제품','매입업체','비고','수정'];
+    rowFn=(r,seq)=>`${D(seq,'R')}${MM(r.실투입)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(prdName(r.매출제품id))}${D(ptName(r.매입업체id))}${D(r.비고)}`;
   } else { /* MT */
-    headers=['프로젝트코드','프로젝트명','내용','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','매입업체','매출업체','매입내용','비고','수정'];
-    rowFn=r=>`${prjCells(r)}${D(r.업무)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(ptName(r.매입업체id))}${D(ptName(r.매출업체id))}${D(r.매입내용)}${D(r.비고)}`;
+    headers=['회차','내용','매출계산서발행일','매출금액(원)','매출입금일자','매입계산서발행일','매입금액(원)','매입지급일자','직접경비(원)','매입업체','매출업체','매입내용','비고','수정'];
+    rowFn=(r,seq)=>`${D(seq,'R')}${D(r.업무)}${D(r.매출계산서발행일)}${N(r.매출액)}${D(r.매출입금일자)}${D(r.매입계산서발행일)}${N(r.매입금)}${D(r.매입지급일자)}${N(r.직접경비)}${D(ptName(r.매입업체id))}${D(ptName(r.매출업체id))}${D(r.매입내용)}${D(r.비고)}`;
   }
 
   // 헤더 렌더링
   const thead=document.getElementById('pcAllThead');
-  if(thead) thead.innerHTML=headers.map((h,i)=>`<th class="${i<2?'L HL':i===headers.length-1?'':'L'}"${i===headers.length-1?' style="text-align:center"':''}>${h}</th>`).join('');
+  if(thead) thead.innerHTML=headers.map((h,i)=>`<th class="${i===headers.length-1?'':'L'}"${i===headers.length-1?' style="text-align:center"':''}>${h}</th>`).join('');
 
   const vis=allPcRows.filter(r=>(!memF||r.사번===memF));
   const nc=headers.length;
-  body.innerHTML=vis.map(r=>`<tr>${rowFn(r)}<td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi})">수정</button></td></tr>`).join('')
+  body.innerHTML=vis.map((r,i)=>`<tr>${rowFn(r,i+1)}<td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi})">수정</button></td></tr>`).join('')
     ||`<tr><td colspan="${nc}" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>`;
 
   // tfoot 렌더링
   const tfoot=document.getElementById('pcAllFoot');
   if(tfoot){
     const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
-    let footCells='<td colspan="2" class="L" style="font-size:10px;color:var(--mu)">합계</td>';
+    const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
+    const R=(v)=>`<td class="R" style="font-size:10px">${v}</td>`;
+    const E=()=>`<td></td>`;
+    const label=(n)=>`<td colspan="${n}" class="L" style="font-size:10px;color:var(--mu)">합계</td>`;
+    let footCells='';
     if(group==='SI')
-      footCells+=`<td colspan="6"></td><td class="R" style="font-size:10px">${sum('계획').toFixed(2)}</td><td class="R" style="font-size:10px">${sum('실투입').toFixed(2)}</td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td>`;
+      /* 직원명,사번,업무,등급,시작일,종료일=6 | 계획 | 실적 | 계획금액 | 투입금액 | 수정 */
+      footCells=`${label(6)}${R(sum('계획').toFixed(2))}${R(sum('실투입').toFixed(2))}${R('₩'+fmt(sum('매출액')))}${R('₩'+fmt(sum('매입금')))}${E()}`;
     else if(group==='SM')
-      footCells+=`<td colspan="6"></td><td class="R" style="font-size:10px">${sum('계획').toFixed(2)}</td><td class="R" style="font-size:10px">${sum('실투입').toFixed(2)}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td>`;
+      /* 회차,직원명,사번,등급,시작일,종료일=6 | 계약 | 실적 | 매출계산서 | 매출금액 | 매출입금 | 매입계산서 | 매입금액 | 매입지급 | 직접경비 | 비고 | 수정 */
+      footCells=`${label(6)}${R(sum('계획').toFixed(2))}${R(sum('실투입').toFixed(2))}${E()}${R('₩'+fmt(sum('매출액')))}${E()}${E()}${R('₩'+fmt(sum('매입금')))}${E()}${R('₩'+fmt(sum('직접경비')))}${E()}${E()}`;
     else if(group==='SOL')
-      footCells+=`<td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td><td></td><td></td>`;
-    else
-      footCells+=`<td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매출액'))}</td><td></td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('매입금'))}</td><td></td><td class="R" style="font-size:10px">₩${fmt(sum('직접경비'))}</td><td></td><td></td><td></td><td></td><td></td>`;
+      /* 회차=1 | 수량 | 매출계산서 | 매출단가 | 매출입금 | 매입계산서 | 매입단가 | 매입지급 | 직접경비 | 매출제품 | 매입업체 | 비고 | 수정 */
+      footCells=`${label(1)}${E()}${E()}${R('₩'+fmt(sum('매출액')))}${E()}${E()}${R('₩'+fmt(sum('매입금')))}${E()}${R('₩'+fmt(sum('직접경비')))}${E()}${E()}${E()}${E()}`;
+    else /* MT: 회차,내용=2 | 매출계산서 | 매출금액 | 매출입금 | 매입계산서 | 매입금액 | 매입지급 | 직접경비 | 매입업체 | 매출업체 | 매입내용 | 비고 | 수정 */
+      footCells=`${label(2)}${E()}${R('₩'+fmt(sum('매출액')))}${E()}${E()}${R('₩'+fmt(sum('매입금')))}${E()}${R('₩'+fmt(sum('직접경비')))}${E()}${E()}${E()}${E()}${E()}`;
     tfoot.innerHTML=footCells;
   }
 }

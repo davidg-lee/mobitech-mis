@@ -3496,10 +3496,10 @@ async function renderSpList(){
   b.innerHTML=solProducts.map(p=>`<tr style="border-bottom:1px solid var(--br)">
     <td style="padding:7px 10px;color:var(--mu);font-size:10px">${p.product_id}</td>
     <td style="padding:7px 10px;font-weight:600">${escHtml(p.product_name)}</td>
-    <td style="padding:7px 10px;color:var(--mu)">${escHtml(p.product_desc||'')}</td>
+    <td style="padding:7px 10px;color:var(--mu)">${escHtml(p.description||'')}</td>
     <td style="padding:7px 10px;color:var(--mu);font-size:10px">${(p.created_at||'').slice(0,10)}</td>
     <td style="padding:4px 6px;text-align:right">
-      <button class="btn" style="font-size:9px;padding:2px 7px;margin-right:3px" onclick="editSolProd(${p.product_id},'${escQ(p.product_name)}','${escQ(p.product_desc||'')}')">수정</button>
+      <button class="btn" style="font-size:9px;padding:2px 7px;margin-right:3px" onclick="editSolProd(${p.product_id},'${escQ(p.product_name)}','${escQ(p.description||'')}')">수정</button>
       <button class="btn btn-d" style="font-size:9px;padding:2px 7px" onclick="delSolProd(${p.product_id},'${escQ(p.product_name)}')">삭제</button>
     </td>
   </tr>`).join('');
@@ -3520,11 +3520,11 @@ async function saveSolProd(){
   const desc=document.getElementById('spDesc').value.trim()||null;
   const editId=document.getElementById('spEditId').value;
   if(editId){
-    const {error}=await sb.from('sol_product').update({product_name:name,product_desc:desc}).eq('product_id',+editId);
+    const {error}=await sb.from('sol_product').update({product_name:name,description:desc}).eq('product_id',+editId);
     if(error)return spMsg('오류: '+error.message,1);
     spMsg('수정되었습니다 ✓');
   } else {
-    const {error}=await sb.from('sol_product').insert({product_name:name,product_desc:desc});
+    const {error}=await sb.from('sol_product').insert({product_name:name,description:desc});
     if(error)return spMsg('오류: '+error.message,1);
     spMsg('등록되었습니다 ✓');
   }

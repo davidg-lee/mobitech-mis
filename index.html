@@ -1174,7 +1174,6 @@ async function rPcTable(){
   const tfoot=document.getElementById('pcAllFoot');
   if(tfoot){
     const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
-    const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
     const R=(v)=>`<td class="R" style="font-size:10px">${v}</td>`;
     const E=()=>`<td></td>`;
     const label=(n)=>`<td colspan="${n}" class="L" style="font-size:10px;color:var(--mu)">합계</td>`;

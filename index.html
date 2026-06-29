@@ -1165,7 +1165,7 @@ async function rPcTable(){
   // SI 요약 섹션 렌더링
   const summEl=document.getElementById('pcSummary');
   if(summEl){
-    if(group==='SI'||group==='SM'||group==='SOL'){
+    if(group==='SI'||group==='SM'||group==='SOL'||group==='MT'){
       const 수주액=selPrj?.수주액||0;
       let 매출액,직접인건비,외주비,직접경비,상품원가;
       if(group==='SI'){
@@ -1176,11 +1176,15 @@ async function rPcTable(){
         외주비=allPcRows.reduce((s,r)=>s+(+r.매입금||0),0);
         직접경비=allPcRows.reduce((s,r)=>s+(+r.직접경비||0),0);
         상품원가=0;
-      } else { /* SOL */
+      } else if(group==='SOL'){
         매출액=allPcRows.reduce((s,r)=>s+(+r.실투입||0)*(+r.매출액||0),0);
         직접인건비=0; 외주비=0;
         직접경비=allPcRows.reduce((s,r)=>s+(+r.직접경비||0),0);
         상품원가=allPcRows.reduce((s,r)=>s+(+r.실투입||0)*(+r.매입금||0),0);
+      } else { /* MT / SOL/M */
+        매출액=allPcRows.reduce((s,r)=>s+(+r.매출액||0),0);
+        직접인건비=0; 외주비=0; 직접경비=0;
+        상품원가=allPcRows.reduce((s,r)=>s+(+r.매입금||0),0);
       }
       const 매출원가계=직접인건비+외주비+직접경비+상품원가;
       const 매출총이익=수주액-매출원가계;

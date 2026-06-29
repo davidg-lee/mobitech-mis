@@ -377,16 +377,17 @@ select.ec option{background:var(--bg2);color:var(--tx)}
           <th class="L">사번</th>
           <th class="L">업무</th>
           <th class="L">등급</th>
-          <th class="L">년월</th>
+          <th class="L">시작일</th>
+          <th class="L">종료일</th>
           <th class="R">계획(M/M)</th>
           <th class="R">실투입(M/M)</th>
           <th class="R">매출금액(원)</th>
-          <th class="R">실투입금액(원)</th>
+          <th class="R">매입금액(원)</th>
           <th style="text-align:center">수정</th>
         </tr></thead>
         <tbody id="pcAllBody"></tbody>
         <tfoot><tr>
-          <td colspan="7" class="L" style="font-size:10px;color:var(--mu)">합계</td>
+          <td colspan="8" class="L" style="font-size:10px;color:var(--mu)">합계</td>
           <td class="R" id="pcTotPlan">-</td>
           <td class="R" id="pcTotActMm">-</td>
           <td class="R" id="pcTotSales">-</td>
@@ -1067,7 +1068,7 @@ function calcBgt(i){const b=bgtRows[i];b.계약단가=Math.round(b.실행단가*
 /* ── 투입원가 전체 목록 ── */
 async function loadPcAll(){
   if(!DB_MODE){rPcTable();return;}
-  const {data,error}=await sb.from('project_cost').select('*').order('ref_yearmonth');
+  const {data,error}=await sb.from('project_cost').select('*').order('start_date',{nullsFirst:false});
   if(error){console.warn('project_cost load error',error);allPcRows=[];rPcTable();return;}
   allPcRows=(data||[]).map(r=>({
     _id:r.id,
@@ -1075,11 +1076,12 @@ async function loadPcAll(){
     사번:r.emp_no||'',
     업무:r.task||'',
     등급:r.grade||'',
-    년월:(r.ref_yearmonth||'').slice(0,7),
+    시작일:r.start_date||'',
+    종료일:r.end_date||'',
     계획:r.plan_mm||0,
     실투입:r.actual_mm||0,
     매출액:r.sales_amount||0,
-    실투입금:r.actual_cost||0
+    매입금:r.purchase_amount||0
   }));
   updPcFilters();
   rPcTable();
@@ -1113,13 +1115,15 @@ async function rPcTable(){
 
   // 프로젝트 선택 시 해당 프로젝트 데이터만 DB에서 조회
   if(DB_MODE){
-    const {data,error}=await sb.from('project_cost').select('*').eq('project_code',prjF).order('ref_yearmonth');
+    const {data,error}=await sb.from('project_cost').select('*').eq('project_code',prjF).order('start_date',{nullsFirst:false});
     if(error){console.warn('project_cost load error',error);}
     else{
       allPcRows=(data||[]).map(r=>({
         _id:r.id, 프로젝트코드:r.project_code||'', 사번:r.emp_no||'',
-        업무:r.task||'', 등급:r.grade||'', 년월:(r.ref_yearmonth||'').slice(0,7),
-        계획:r.plan_mm||0, 실투입:r.actual_mm||0, 매출액:r.sales_amount||0, 실투입금:r.actual_cost||0
+        업무:r.task||'', 등급:r.grade||'',
+        시작일:r.start_date||'', 종료일:r.end_date||'',
+        계획:r.plan_mm||0, 실투입:r.actual_mm||0,
+        매출액:r.sales_amount||0, 매입금:r.purchase_amount||0
       }));
     }
   }
@@ -1129,18 +1133,18 @@ async function rPcTable(){
   const ymSel=document.getElementById('pcFltYm');
   if(memSel){
     const curMem=memSel.value;
-    const empNos=[...new Set(allPcRows.map(r=>r.사번))].sort();
+    const empNos=[...new Set(allPcRows.map(r=>r.사번).filter(Boolean))].sort();
     memSel.innerHTML='<option value="">전체 직원</option>'+
       empNos.map(e=>{const m=mems.find(x=>x.사번===e);return`<option value="${e}"${e===curMem?' selected':''}>${m?m.성명+' ('+e+')':e}</option>`;}).join('');
   }
   if(ymSel){
     const curYm=ymSel.value;
-    const yms=[...new Set(allPcRows.map(r=>r.년월))].sort();
-    ymSel.innerHTML='<option value="">전체 년월</option>'+
+    const yms=[...new Set(allPcRows.map(r=>r.시작일?.slice(0,7)).filter(Boolean))].sort();
+    ymSel.innerHTML='<option value="">전체 시작년월</option>'+
       yms.map(y=>`<option value="${y}"${y===curYm?' selected':''}>${y}</option>`).join('');
   }
 
-  const vis=allPcRows.filter(r=>(!memF||r.사번===memF)&&(!ymF||r.년월===ymF));
+  const vis=allPcRows.filter(r=>(!memF||r.사번===memF)&&(!ymF||r.시작일?.slice(0,7)===ymF));
   body.innerHTML=vis.map(r=>{
     const p=prjs.find(x=>x.코드===r.프로젝트코드);
     const m=mems.find(x=>x.사번===r.사번);
@@ -1148,24 +1152,25 @@ async function rPcTable(){
     return`<tr>
       <td class="L M" style="font-family:'JetBrains Mono',monospace;font-size:10px">${r.프로젝트코드}</td>
       <td class="L">${pi>=0?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('prj',${pi})">${p.명}</a>`:r.프로젝트코드}</td>
-      <td class="L" style="font-weight:700">${mi>=0?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('mem',${mi})">${m.성명}</a>`:r.사번}</td>
-      <td class="L M" style="font-size:10px">${r.사번}</td>
-      <td class="L">${r.업무}</td>
-      <td class="L"><span class="badge bwn">${r.등급}</span></td>
-      <td class="L M" style="font-size:10px">${r.년월}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.계획}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입}</td>
+      <td class="L" style="font-weight:700">${m?`<a class="tlink" href="#" onclick="event.preventDefault();openPcModal('mem',${mi})">${m.성명}</a>`:r.사번||'-'}</td>
+      <td class="L M" style="font-size:10px">${r.사번||'-'}</td>
+      <td class="L">${r.업무||'-'}</td>
+      <td class="L">${r.등급?`<span class="badge bwn">${r.등급}</span>`:'-'}</td>
+      <td class="L M" style="font-size:10px">${r.시작일||'-'}</td>
+      <td class="L M" style="font-size:10px">${r.종료일||'-'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.계획||'-'}</td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입||'-'}</td>
       <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.매출액?'₩'+fmt(r.매출액):'-'}</td>
-      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.실투입금?'₩'+fmt(r.실투입금):'-'}</td>
-      <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModalByRow('${r.프로젝트코드}','${r.사번}')">수정</button></td>
+      <td style="text-align:right;font-family:'JetBrains Mono',monospace;font-size:10px">${r.매입금?'₩'+fmt(r.매입금):'-'}</td>
+      <td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi>=0?pi:0})">수정</button></td>
     </tr>`;
-  }).join('')||'<tr><td colspan="12" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>';
-  const sum=(k)=>vis.reduce((s,r)=>s+r[k],0);
+  }).join('')||'<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>';
+  const sum=(k)=>vis.reduce((s,r)=>s+(+r[k]||0),0);
   const se=id=>document.getElementById(id);
   se('pcTotPlan').textContent=sum('계획').toFixed(2);
   se('pcTotActMm').textContent=sum('실투입').toFixed(2);
   se('pcTotSales').textContent='₩'+fmt(sum('매출액'));
-  se('pcTotCost').textContent='₩'+fmt(sum('실투입금'));
+  se('pcTotCost').textContent='₩'+fmt(sum('매입금'));
 }
 
 function openPcModalByRow(prjCode,empNo){

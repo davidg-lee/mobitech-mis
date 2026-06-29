@@ -299,6 +299,8 @@ select.ec option{background:var(--bg2);color:var(--tx)}
       <button class="tbtn"    onclick="showTab('mPrj',this)">② DB_Project_Master</button>
       <button class="tbtn"    onclick="showTab('mBgt',this)">③ DB_Budget_Plan</button>
       <button class="tbtn"    onclick="showTab('mMem',this)">④ DB_Member_Master</button>
+      <button class="btn" style="margin-left:auto;border-color:rgba(0,212,255,0.4);font-size:11px" onclick="openSolProdModal()">📦 솔루션제품관리</button>
+      <button class="btn" style="border-color:rgba(0,212,255,0.4);font-size:11px" onclick="openPartnerModal()">🤝 협력업체관리</button>
     </div>
 
     <!-- ① 업체 마스터 -->
@@ -404,8 +406,6 @@ select.ec option{background:var(--bg2);color:var(--tx)}
         <button class="btn btn-excel" onclick="importExcel('mem')">📥 엑셀 불러오기</button>
         <button class="btn btn-g" onclick="downloadForm('mem')">📋 폼 다운로드</button>
         <button class="btn btn-d" onclick="delChk('memBody','mems','rMaster')">− 선택삭제</button>
-        <button class="btn" style="margin-left:auto;border-color:rgba(0,212,255,0.4)" onclick="openSolProdModal()">📦 솔루션제품관리</button>
-        <button class="btn" style="border-color:rgba(0,212,255,0.4)" onclick="openPartnerModal()">🤝 협력업체관리</button>
       </div>
       <div class="tw"><table>
         <thead><tr>

@@ -2496,7 +2496,7 @@ function saveEntryModal(){
     }
     const row=isNew?{등록:today()}:prjs[mmIdx];
     Object.assign(row,{코드:code,명:name,사번:biz,업체명:co?.업체명||'',유형:bizTp,
-      시작:mmVal('시작'),종료:mmVal('종료'),상태:mmVal('상태')});
+      시작:mmVal('시작'),종료:mmVal('종료'),상태:mmVal('상태'),수주액:pn(mmVal('수주액'))});
     if(isNew)prjs.push(row);
     rPrjTable();updBgtPrjSel();
     savePrjRow(isNew?prjs.length-1:mmIdx);

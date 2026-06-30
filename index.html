@@ -793,6 +793,7 @@ let bgtRows=[];  // 예산 계획
 let pcRows=[];    // 투입원가 모달 작업용
 let allPcRows=[]; // 투입원가 전체 목록
 let pcCtx={};     // 투입원가 모달 컨텍스트
+let pcEditSingleId=null; // 단일 행 수정 모드 시 해당 row id
 let pnlData=[];  // 프로젝트 손익
 let pipeRows=[]; // 영업 파이프라인
 let sRows=[];    // 매출 세금계산서
@@ -1220,7 +1221,7 @@ async function rPcTable(){
 
   const vis=allPcRows.filter(r=>(!memF||r.사번===memF));
   const nc=headers.length;
-  body.innerHTML=vis.map((r,i)=>`<tr>${rowFn(r,i+1)}<td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcModal('prj',${pi})">수정</button></td></tr>`).join('')
+  body.innerHTML=vis.map((r,i)=>`<tr>${rowFn(r,i+1)}<td style="text-align:center"><button class="btn" style="font-size:9px;padding:2px 6px" onclick="openPcRowEdit('${r._id}')">수정</button></td></tr>`).join('')
     ||`<tr><td colspan="${nc}" style="text-align:center;padding:20px;color:var(--mu)">데이터가 없습니다</td></tr>`;
 
   // tfoot 렌더링
@@ -3390,8 +3391,44 @@ function renderPcBody(){
     return;
   }
   b.innerHTML=pcRows.map((r,i)=>
-    `<tr>${cols.map(c=>`<td>${c.td(r,i)}</td>`).join('')}<td><button onclick="pcRows.splice(${i},1);renderPcBody()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px">✕</button></td></tr>`
+    `<tr>${cols.map(c=>`<td>${c.td(r,i)}</td>`).join('')}<td>${pcEditSingleId?'':'<button onclick="pcRows.splice('+i+',1);renderPcBody()" style="background:none;border:none;color:var(--red);cursor:pointer;font-size:14px;padding:2px 4px">✕</button>'}</td></tr>`
   ).join('');
+  document.querySelector('.pc-add').style.display=pcEditSingleId?'none':'';
+}
+
+async function openPcRowEdit(id){
+  if(!DB_MODE)return;
+  const {data,error}=await sb.from('project_cost').select('*').eq('id',id).single();
+  if(error||!data){toast('행 조회 실패','err');return;}
+  const pi=prjs.findIndex(p=>p.코드===data.project_code);
+  pcEditSingleId=id;
+  pcCtx={type:'prj',idx:pi>=0?pi:0};
+  const p=prjs[pi>=0?pi:0];
+  const badge=p?`<span style="font-size:10px;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(0,212,255,0.15);color:var(--acc)">${p.유형}</span>`:'';
+  document.getElementById('pcTitle').innerHTML=`투입원가 수정 — <span style="color:var(--acc)">${p?.명||data.project_code}</span>${badge}`;
+  document.getElementById('pcFixedLabel').innerHTML=`<span>프로젝트</span>${p?.명||data.project_code}`;
+  document.getElementById('pcSelWrap').innerHTML='';
+  pcRows=[{
+    _id:data.id,
+    task:data.task||'', emp_no:data.emp_no||'', grade:data.grade||'고급',
+    start_date:data.start_date||'', end_date:data.end_date||'',
+    plan_mm:data.plan_mm??'', actual_mm:data.actual_mm??'',
+    sales_invoice_date:data.sales_invoice_date||'',
+    sales_amount:data.sales_amount??'',
+    sales_receipt_date:data.sales_receipt_date||'',
+    purchase_invoice_date:data.purchase_invoice_date||'',
+    purchase_amount:data.purchase_amount??'',
+    purchase_pay_date:data.purchase_pay_date||'',
+    direct_expense:data.direct_expense??'',
+    remark:data.remark||'',
+    sales_product_id:data.sales_product_id||'',
+    purchase_partner_id:data.purchase_partner_id||'',
+    sales_partner_id:data.sales_partner_id||'',
+    purchase_content:data.purchase_content||'',
+  }];
+  renderPcBody();
+  pcMsg('');
+  document.getElementById('pcOverlay').classList.add('on');
 }
 
 function openPcModal(type,idx){
@@ -3472,6 +3509,38 @@ function addPcRow(){
 
 async function savePcModal(){
   if(!DB_MODE)return;
+
+  /* 단일 행 수정 모드 */
+  if(pcEditSingleId){
+    const r=pcRows[0];
+    const bizType=getPcBizType();
+    const group=getBizGroup(bizType||'SI');
+    const needEmp=['SI','SM'].includes(group);
+    const {error}=await sb.from('project_cost').update({
+      task:r.task||null, emp_no:needEmp?(r.emp_no||null):null, grade:r.grade||null,
+      start_date:r.start_date||null, end_date:r.end_date||null,
+      plan_mm:r.plan_mm===''?null:+r.plan_mm,
+      actual_mm:r.actual_mm===''?null:+r.actual_mm,
+      sales_invoice_date:r.sales_invoice_date||null,
+      sales_amount:r.sales_amount===''?null:+r.sales_amount,
+      sales_receipt_date:r.sales_receipt_date||null,
+      purchase_invoice_date:r.purchase_invoice_date||null,
+      purchase_amount:r.purchase_amount===''?null:+r.purchase_amount,
+      purchase_pay_date:r.purchase_pay_date||null,
+      direct_expense:r.direct_expense===''?null:+r.direct_expense,
+      remark:r.remark||null,
+      sales_product_id:r.sales_product_id||null,
+      purchase_partner_id:r.purchase_partner_id||null,
+      sales_partner_id:r.sales_partner_id||null,
+      purchase_content:r.purchase_content||null,
+    }).eq('id',pcEditSingleId);
+    if(error)return pcMsg('오류: '+error.message,1);
+    pcMsg('저장되었습니다 ✓');
+    await rPcTable();
+    setTimeout(closePcModal,900);
+    return;
+  }
+
   const prjCode=pcCtx.type==='mem'
     ?document.getElementById('pcPrjSel')?.value
     :prjs[pcCtx.idx]?.코드;
@@ -3524,6 +3593,7 @@ async function savePcModal(){
 }
 
 function closePcModal(){
+  pcEditSingleId=null;
   document.getElementById('pcOverlay').classList.remove('on');
   pcRows=[];pcCtx={};
 }

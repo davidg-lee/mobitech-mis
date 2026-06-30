@@ -366,6 +366,7 @@ select.ec option{background:var(--bg2);color:var(--tx)}
           <option value="">전체 직원</option>
         </select>
         <button id="pcRegBtn" class="btn btn-p" style="display:none;font-size:11px" onclick="openPcModalFromBgt()">+ 등록</button>
+        <button id="pcXlsBtn" class="btn btn-excel" style="display:none;font-size:11px" onclick="downloadPcExcel()">📥 엑셀 다운로드</button>
       </div>
       <div id="pcSummary" style="display:none;margin-bottom:8px;overflow-x:auto"></div>
       <div class="tw"><table>
@@ -1088,13 +1089,16 @@ async function rPcTable(){
   const body=document.getElementById('pcAllBody');if(!body)return;
 
   const regBtn=document.getElementById('pcRegBtn');
+  const xlsBtn=document.getElementById('pcXlsBtn');
   if(!prjF){
     if(regBtn)regBtn.style.display='none';
+    if(xlsBtn)xlsBtn.style.display='none';
     body.innerHTML='<tr><td colspan="13" style="text-align:center;padding:20px;color:var(--mu)">프로젝트를 선택하세요</td></tr>';
     ['pcTotPlan','pcTotActMm','pcTotSales','pcTotCost'].forEach(id=>{const el=document.getElementById(id);if(el)el.textContent='-';});
     return;
   }
   if(regBtn)regBtn.style.display='';
+  if(xlsBtn)xlsBtn.style.display='';
 
   // 프로젝트 선택 시 해당 프로젝트 데이터만 DB에서 조회
   if(DB_MODE){
@@ -1249,6 +1253,90 @@ async function rPcTable(){
       footCells=`${label(3)}${E()}${R('₩'+fmt(sum('매출액')))}${E()}${E()}${E()}${E()}${R('₩'+fmt(sum('매입금')))}${E()}${R('₩'+fmt(sum('직접경비')))}${E()}${E()}`;
     tfoot.innerHTML=footCells;
   }
+}
+
+function downloadPcExcel(){
+  const prjF=document.getElementById('pcFltPrj')?.value||'';
+  const memF=document.getElementById('pcFltMem')?.value||'';
+  const selPrj=prjs.find(x=>x.코드===prjF);
+  if(!selPrj)return toast('프로젝트를 선택하세요','err');
+
+  const bizType=selPrj.유형||'';
+  const group=bizType?getBizGroup(bizType):'SI';
+  const prdName=(id)=>solProducts.find(p=>String(p.product_id)===String(id))?.product_name||id||'';
+  const ptName=(id)=>partnerCompanies.find(p=>String(p.partner_id)===String(id))?.partner_name||id||'';
+
+  /* 손익 요약 계산 */
+  const 수주액=selPrj.수주액||0;
+  let 매출액,직접인건비,외주비,직접경비,상품원가;
+  const vis=allPcRows.filter(r=>(!memF||r.사번===memF));
+  if(group==='SI'){
+    매출액=수주액; 직접인건비=0; 외주비=0; 직접경비=0; 상품원가=0;
+  } else if(group==='SM'){
+    매출액=vis.reduce((s,r)=>s+(+r.매출액||0),0);
+    직접인건비=0; 외주비=vis.reduce((s,r)=>s+(+r.매입금||0),0);
+    직접경비=vis.reduce((s,r)=>s+(+r.직접경비||0),0); 상품원가=0;
+  } else if(group==='SOL'){
+    매출액=vis.reduce((s,r)=>s+(+r.실투입||0)*(+r.매출액||0),0);
+    직접인건비=0; 외주비=0;
+    직접경비=vis.reduce((s,r)=>s+(+r.직접경비||0),0);
+    상품원가=vis.reduce((s,r)=>s+(+r.실투입||0)*(+r.매입금||0),0);
+  } else {
+    매출액=vis.reduce((s,r)=>s+(+r.매출액||0),0);
+    직접인건비=0; 외주비=0; 직접경비=0;
+    상품원가=vis.reduce((s,r)=>s+(+r.매입금||0),0);
+  }
+  const 매출원가계=직접인건비+외주비+직접경비+상품원가;
+  const 매출총이익=수주액-매출원가계;
+  const 공통제경비=Math.round(수주액*0.15);
+  const 영업이익=매출총이익-공통제경비;
+
+  /* 시트 데이터 구성 */
+  const aoa=[];
+
+  /* 프로젝트 정보 */
+  aoa.push([`프로젝트: ${selPrj.명} (${selPrj.코드})`, '', `사업유형: ${selPrj.유형}`]);
+  aoa.push([]);
+
+  /* 손익 요약 행 */
+  aoa.push(['손익 요약']);
+  aoa.push(['총수주액','매출액','직접인건비','외주비','직접경비','상품원가','매출원가계','매출총이익','공통제경비(15%)','영업이익']);
+  aoa.push([수주액,매출액,직접인건비,외주비,직접경비,상품원가,매출원가계,매출총이익,공통제경비,영업이익]);
+  aoa.push([]);
+
+  /* 그리드 헤더 — 수정 컬럼 제외 */
+  let gridHeaders=[], rowMapper;
+  const memName=(r)=>{const m=mems.find(x=>x.사번===r.사번);return m?m.성명:r.사번||'';};
+  if(group==='SI'){
+    gridHeaders=['업무','담당자','등급','시작일','종료일','계획공수(M/M)','실투입공수(M/M)','계획금액(원)','실투입금액(원)'];
+    rowMapper=(r,i)=>[r.업무,memName(r),r.등급,r.시작일,r.종료일,r.계획,r.실투입,r.매출액,r.매입금];
+  } else if(group==='SM'){
+    gridHeaders=['회차','담당자/업체명','등급','시작일','종료일','계약공수','실적공수','매출계산서발행일','매출금액(vat포함)','입금일자','매입계산서발행일','매입금액(vat포함)','지급일자','직접경비','비고'];
+    rowMapper=(r,i)=>[i+1,memName(r),r.등급,r.시작일,r.종료일,r.계획,r.실투입,r.매출계산서발행일,r.매출액,r.매출입금일자,r.매입계산서발행일,r.매입금,r.매입지급일자,r.직접경비,r.비고];
+  } else if(group==='SOL'){
+    gridHeaders=['회차','제품명','수량','매출단가(원)','매출계산서발행일','매출금액(vat포함)','입금일자','매입업체명','매입단가(원)','매입계산서발행일','매입금액(vat포함)','지급일자','직접경비','비고'];
+    rowMapper=(r,i)=>[i+1,prdName(r.매출제품id),r.실투입,r.매출액,r.매출계산서발행일,(+r.실투입||0)*(+r.매출액||0),r.매출입금일자,ptName(r.매입업체id),r.매입금,r.매입계산서발행일,(+r.실투입||0)*(+r.매입금||0),r.매입지급일자,r.직접경비,r.비고];
+  } else {
+    gridHeaders=['회차','매출업체명','매출내용','매출계산서발행일','매출금액(vat포함)','입금일자','매입업체명','매입내용','매입계산서발행일','지급금액(vat포함)','지급일자','직접경비','비고'];
+    rowMapper=(r,i)=>[i+1,ptName(r.매출업체id),r.업무,r.매출계산서발행일,r.매출액,r.매출입금일자,ptName(r.매입업체id),r.매입내용,r.매입계산서발행일,r.매입금,r.매입지급일자,r.직접경비,r.비고];
+  }
+
+  aoa.push(['투입원가 명세']);
+  aoa.push(gridHeaders);
+  vis.forEach((r,i)=>aoa.push(rowMapper(r,i)));
+
+  /* SheetJS 출력 */
+  const ws=XLSX.utils.aoa_to_sheet(aoa);
+  /* 숫자 행(손익요약값) 서식 */
+  const moneyFmt='#,##0';
+  const summaryRow=4; // 0-based: 손익값이 index 4
+  gridHeaders.forEach((_,ci)=>{
+    const addr=XLSX.utils.encode_cell({r:summaryRow,c:ci});
+    if(ws[addr]&&typeof ws[addr].v==='number')ws[addr].z=moneyFmt;
+  });
+  const wb=XLSX.utils.book_new();
+  XLSX.utils.book_append_sheet(wb,ws,'손익현황');
+  XLSX.writeFile(wb,`${selPrj.코드}_손익현황_${today()}.xlsx`);
 }
 
 function openPcModalFromBgt(){

@@ -3154,6 +3154,7 @@ initApp().finally(()=>window.authInit?.());
 .pc-inp:focus{border-color:var(--acc)}
 .pc-inp.sm{width:70px}
 .pc-inp.md{width:100px}
+.pc-inp.lg{width:140px}
 .pc-add{margin-top:8px}
 .tlink{color:var(--acc);text-decoration:none;cursor:pointer}
 .tlink:hover{text-decoration:underline}
@@ -3161,7 +3162,7 @@ initApp().finally(()=>window.authInit?.());
 
 <!-- ══ 투입원가 모달 ══ -->
 <div class="mm-ov" id="pcOverlay" onclick="if(event.target===this)closePcModal()">
-  <div class="mm-box" style="max-width:820px">
+  <div class="mm-box" style="max-width:1100px">
     <div class="mm-hd"><h3 id="pcTitle">투입원가 관리</h3><button class="mm-x" onclick="closePcModal()">✕</button></div>
     <div class="pc-sel-bar">
       <div class="pc-fixed" id="pcFixedLabel"></div>
@@ -3306,7 +3307,7 @@ function pcColDefs(group){
   const tx=(f,r,i,ph='')=>`<input class="pc-inp md" value="${esc(r[f])}" onchange="pcRows[${i}]['${f}']=this.value" placeholder="${ph}">`;
   const nm=(f,r,i,cls='sm',step='')=>`<input type="number" class="pc-inp ${cls}" value="${r[f]??''}" onchange="pcRows[${i}]['${f}']=+this.value" style="text-align:right"${step?' step="'+step+'"':''}>`;
   const dt=(f,r,i)=>`<input type="date" class="pc-inp md" value="${r[f]??''}" onchange="pcRows[${i}]['${f}']=this.value">`;
-  const sl=(f,r,i,opts)=>`<select class="pc-inp" onchange="pcRows[${i}]['${f}']=this.value">${opts(r[f])}</select>`;
+  const sl=(f,r,i,opts,cls='lg')=>`<select class="pc-inp ${cls}" onchange="pcRows[${i}]['${f}']=this.value">${opts(r[f])}</select>`;
 
   if(group==='SI') return [
     {th:'업무',         td:(r,i)=>tx('task',r,i,'업무명')},

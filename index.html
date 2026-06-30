@@ -1263,7 +1263,8 @@ function openPcModalFromBgt(){
   const badge=`<span style="font-size:10px;margin-left:6px;padding:1px 6px;border-radius:4px;background:rgba(0,212,255,0.15);color:var(--acc)">${p.유형}</span>`;
   document.getElementById('pcTitle').innerHTML=`투입원가 등록 — <span style="color:var(--acc)">${p.명}</span>${badge}`;
   document.getElementById('pcFixedLabel').innerHTML=`<span>프로젝트</span>${p.명}`;
-  document.getElementById('pcSelWrap').innerHTML='';
+  document.getElementById('pcSelWrap').innerHTML=
+    `<button class="btn btn-p" style="font-size:11px;padding:5px 10px;white-space:nowrap" onclick="openEntryModal('mem')">+ 투입직원등록</button>`;
   pcRows=[{
     task:'', emp_no:'', grade:'고급',
     start_date:'', end_date:'',
